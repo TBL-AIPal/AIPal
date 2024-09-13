@@ -1,7 +1,8 @@
 packages:
   # include packages in subfolders 
-  - 'src/**'
-  - 'public/**'
+  - 'packages/*'
   # if required, exclude directories
+  - '!**/tests/**'
   - '!**/__tests__/**'
   - '!**/__mocks__/**'
+  
