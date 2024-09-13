@@ -1,8 +1,4 @@
-Here's the updated README section that reflects the changes to the root `package.json` scripts:
-
----
-
-# My Monorepo Project
+# AI Pal Project
 
 This monorepo contains both a **Node.js/Express server** and a **Next.js client** app. Below are instructions on how to set up and run the project, including linting and formatting with **ESLint** and **Prettier**.
 
@@ -172,7 +168,3 @@ pnpm test:watch
 ## License
 
 [MIT](LICENSE)
-
----
-
-This updated README includes the new root-level scripts for linting and formatting, ensuring a unified approach to managing code quality across your monorepo. Let me know if you need any more changes!
