@@ -5,7 +5,6 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "concurrently \"pnpm --filter ./packages/server dev\" \"pnpm --filter ./packages/client dev\"",
-    "build": "concurrently \"pnpm --filter ./packages/server build\" \"pnpm --filter ./packages/client build\"",
     "start": "concurrently \"pnpm --filter ./packages/server start\" \"pnpm --filter ./packages/client start\"",
     "lint": "pnpm --parallel --filter ./packages/* lint",
     "lint:fix": "pnpm --parallel --filter ./packages/* lint:fix",
