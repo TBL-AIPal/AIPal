@@ -15,6 +15,7 @@ const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 
 const app = express();
+const chatgptRoute = require('./chatgpt'); // Import the route
 
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
@@ -52,6 +53,7 @@ if (config.env === 'production') {
 
 // v1 api routes
 app.use('/v1', routes);
+app.use('/api', chatgptRoute); // Set up the route
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {
