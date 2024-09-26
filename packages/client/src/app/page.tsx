@@ -30,22 +30,12 @@ export default function HomePage() {
         conversation: updatedConversation,
       });
 
-      // Get responses from agents
-      const agentResponses = res.data.responses;
+      // Get responses from the backend
+      const finalConversation = res.data.responses;
 
-      // Append agent responses to conversation
-      const updatedWithResponses = [
-        ...updatedConversation,
-        ...agentResponses.map((response) => ({
-          role: response.role,
-          content: response.content,
-        })),
-      ];
-
-      // Update the conversation state with agent responses
-      setConversation(updatedWithResponses);
+      // Update the conversation state with the final modified response
+      setConversation(finalConversation);
     } catch (error) {
-      // console.error('Error calling ChatGPT:', error);
       const errorMessage = {
         role: 'assistant',
         content: 'An error occurred. Please try again.',
