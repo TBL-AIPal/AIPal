@@ -20,6 +20,7 @@ const courseSchema = new mongoose.Schema(
           throw new Error('API Key must be valid');
         }
       },
+      private: true, // used by the toJSON plugin
     },
     llmConstraints: {
       type: [String],

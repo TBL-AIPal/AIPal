@@ -27,6 +27,16 @@ const userTwo = {
   courses: [],
 };
 
+const staff = {
+  _id: mongoose.Types.ObjectId(),
+  name: faker.name.findName(),
+  email: faker.internet.email().toLowerCase(),
+  password,
+  role: 'admin',
+  isEmailVerified: false,
+  courses: [],
+};
+
 const admin = {
   _id: mongoose.Types.ObjectId(),
   name: faker.name.findName(),
@@ -44,6 +54,7 @@ const insertUsers = async (users) => {
 module.exports = {
   userOne,
   userTwo,
+  staff,
   admin,
   insertUsers,
 };
