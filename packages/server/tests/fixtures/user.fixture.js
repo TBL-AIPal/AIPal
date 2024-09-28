@@ -14,6 +14,7 @@ const userOne = {
   password,
   role: 'user',
   isEmailVerified: false,
+  courses: [],
 };
 
 const userTwo = {
@@ -23,6 +24,7 @@ const userTwo = {
   password,
   role: 'user',
   isEmailVerified: false,
+  courses: [],
 };
 
 const admin = {
@@ -32,6 +34,7 @@ const admin = {
   password,
   role: 'admin',
   isEmailVerified: false,
+  courses: [],
 };
 
 const insertUsers = async (users) => {
