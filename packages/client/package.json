@@ -17,6 +17,7 @@
     "postbuild": "next-sitemap --config next-sitemap.config.js"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "clsx": "^2.0.0",
     "lucide-react": "^0.438.0",
     "next": "^14.2.7",
