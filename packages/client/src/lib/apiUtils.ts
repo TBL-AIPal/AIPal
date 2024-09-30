@@ -10,7 +10,7 @@ interface RequestOptions extends RequestInit {
 async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
-): Promise<T> {
+): Promise<T | undefined> {
   const url = `${apiUrl}${endpoint}`;
 
   // Only set 'Content-Type' if the body is not FormData
@@ -36,11 +36,18 @@ async function request<T>(
     throw new Error(errorMessage);
   }
 
+  if (response.status === 204) {
+    return undefined;
+  }
+
   // Explicitly returning as Promise<T> to maintain type safety
   return response.json() as Promise<T>;
 }
 
-export async function get<T>(endpoint: string, token?: string): Promise<T> {
+export async function get<T>(
+  endpoint: string,
+  token?: string
+): Promise<T | undefined> {
   return request<T>(endpoint, { method: 'GET', token });
 }
 
@@ -48,7 +55,7 @@ export async function post<T, U>(
   endpoint: string,
   data: U,
   token?: string
-): Promise<T> {
+): Promise<T | undefined> {
   return request<T>(endpoint, {
     method: 'POST',
     body: JSON.stringify(data),
@@ -60,7 +67,7 @@ export async function postWithFile<T>(
   endpoint: string,
   data: FormData,
   token?: string
-): Promise<T> {
+): Promise<T | undefined> {
   return request<T>(endpoint, {
     method: 'POST',
     body: data,
@@ -72,7 +79,7 @@ export async function put<T, U>(
   endpoint: string,
   data: U,
   token?: string
-): Promise<T> {
+): Promise<T | undefined> {
   return request<T>(endpoint, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -80,6 +87,9 @@ export async function put<T, U>(
   });
 }
 
-export async function del<T>(endpoint: string, token?: string): Promise<T> {
+export async function del<T>(
+  endpoint: string,
+  token?: string
+): Promise<T | undefined> {
   return request<T>(endpoint, { method: 'DELETE', token });
 }

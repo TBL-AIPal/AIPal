@@ -27,10 +27,9 @@ const createDocument = async (courseId, documentBody) => {
  */
 const getDocumentsByCourseId = async (courseId) => {
   const documents = await Document.find({ course: courseId });
-  if (!documents.length) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Document(s) not found');
-  }
-  return documents;
+
+  // Return an empty array if no documents are found
+  return documents.length ? documents : [];
 };
 
 /**

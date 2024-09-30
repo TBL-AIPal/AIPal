@@ -13,6 +13,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({ children }) => {
             <th className='px-4 py-2 border-b'>Filename</th>
             <th className='px-4 py-2 border-b'>Timestamp</th>
             <th className='px-4 py-2 border-b'>Size</th>
+            <th className='px-4 py-2 border-b'>Actions</th>
           </tr>
         </thead>
         <tbody>{children}</tbody>

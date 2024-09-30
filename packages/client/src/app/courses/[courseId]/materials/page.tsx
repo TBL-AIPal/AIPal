@@ -3,8 +3,7 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { get } from '@/lib/apiUtils';
-import { postWithFile } from '@/lib/apiUtils';
+import { del, get, postWithFile } from '@/lib/apiUtils';
 import logger from '@/lib/logger';
 
 import FileUpload from '@/components/FileUpload';
@@ -14,7 +13,7 @@ import DocumentTable from '@/components/tables/document/DocumentTable';
 import { jwtToken } from '@/constant/env';
 
 type Document = {
-  _id: string;
+  id: string;
   filename: string;
   createdAt: string;
   size: number;
@@ -30,7 +29,7 @@ const Materials: React.FC = () => {
     try {
       const res = await get<Document[]>(`/v1/documents/${courseId}`, jwtToken);
       logger(res, 'Fetched documents successfully');
-      setDocuments(res);
+      setDocuments(res || []); // Use empty array as fallback
     } catch (error) {
       logger(error, 'Error fetching documents');
     }
@@ -53,9 +52,19 @@ const Materials: React.FC = () => {
       logger(response, 'Files uploaded successfully!');
 
       // Refetch documents after a successful upload
-      fetchDocuments();
+      await fetchDocuments();
     } catch (error) {
       logger(error, 'File upload failed.');
+    }
+  };
+
+  const handleDelete = async (documentId: string) => {
+    try {
+      await del(`/v1/documents/${courseId}/${documentId}`, jwtToken);
+      logger('Document deleted successfully');
+      await fetchDocuments();
+    } catch (error) {
+      logger(error, 'Failed to delete document');
     }
   };
 
@@ -73,10 +82,11 @@ const Materials: React.FC = () => {
       <DocumentTable>
         {documents.map((document) => (
           <DocumentRow
-            key={document._id}
+            key={document.id}
             name={document.filename}
             timestamp={document.createdAt}
             size={`${(document.size / 1024).toFixed(2)} KB`}
+            onDelete={() => handleDelete(document.id)}
           />
         ))}
       </DocumentTable>
