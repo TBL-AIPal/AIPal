@@ -33,7 +33,7 @@ const courseSchema = new mongoose.Schema(
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
-    template: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }],
+    templates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }],
   },
   {
     timestamps: true,

@@ -3,8 +3,9 @@ const faker = require('faker');
 const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
-const { Course } = require('../../src/models');
+const { Course, Template } = require('../../src/models');
 const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
+const { templateOne, templateTwo, insertTemplates } = require('../fixtures/template.fixture');
 const { courseOne, courseTwo, insertCourses } = require('../fixtures/course.fixture');
 const { userOneAccessToken, userTwoAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
 
@@ -46,7 +47,9 @@ describe('Course routes', () => {
         llmConstraints: [],
         staff: [],
         students: [],
-        template: [],
+        templates: [],
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
       });
 
       const dbCourse = await Course.findById(res.body.id);
@@ -206,9 +209,39 @@ describe('Course routes', () => {
       await insertUsers([admin]);
       await insertCourses([courseOne, courseTwo]);
       await request(app)
+        .delete(`/v1/courses/${courseTwo._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(httpStatus.NO_CONTENT);
+    });
+
+    test('should return 204 if data is ok and delete associated templates', async () => {
+      await insertUsers([admin]);
+      await insertCourses([courseOne, courseTwo]);
+      await insertTemplates([templateOne, templateTwo]);
+
+      // Check the initial state before deletion
+      const dbCourseBefore = await Course.findById(courseOne._id).populate('templates');
+      const dbTemplateOneBefore = await Template.findById(templateOne._id);
+      const dbTemplateTwoBefore = await Template.findById(templateTwo._id);
+
+      expect(dbCourseBefore).not.toBeNull();
+      expect(dbTemplateOneBefore).not.toBeNull();
+      expect(dbTemplateTwoBefore).not.toBeNull();
+
+      // Perform the delete request
+      await request(app)
         .delete(`/v1/courses/${courseOne._id}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(httpStatus.NO_CONTENT);
+
+      // Check if the course and its associated templates are deleted
+      const dbCourseAfter = await Course.findById(courseOne._id);
+      const dbTemplateOneAfter = await Template.findById(templateOne._id);
+      const dbTemplateTwoAfter = await Template.findById(templateTwo._id);
+
+      expect(dbCourseAfter).toBeNull();
+      expect(dbTemplateOneAfter).toBeNull();
+      expect(dbTemplateTwoAfter).toBeNull();
     });
 
     test('should return 401 error if access token is missing', async () => {

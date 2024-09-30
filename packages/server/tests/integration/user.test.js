@@ -39,6 +39,8 @@ describe('User routes', () => {
         role: newUser.role,
         isEmailVerified: false,
         courses: [],
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
       });
 
       const dbUser = await User.findById(res.body.id);
@@ -166,6 +168,8 @@ describe('User routes', () => {
         role: userOne.role,
         isEmailVerified: userOne.isEmailVerified,
         courses: userOne.courses,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
       });
     });
 
@@ -370,6 +374,8 @@ describe('User routes', () => {
         role: userOne.role,
         isEmailVerified: userOne.isEmailVerified,
         courses: userOne.courses,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
       });
     });
 
@@ -504,6 +510,8 @@ describe('User routes', () => {
         role: 'user',
         isEmailVerified: false,
         courses: userOne.courses,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
       });
 
       const dbUser = await User.findById(userOne._id);

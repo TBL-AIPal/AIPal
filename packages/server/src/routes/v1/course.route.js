@@ -3,6 +3,8 @@ const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
 const courseValidation = require('../../validations/course.validation');
 const courseController = require('../../controllers/course.controller');
+const templateValidation = require('../../validations/template.validation');
+const templateController = require('../../controllers/template.controller');
 
 const router = express.Router();
 
@@ -16,6 +18,17 @@ router
   .get(auth('getCourses'), validate(courseValidation.getCourse), courseController.getCourse)
   .patch(auth('manageCourses'), validate(courseValidation.updateCourse), courseController.updateCourse)
   .delete(auth('manageCourses'), validate(courseValidation.deleteCourse), courseController.deleteCourse);
+
+router
+  .route('/:courseId/templates')
+  .post(auth('manageTemplates'), validate(templateValidation.createTemplate), templateController.createTemplate)
+  .get(auth('getTemplates'), validate(templateValidation.getTemplates), templateController.getTemplates);
+
+router
+  .route('/:courseId/templates/:templateId')
+  .get(auth('getTemplates'), validate(templateValidation.getTemplate), templateController.getTemplate)
+  .patch(auth('manageTemplates'), validate(templateValidation.updateTemplate), templateController.updateTemplate)
+  .delete(auth('manageTemplates'), validate(templateValidation.deleteTemplate), templateController.deleteTemplate);
 
 module.exports = router;
 
@@ -223,6 +236,202 @@ module.exports = router;
  *     responses:
  *       "200":
  *         description: No content
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ */
+
+/**
+ * @swagger
+ * /courses/{courseId}/templates:
+ *   post:
+ *     summary: Create a template
+ *     description: Only authorized users can create templates for a specific course.
+ *     tags: [Templates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *               constraints:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             example:
+ *               name: Course Template 1
+ *               constraints: ["Constraint 1", "Constraint 2"]
+ *     responses:
+ *       "201":
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema:
+ *                $ref: '#/components/schemas/Template'
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *
+ *   get:
+ *     summary: Get all templates for a course
+ *     description: Retrieve a list of templates associated with a specific course.
+ *     tags: [Templates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Template'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
+ * /courses/{courseId}/templates/{templateId}:
+ *   get:
+ *     summary: Get a specific template
+ *     description: Retrieve a specific template by its ID within a course.
+ *     tags: [Templates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: templateId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Template ID
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *                $ref: '#/components/schemas/Template'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *
+ *   patch:
+ *     summary: Update a template
+ *     description: Only authorized users can update a template.
+ *     tags: [Templates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: templateId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Template ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               constraints:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             example:
+ *               name: Updated Template Name
+ *               constraints: ["Updated Constraint 1"]
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *                $ref: '#/components/schemas/Template'
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *
+ *   delete:
+ *     summary: Delete a template
+ *     description: Only authorized users can delete a template.
+ *     tags: [Templates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: templateId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Template ID
+ *     responses:
+ *       "204":
+ *         description: No Content
  *       "401":
  *         $ref: '#/components/responses/Unauthorized'
  *       "403":

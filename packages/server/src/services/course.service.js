@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const { Course } = require('../models');
+const { Course, Template } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 /**
@@ -64,6 +64,12 @@ const deleteCourseById = async (courseId) => {
   if (!course) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
+
+  // Delete all templates associated with the course
+  if (course.templates.length > 0) {
+    await Template.deleteMany({ _id: { $in: course.templates } });
+  }
+
   await course.remove();
   return course;
 };
