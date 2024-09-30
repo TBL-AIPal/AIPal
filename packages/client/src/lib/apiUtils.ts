@@ -13,14 +13,14 @@ async function request<T>(
 ): Promise<T> {
   const url = `${apiUrl}${endpoint}`;
 
+  // Only set 'Content-Type' if the body is not FormData
   const headers = {
-    'Content-Type': 'application/json',
+    ...(options.body instanceof FormData
+      ? {}
+      : { 'Content-Type': 'application/json' }),
     ...options.headers,
     ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
   };
-
-  logger(url);
-  logger(headers);
 
   const response = await fetch(url, {
     ...options,
@@ -52,6 +52,18 @@ export async function post<T, U>(
   return request<T>(endpoint, {
     method: 'POST',
     body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function postWithFile<T>(
+  endpoint: string,
+  data: FormData,
+  token?: string
+): Promise<T> {
+  return request<T>(endpoint, {
+    method: 'POST',
+    body: data,
     token,
   });
 }

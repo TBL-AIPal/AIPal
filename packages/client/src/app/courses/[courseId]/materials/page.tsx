@@ -1,59 +1,61 @@
 'use client';
 
-import React from 'react';
+import { useParams } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
 
+import { get } from '@/lib/apiUtils';
+import { postWithFile } from '@/lib/apiUtils';
 import logger from '@/lib/logger';
 
 import FileUpload from '@/components/FileUpload';
 import DocumentRow from '@/components/tables/document/DocumentRow';
 import DocumentTable from '@/components/tables/document/DocumentTable';
 
-// TODO: Replace with API call
-const documents = [
-  {
-    name: 'Project Proposal',
-    timestamp: '2024-09-01T12:34:56Z',
-    size: '1.2 MB',
-  },
-  { name: 'Research Paper', timestamp: '2024-09-10T09:15:30Z', size: '2.5 MB' },
-  { name: 'Meeting Notes', timestamp: '2024-09-15T14:45:00Z', size: '800 KB' },
-  {
-    name: 'Presentation Slides',
-    timestamp: '2024-09-20T11:20:10Z',
-    size: '3.4 MB',
-  },
-  {
-    name: 'Financial Report',
-    timestamp: '2024-09-22T08:50:15Z',
-    size: '1.5 MB',
-  },
-  { name: 'User Manual', timestamp: '2024-09-25T16:30:25Z', size: '2.1 MB' },
-  {
-    name: 'Code Documentation',
-    timestamp: '2024-09-28T10:00:00Z',
-    size: '500 KB',
-  },
-];
+import { jwtToken } from '@/constant/env';
+
+type Document = {
+  _id: string;
+  filename: string;
+  createdAt: string;
+  size: number;
+};
 
 const Materials: React.FC = () => {
-  // TODO: Connect to actual API endpoint
-  const handleUpload = async (files: FileList) => {
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append('files', file));
+  const { courseId } = useParams();
+  const [documents, setDocuments] = useState<Document[]>([]);
+
+  const fetchDocuments = useCallback(async () => {
+    if (!courseId) return;
 
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        logger('Files uploaded successfully!');
-      } else {
-        logger('File upload failed.');
-      }
+      const res = await get<Document[]>(`/v1/documents/${courseId}`, jwtToken);
+      logger(res, 'Fetched documents successfully');
+      setDocuments(res);
     } catch (error) {
-      logger(error, 'Error uploading file');
+      logger(error, 'Error fetching documents');
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  const handleUpload = async (files: FileList) => {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append('file', file));
+
+    try {
+      const response = await postWithFile(
+        `/v1/documents/${courseId}`,
+        formData,
+        jwtToken
+      );
+      logger(response, 'Files uploaded successfully!');
+
+      // Refetch documents after a successful upload
+      fetchDocuments();
+    } catch (error) {
+      logger(error, 'File upload failed.');
     }
   };
 
@@ -69,12 +71,12 @@ const Materials: React.FC = () => {
       {/* Files section */}
       <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Files</h1>
       <DocumentTable>
-        {documents.map((document, index) => (
+        {documents.map((document) => (
           <DocumentRow
-            key={index}
-            name={document.name}
-            timestamp={document.timestamp}
-            size={document.size}
+            key={document._id}
+            name={document.filename}
+            timestamp={document.createdAt}
+            size={`${(document.size / 1024).toFixed(2)} KB`}
           />
         ))}
       </DocumentTable>
