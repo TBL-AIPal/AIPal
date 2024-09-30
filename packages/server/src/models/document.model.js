@@ -1,10 +1,15 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
+const Course = require('./course.model');
 
 const documentSchema = new mongoose.Schema(
   {
+    filename: {
+      type: String,
+      required: true,
+    },
+    // TODO: Replace with GridFS if needed
     data: {
-      // TODO: replace with GridFS
       type: Buffer,
       required: true,
       validate: {
@@ -12,10 +17,6 @@ const documentSchema = new mongoose.Schema(
           return v && v.length > 0;
         },
       },
-    },
-    filename: {
-      type: String,
-      required: true,
     },
     contentType: {
       type: String,
@@ -27,7 +28,7 @@ const documentSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator(v) {
-          return v <= 10 * 1024 * 1024;
+          return v <= 10 * 1024 * 1024; // Max size of 10 MB
         },
         message: 'File size cannot exceed 10 MB',
       },
@@ -43,7 +44,14 @@ const documentSchema = new mongoose.Schema(
   }
 );
 
-// add plugin that converts mongoose to json
+// Pre-remove hook to delete this document from the course when deleted
+documentSchema.pre('remove', async function (next) {
+  const courseId = this.course;
+  await Course.updateOne({ _id: courseId }, { $pull: { documents: this._id } });
+  next();
+});
+
+// Add plugin that converts mongoose to json
 documentSchema.plugin(toJSON);
 documentSchema.plugin(paginate);
 
