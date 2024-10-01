@@ -30,10 +30,7 @@ const getDocument = catchAsync(async (req, res) => {
 });
 
 const deleteDocument = catchAsync(async (req, res) => {
-  const document = await documentService.deleteDocumentById(req.params.documentId);
-  if (!document) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Document not found');
-  }
+  await documentService.deleteDocumentById(req.params.courseId, req.params.documentId);
   res.status(httpStatus.NO_CONTENT).send();
 });
 

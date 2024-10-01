@@ -57,7 +57,6 @@ describe('Document model', () => {
         filename: newDocument.filename,
         contentType: newDocument.contentType,
         size: newDocument.size,
-        course: newDocument.course,
       });
       expect(json).toHaveProperty('data');
     });

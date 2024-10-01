@@ -5,6 +5,9 @@ const courseValidation = require('../../validations/course.validation');
 const courseController = require('../../controllers/course.controller');
 const templateValidation = require('../../validations/template.validation');
 const templateController = require('../../controllers/template.controller');
+const documentValidation = require('../../validations/document.validation');
+const documentController = require('../../controllers/document.controller');
+const upload = require('../../middlewares/upload');
 
 const router = express.Router();
 
@@ -29,6 +32,21 @@ router
   .get(auth('getTemplates'), validate(templateValidation.getTemplate), templateController.getTemplate)
   .patch(auth('manageTemplates'), validate(templateValidation.updateTemplate), templateController.updateTemplate)
   .delete(auth('manageTemplates'), validate(templateValidation.deleteTemplate), templateController.deleteTemplate);
+
+router
+  .route('/:courseId/documents')
+  .post(
+    auth('manageDocuments'),
+    upload.single('file'),
+    validate(documentValidation.createDocument),
+    documentController.createDocument
+  )
+  .get(auth('getDocuments'), validate(documentValidation.getDocuments), documentController.getDocuments);
+
+router
+  .route('/:courseId/documents/:documentId')
+  .get(auth('getDocuments'), validate(documentValidation.getDocument), documentController.getDocument)
+  .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
 
 module.exports = router;
 
@@ -438,4 +456,127 @@ module.exports = router;
  *         $ref: '#/components/responses/Forbidden'
  *       "404":
  *         $ref: '#/components/responses/NotFound'
+ */
+
+/**
+ * @swagger
+ * /{courseId}/documents:
+ *   post:
+ *     summary: Upload a document
+ *     description: Allows users with manageDocuments permission to upload a document for a course.
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         description: ID of the course to which the document belongs.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The file to upload.
+ *     responses:
+ *       201:
+ *         description: Document created successfully.
+ *       400:
+ *         description: Invalid request data.
+ *       403:
+ *         description: Forbidden, insufficient permissions.
+ *       500:
+ *         description: Internal server error.
+ */
+
+/**
+ * @swagger
+ * /{courseId}/documents:
+ *   get:
+ *     summary: Retrieve documents
+ *     description: Allows users with getDocuments permission to retrieve a list of documents for a course.
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         description: ID of the course to retrieve documents from.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of documents.
+ *       403:
+ *         description: Forbidden, insufficient permissions.
+ *       404:
+ *         description: Course not found.
+ *       500:
+ *         description: Internal server error.
+ */
+
+/**
+ * @swagger
+ * /{courseId}/documents/{documentId}:
+ *   get:
+ *     summary: Retrieve a specific document
+ *     description: Allows users with getDocuments permission to retrieve a specific document by ID.
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         description: ID of the course that the document belongs to.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: documentId
+ *         required: true
+ *         description: ID of the document to retrieve.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Document retrieved successfully.
+ *       404:
+ *         description: Document not found.
+ *       403:
+ *         description: Forbidden, insufficient permissions.
+ *       500:
+ *         description: Internal server error.
+ */
+
+/**
+ * @swagger
+ * /{courseId}/documents/{documentId}:
+ *   delete:
+ *     summary: Delete a specific document
+ *     description: Allows users with manageDocuments permission to delete a specific document by ID.
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         description: ID of the course that the document belongs to.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: documentId
+ *         required: true
+ *         description: ID of the document to delete.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Document deleted successfully.
+ *       404:
+ *         description: Document not found.
+ *       403:
+ *         description: Forbidden, insufficient permissions.
+ *       500:
+ *         description: Internal server error.
  */

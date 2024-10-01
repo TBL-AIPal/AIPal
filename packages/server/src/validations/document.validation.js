@@ -14,21 +14,31 @@ const createDocument = {
 
 const getDocuments = {
   params: Joi.object().keys({
-    courseId: Joi.string().custom(objectId).required(),
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID is required',
+    }),
   }),
 };
 
 const getDocument = {
   params: Joi.object().keys({
-    courseId: Joi.string().custom(objectId).required(),
-    documentId: Joi.string().custom(objectId).required(),
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID is required',
+    }),
+    documentId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Document ID is required',
+    }),
   }),
 };
 
 const deleteDocument = {
   params: Joi.object().keys({
-    courseId: Joi.string().custom(objectId).required(),
-    documentId: Joi.string().custom(objectId).required(),
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID is required',
+    }),
+    documentId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID is required',
+    }),
   }),
 };
 

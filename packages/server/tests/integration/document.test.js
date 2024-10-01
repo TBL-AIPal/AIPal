@@ -12,13 +12,13 @@ const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixt
 setupTestDB();
 
 describe('Document routes', () => {
-  describe('POST /v1/documents/:courseId', () => {
+  describe('POST /v1/courses/:courseId/documents', () => {
     test('should return 201 and successfully create new document if data is ok', async () => {
       await insertUsers([admin]);
       await insertCourses([courseOne]);
 
       const res = await request(app)
-        .post(`/v1/documents/${courseOne._id}`)
+        .post(`/v1/courses/${courseOne._id}/documents`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .attach('file', path.resolve(__dirname, 'files', 'testOne.pdf'))
         .expect('Content-Type', /json/)
@@ -29,7 +29,6 @@ describe('Document routes', () => {
           filename: 'testOne.pdf',
           contentType: 'application/pdf',
           size: expect.any(Number),
-          course: courseOne._id.toString(),
         })
       );
 
@@ -40,14 +39,16 @@ describe('Document routes', () => {
           filename: 'testOne.pdf',
           contentType: 'application/pdf',
           size: expect.any(Number),
-          course: courseOne._id,
         })
       );
     });
 
     test('should return 401 error if access token is missing', async () => {
+      await insertUsers([admin]);
+      await insertCourses([courseOne]);
+
       await request(app)
-        .post(`/v1/documents/${courseOne._id}`)
+        .post(`/v1/courses/${courseOne._id}/documents`)
         .attach('files', Buffer.alloc(1024 * 1024 * 10, '.'))
         // https://stackoverflow.com/questions/61096108/sending-binary-file-in-express-leads-to-econnaborted
         .set('Connection', 'keep-alive')
@@ -59,7 +60,7 @@ describe('Document routes', () => {
       await insertCourses([courseOne]);
 
       await request(app)
-        .post(`/v1/documents/${courseOne._id}`)
+        .post(`/v1/courses/${courseOne._id}/documents`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .attach('files', Buffer.alloc(1024 * 1024 * 10, '.'))
         // https://stackoverflow.com/questions/61096108/sending-binary-file-in-express-leads-to-econnaborted
@@ -69,23 +70,24 @@ describe('Document routes', () => {
 
     test('should return 400 error if no file is attached', async () => {
       await insertUsers([admin]);
+      await insertCourses([courseOne]);
 
       await request(app)
-        .post(`/v1/documents/${courseOne._id}`)
+        .post(`/v1/courses/${courseOne._id}/documents`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({}) // No file attached
         .expect(httpStatus.BAD_REQUEST);
     });
   });
 
-  describe('GET /v1/documents/:courseId', () => {
+  describe('GET /v1/courses/:courseId/documents', () => {
     test('should return 200 and list documents for the course', async () => {
       await insertUsers([admin]);
       await insertCourses([courseOne, courseTwo]);
       await insertDocuments([documentOne, documentTwo, documentThree]);
 
       const res = await request(app)
-        .get(`/v1/documents/${courseOne._id}`)
+        .get(`/v1/courses/${courseOne._id}/documents`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect('Content-Type', /json/)
         .expect(httpStatus.OK);
@@ -97,8 +99,8 @@ describe('Document routes', () => {
             contentType: documentOne.contentType,
           }),
           expect.objectContaining({
-            filename: documentThree.filename,
-            contentType: documentThree.contentType,
+            filename: documentTwo.filename,
+            contentType: documentTwo.contentType,
           }),
         ])
       );
@@ -109,7 +111,7 @@ describe('Document routes', () => {
       await insertCourses([courseOne]);
 
       await request(app)
-        .get(`/v1/documents/${courseOne._id}`)
+        .get(`/v1/courses/${courseOne._id}/documents`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .expect(httpStatus.FORBIDDEN);
     });
@@ -122,7 +124,7 @@ describe('Document routes', () => {
       await insertDocuments([documentOne]);
 
       const docRes = await request(app)
-        .get(`/v1/documents/${courseOne._id}/${documentOne._id}`)
+        .get(`/v1/courses/${courseOne._id}/documents/${documentOne._id}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect('Content-Type', /json/)
         .expect(httpStatus.OK);
@@ -141,7 +143,7 @@ describe('Document routes', () => {
       await insertDocuments([documentOne]);
 
       await request(app)
-        .get(`/v1/documents/${courseOne._id}/${documentOne._id}`)
+        .get(`/v1/courses/${courseOne._id}/documents/${documentOne._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .expect(httpStatus.FORBIDDEN);
     });
@@ -154,7 +156,7 @@ describe('Document routes', () => {
       await insertDocuments([documentOne]);
 
       await request(app)
-        .delete(`/v1/documents/${courseOne._id}/${documentOne._id}`)
+        .delete(`/v1/courses/${courseOne._id}/documents/${documentOne._id}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(httpStatus.NO_CONTENT);
 
@@ -168,7 +170,7 @@ describe('Document routes', () => {
       await insertDocuments([documentOne]);
 
       await request(app)
-        .delete(`/v1/documents/${courseOne._id}/${documentOne._id}`)
+        .delete(`/v1/courses/${courseOne._id}/documents/${documentOne._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .expect(httpStatus.FORBIDDEN);
     });

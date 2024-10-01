@@ -3,10 +3,11 @@ const faker = require('faker');
 const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
-const { Course, Template } = require('../../src/models');
+const { Course, Template, Document } = require('../../src/models');
 const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
 const { templateOne, templateTwo, insertTemplates } = require('../fixtures/template.fixture');
 const { courseOne, courseTwo, insertCourses } = require('../fixtures/course.fixture');
+const { documentOne, documentTwo, insertDocuments } = require('../fixtures/document.fixture');
 const { userOneAccessToken, userTwoAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
 
 setupTestDB();
@@ -242,6 +243,36 @@ describe('Course routes', () => {
       expect(dbCourseAfter).toBeNull();
       expect(dbTemplateOneAfter).toBeNull();
       expect(dbTemplateTwoAfter).toBeNull();
+    });
+
+    test('should return 204 if data is ok and delete associated documents', async () => {
+      await insertUsers([admin]);
+      await insertCourses([courseOne, courseTwo]);
+      await insertDocuments([documentOne, documentTwo]);
+
+      // Check the initial state before deletion
+      const dbCourseBefore = await Course.findById(courseOne._id).populate('templates');
+      const dbDocumentOneBefore = await Document.findById(documentOne._id);
+      const dbDocumentTwoBefore = await Document.findById(documentTwo._id);
+
+      expect(dbCourseBefore).not.toBeNull();
+      expect(dbDocumentOneBefore).not.toBeNull();
+      expect(dbDocumentTwoBefore).not.toBeNull();
+
+      // Perform the delete request
+      await request(app)
+        .delete(`/v1/courses/${courseOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(httpStatus.NO_CONTENT);
+
+      // Check if the course and its associated templates are deleted
+      const dbCourseAfter = await Course.findById(courseOne._id);
+      const dbDocumentOneAfter = await Document.findById(documentOne._id);
+      const dbDocumentTwoAfter = await Document.findById(documentTwo._id);
+
+      expect(dbCourseAfter).toBeNull();
+      expect(dbDocumentOneAfter).toBeNull();
+      expect(dbDocumentTwoAfter).toBeNull();
     });
 
     test('should return 401 error if access token is missing', async () => {

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const faker = require('faker');
 const Document = require('../../src/models/document.model');
-const { courseOne, courseTwo } = require('./course.fixture');
 
 const documentOne = {
   _id: mongoose.Types.ObjectId(),
@@ -9,7 +8,6 @@ const documentOne = {
   filename: `${faker.lorem.word()}.pdf`,
   contentType: 'application/pdf',
   size: 1024 * 1024 * 10,
-  course: courseOne._id,
 };
 
 const documentTwo = {
@@ -18,7 +16,6 @@ const documentTwo = {
   filename: `${faker.lorem.word()}.pdf`,
   contentType: 'application/pdf',
   size: 1024 * 1024 * 5,
-  course: courseTwo._id,
 };
 
 const documentThree = {
@@ -27,7 +24,6 @@ const documentThree = {
   filename: `${faker.lorem.word()}.pdf`,
   contentType: 'application/pdf',
   size: 1024 * 1024 * 2,
-  course: courseOne._id,
 };
 
 const insertDocuments = async (documents) => {

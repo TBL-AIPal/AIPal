@@ -26,10 +26,12 @@ const createDocument = async (courseId, documentBody) => {
  * @returns {Promise<Document[]>}
  */
 const getDocumentsByCourseId = async (courseId) => {
-  const documents = await Document.find({ course: courseId });
-
+  const course = await Course.findById(courseId).populate('documents');
+  if (!course) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
+  }
   // Return an empty array if no documents are found
-  return documents.length ? documents : [];
+  return course.documents.length ? course.documents : [];
 };
 
 /**
@@ -47,14 +49,19 @@ const getDocumentById = async (documentId) => {
 
 /**
  * Delete a document by ID
+ * @param {ObjectId} courseId
  * @param {ObjectId} documentId
  * @returns {Promise<Document>}
  */
-const deleteDocumentById = async (documentId) => {
+const deleteDocumentById = async (courseId, documentId) => {
   const document = await Document.findById(documentId);
   if (!document) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Document not found');
   }
+
+  // Update the course to remove the document ID in the documents array
+  await Course.updateOne({ _id: courseId }, { $pull: { documents: document._id } });
+
   await document.remove();
   return document;
 };

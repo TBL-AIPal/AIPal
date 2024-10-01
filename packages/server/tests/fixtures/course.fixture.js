@@ -3,6 +3,7 @@ const faker = require('faker');
 const Course = require('../../src/models/course.model');
 const { userOne, userTwo, staff, admin } = require('./user.fixture');
 const { templateOne, templateTwo } = require('./template.fixture');
+const { documentOne, documentTwo } = require('./document.fixture');
 
 const courseOne = {
   _id: mongoose.Types.ObjectId(),
@@ -13,6 +14,7 @@ const courseOne = {
   students: [userOne._id, userTwo._id],
   staff: [staff._id],
   templates: [templateOne._id, templateTwo._id],
+  documents: [documentOne._id, documentTwo._id],
 };
 
 const courseTwo = {
@@ -23,6 +25,8 @@ const courseTwo = {
   owner: admin._id,
   students: [userOne._id],
   staff: [staff._id],
+  templates: [],
+  documents: [],
 };
 
 const insertCourses = async (courses) => {
