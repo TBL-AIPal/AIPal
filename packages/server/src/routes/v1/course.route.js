@@ -73,20 +73,21 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - title
- *               - description
- *               - category
+ *               - name
+ *               - apiKey
+ *               - owner
  *             properties:
- *               title:
+ *               name:
  *                 type: string
- *               description:
+ *               apiKey:
  *                 type: string
- *               category:
+ *               owner:
  *                 type: string
  *             example:
- *               title: Introduction to AI
+ *               name: Introduction to AI
  *               description: A beginner's course on artificial intelligence
- *               category: technology
+ *               apiKey: sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ *               owner: 60f6f7f7f7f7f7f7f7f7f7f7
  *     responses:
  *       "201":
  *         description: Created
@@ -109,15 +110,15 @@ module.exports = router;
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: title
+ *         name: name
  *         schema:
  *           type: string
- *         description: Course title
+ *         description: Name of the course to filter by (optional)
  *       - in: query
- *         name: category
+ *         name: sortBy
  *         schema:
  *           type: string
- *         description: Course category
+ *         description: Field by which to sort the courses (optional)
  *       - in: query
  *         name: limit
  *         schema:
@@ -130,7 +131,7 @@ module.exports = router;
  *         schema:
  *           type: integer
  *           minimum: 1
- *         default: 1
+ *           default: 1
  *         description: Page number
  *     responses:
  *       "200":
@@ -212,16 +213,33 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               title:
+ *               name:
  *                 type: string
  *               description:
  *                 type: string
- *               category:
+ *               apiKey:
  *                 type: string
+ *               llmConstraints:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               owner:
+ *                 type: string
+ *               students:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               staff:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             minProperties: 1
+ *             additionalProperties: false
  *             example:
- *               title: Advanced AI
+ *               name: Advanced AI
  *               description: A detailed course on artificial intelligence
- *               category: technology
+ *               apiKey: sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ *               llmConstraints: []
  *     responses:
  *       "200":
  *         description: OK
@@ -460,11 +478,13 @@ module.exports = router;
 
 /**
  * @swagger
- * /{courseId}/documents:
+ * /courses/{courseId}/documents:
  *   post:
  *     summary: Upload a document
  *     description: Allows users with manageDocuments permission to upload a document for a course.
  *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: courseId
@@ -486,21 +506,25 @@ module.exports = router;
  *     responses:
  *       201:
  *         description: Document created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Document'
  *       400:
  *         description: Invalid request data.
+ *         $ref: '#/components/responses/BadRequest'
  *       403:
  *         description: Forbidden, insufficient permissions.
+ *         $ref: '#/components/responses/Forbidden'
  *       500:
  *         description: Internal server error.
- */
-
-/**
- * @swagger
- * /{courseId}/documents:
+ *         $ref: '#/components/responses/InternalServerError'
  *   get:
  *     summary: Retrieve documents
  *     description: Allows users with getDocuments permission to retrieve a list of documents for a course.
  *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: courseId
@@ -511,21 +535,35 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: A list of documents.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Document'
  *       403:
  *         description: Forbidden, insufficient permissions.
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Course not found.
+ *         $ref: '#/components/responses/NotFound'
  *       500:
  *         description: Internal server error.
+ *         $ref: '#/components/responses/InternalServerError'
  */
 
 /**
  * @swagger
- * /{courseId}/documents/{documentId}:
+ * /courses/{courseId}/documents/{documentId}:
  *   get:
  *     summary: Retrieve a specific document
  *     description: Allows users with getDocuments permission to retrieve a specific document by ID.
  *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: courseId
@@ -542,21 +580,25 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: Document retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Document'
  *       404:
  *         description: Document not found.
+ *         $ref: '#/components/responses/NotFound'
  *       403:
  *         description: Forbidden, insufficient permissions.
+ *         $ref: '#/components/responses/Forbidden'
  *       500:
  *         description: Internal server error.
- */
-
-/**
- * @swagger
- * /{courseId}/documents/{documentId}:
+ *         $ref: '#/components/responses/InternalServerError'
  *   delete:
  *     summary: Delete a specific document
  *     description: Allows users with manageDocuments permission to delete a specific document by ID.
  *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: courseId
@@ -575,8 +617,11 @@ module.exports = router;
  *         description: Document deleted successfully.
  *       404:
  *         description: Document not found.
+ *         $ref: '#/components/responses/NotFound'
  *       403:
  *         description: Forbidden, insufficient permissions.
+ *         $ref: '#/components/responses/Forbidden'
  *       500:
  *         description: Internal server error.
+ *         $ref: '#/components/responses/InternalServerError'
  */
