@@ -7,12 +7,14 @@ const createTemplate = {
       'any.required': 'Course ID is required',
     }),
   }),
-  body: Joi.object().keys({
-    name: Joi.string().required().messages({
-      'any.required': 'Template name is required',
-    }),
-    constraints: Joi.array().items(Joi.string()),
-  }),
+  body: Joi.object()
+    .keys({
+      name: Joi.string().required().messages({
+        'any.required': 'Template name is required',
+      }),
+      constraints: Joi.array().items(Joi.string()),
+    })
+    .strict(),
 };
 
 const getTemplates = {
@@ -44,7 +46,8 @@ const updateTemplate = {
       name: Joi.string(),
       constraints: Joi.array().items(Joi.string()),
     })
-    .min(1),
+    .min(1)
+    .strict(),
 };
 
 const deleteTemplate = {

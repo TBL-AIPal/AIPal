@@ -18,7 +18,7 @@ const createCourse = {
         'string.pattern.base': 'API Key must be valid',
       }),
     })
-    .pattern(Joi.string(), Joi.forbidden()),
+    .strict(),
 };
 
 const getCourses = {
@@ -57,7 +57,7 @@ const updateCourse = {
       staff: Joi.array().items(Joi.string().custom(objectId)),
     })
     .min(1)
-    .pattern(Joi.string(), Joi.forbidden()),
+    .strict(),
 };
 
 const deleteCourse = {
