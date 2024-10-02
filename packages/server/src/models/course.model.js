@@ -24,16 +24,17 @@ const courseSchema = new mongoose.Schema(
     },
     llmConstraints: {
       type: [String],
+      default: [],
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    staff: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
-    templates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }],
+    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    staff: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] }],
+    templates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] }],
   },
   {
     timestamps: true,

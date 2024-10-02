@@ -44,7 +44,7 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', default: [] }],
   },
   {
     timestamps: true,

@@ -5,19 +5,20 @@ const { objectId } = require('./custom.validation');
 const apiKeyPattern = /^sk-[A-Za-z0-9]{48}$/;
 
 const createCourse = {
-  body: Joi.object().keys({
-    name: Joi.string().required(),
-    description: Joi.string().allow(''),
-    apiKey: Joi.string().pattern(apiKeyPattern).required().messages({
-      'string.pattern.base': 'API Key must be valid',
-    }),
-    llmConstraints: Joi.array().items(Joi.string()),
-    owner: Joi.string().custom(objectId).required(),
-    students: Joi.array().items(Joi.string().custom(objectId)),
-    staff: Joi.array().items(Joi.string().custom(objectId)),
-    documents: Joi.array().items(Joi.string().custom(objectId)),
-    template: Joi.array().items(Joi.string().custom(objectId)),
-  }),
+  body: Joi.object()
+    .keys({
+      name: Joi.string().required().messages({
+        'string.pattern.base': 'Name must be valid',
+      }),
+      description: Joi.string().allow(''),
+      owner: Joi.string().custom(objectId).required().messages({
+        'string.pattern.base': 'Owner must be valid',
+      }),
+      apiKey: Joi.string().pattern(apiKeyPattern).required().messages({
+        'string.pattern.base': 'API Key must be valid',
+      }),
+    })
+    .pattern(Joi.string(), Joi.forbidden()),
 };
 
 const getCourses = {
@@ -31,13 +32,17 @@ const getCourses = {
 
 const getCourse = {
   params: Joi.object().keys({
-    courseId: Joi.string().custom(objectId),
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID must be valid',
+    }),
   }),
 };
 
 const updateCourse = {
   params: Joi.object().keys({
-    courseId: Joi.string().custom(objectId),
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID must be valid',
+    }),
   }),
   body: Joi.object()
     .keys({
@@ -50,15 +55,16 @@ const updateCourse = {
       owner: Joi.string().custom(objectId),
       students: Joi.array().items(Joi.string().custom(objectId)),
       staff: Joi.array().items(Joi.string().custom(objectId)),
-      documents: Joi.array().items(Joi.string().custom(objectId)),
-      template: Joi.array().items(Joi.string().custom(objectId)),
     })
-    .min(1),
+    .min(1)
+    .pattern(Joi.string(), Joi.forbidden()),
 };
 
 const deleteCourse = {
   params: Joi.object().keys({
-    courseId: Joi.string().custom(objectId),
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID must be valid',
+    }),
   }),
 };
 
