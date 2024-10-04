@@ -1,9 +1,11 @@
-// Tabs.tsx
-import React, { useState } from 'react';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 interface Tab {
   name: string;
-  content: React.ReactNode;
+  link: string;
 }
 
 interface TabsProps {
@@ -11,7 +13,23 @@ interface TabsProps {
 }
 
 const Tabs: React.FC<TabsProps> = ({ tabs }) => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
+
+  // Set the active tab based on the current path
+  useEffect(() => {
+    const activeIndex = tabs.findIndex(
+      (tab) => tab.link === window.location.pathname
+    );
+    if (activeIndex !== -1) {
+      setActiveTab(activeIndex);
+    }
+  }, [tabs]);
+
+  const handleTabClick = (index: number, link: string) => {
+    setActiveTab(index);
+    router.push(link);
+  };
 
   return (
     <div>
@@ -25,13 +43,12 @@ const Tabs: React.FC<TabsProps> = ({ tabs }) => {
                   ? 'text-blue-600 border-blue-600'
                   : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
               }`}
-            onClick={() => setActiveTab(index)}
+            onClick={() => handleTabClick(index, tab.link)}
           >
             {tab.name}
           </button>
         ))}
       </div>
-      <div className='p-4'>{tabs[activeTab].content}</div>
     </div>
   );
 };
