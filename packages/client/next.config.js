@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
   eslint: {
     dirs: ['src'],
@@ -9,6 +10,16 @@ const nextConfig = {
 
   images: {
     domains: ['flowbite.s3.amazonaws.com'],
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/:path*',
+        // TODO: User variable instead
+        destination: `http://localhost:5000/v1/:path*`,
+      },
+    ];
   },
 
   webpack(config) {
