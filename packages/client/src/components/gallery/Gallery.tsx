@@ -4,9 +4,9 @@ import GalleryItem from '@/components/gallery/GalleryItem';
 
 interface Image {
   src: string;
-  title: string;
-  description: string;
   href: string;
+  overlayContent?: React.ReactNode;
+  hoverContent?: React.ReactNode;
 }
 
 interface GalleryProps {
@@ -20,9 +20,9 @@ const Gallery: React.FC<GalleryProps> = ({ images }) => {
         <GalleryItem
           key={index}
           src={image.src}
-          title={image.title}
-          description={image.description}
           href={image.href}
+          overlayContent={image.overlayContent}
+          hoverContent={image.hoverContent}
         />
       ))}
     </div>

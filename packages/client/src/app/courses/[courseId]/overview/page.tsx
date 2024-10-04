@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 
-import AccountRow from '@/components/tables/account/AccountRow';
-import AccountTable from '@/components/tables/account/AccountTable';
+import AccountRow from './_PageSections/AccountRow';
+import AccountTable from './_PageSections/AccountTable';
 
 const Overview: React.FC = () => {
   // TODO: Replace with data from API
@@ -20,8 +20,8 @@ const Overview: React.FC = () => {
       {/* Description Section */}
       <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Description</h1>
       <p className='mb-4 text-gray-700'>
-        Here you can find an overview of all accounts, including their names,
-        emails, and roles. Please review the list below for account details.
+        This page is still work in progress. We will update this page once
+        authentication feature is ready.
       </p>
 
       {/* Divider */}

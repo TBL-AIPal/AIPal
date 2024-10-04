@@ -14,7 +14,11 @@ export default function HomePage() {
           <p className='mt-2 text-sm text-gray-800'>
             Collaborative Teaching Assistant Tool
           </p>
-          <ButtonLink className='mt-6' href='/dashboard' variant='light'>
+          <ButtonLink
+            className='mt-6'
+            href='/dashboard/courses'
+            variant='light'
+          >
             Course List
           </ButtonLink>
           <ButtonLink className='mt-6' href='/components' variant='light'>

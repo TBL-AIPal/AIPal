@@ -1,16 +1,18 @@
-import { Metadata } from 'next';
-import * as React from 'react';
+import React from 'react';
 
-import '@/styles/colors.css';
+import Tabs from '@/components/ui/Tabs';
 
-export const metadata: Metadata = {
-  title: 'Dashboard',
-};
+import { tabsConfig } from '@/constant/config/dashboard';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className='p-4'>
+      <Tabs tabs={tabsConfig.tabs} />
+      <div className='p-4'>{children}</div>
+    </div>
+  );
 }

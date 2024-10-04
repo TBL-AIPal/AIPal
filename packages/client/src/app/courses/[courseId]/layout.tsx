@@ -1,102 +1,41 @@
 'use client';
 
-import {
-  DatabaseIcon,
-  LayoutDashboardIcon,
-  PanelsTopLeftIcon,
-  SlidersHorizontalIcon,
-} from 'lucide-react';
+import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-import '@/styles/colors.css';
+import { GetCourseById } from '@/lib/API/course/queries';
+import { Course } from '@/lib/types/course';
+import logger from '@/lib/utils/logger';
 
-import { get } from '@/lib/apiUtils';
-import logger from '@/lib/logger';
+import CourseSidebar from './_PageSections/CourseSidebar';
 
-import Sidebar from '@/components/sidebar/Sidebar';
+const CourseLayout: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { courseId } = useParams<{ courseId: string | string[] }>();
+  const courseIdString = Array.isArray(courseId) ? courseId[0] : courseId;
 
-import { jwtToken } from '@/constant/env';
-
-const getSidebarItems = (courseId: string) => [
-  {
-    name: 'Overview',
-    icon: <PanelsTopLeftIcon />,
-    link: `/courses/${courseId}/overview`,
-  },
-  {
-    name: 'Materials',
-    icon: <DatabaseIcon />,
-    link: `/courses/${courseId}/materials`,
-  },
-  {
-    name: 'Templates',
-    icon: <SlidersHorizontalIcon />,
-    link: `/courses/${courseId}/templates`,
-  },
-  { name: 'Dashboard', icon: <LayoutDashboardIcon />, link: `/dashboard/` },
-];
-
-interface Course {
-  id: string;
-  name: string;
-  description?: string;
-  apiKey: string;
-  llmConstraints?: string[];
-  owner: string;
-  students?: string[];
-  staff?: string[];
-  documents?: string[];
-  template?: string[];
-}
-
-interface CourseLayoutProps {
-  children: React.ReactNode;
-  params: { courseId: string };
-}
-
-const CourseLayout: React.FC<CourseLayoutProps> = ({ children, params }) => {
-  const { courseId } = params;
-  const [courseTitle, setCourseTitle] = useState<string>('Course Title');
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const fetchCourse = async () => {
       try {
-        setLoading(true);
-        const response = await get<Course>(
-          `/v1/courses/${courseId}?t=${Date.now()}`,
-          jwtToken
-        );
-        logger(response, 'API RESPONSE');
-
-        if (response) {
-          setCourseTitle(response.name);
-        } else {
-          setError('Course details not found');
-        }
-      } catch (error) {
-        logger(error, 'Failed to fetch course details');
-        setError('Failed to load course details');
-      } finally {
-        setLoading(false);
+        const courseData = await GetCourseById(courseIdString);
+        setCourse(courseData);
+      } catch (err) {
+        logger(err, 'Error fetching course details');
       }
     };
-
-    fetchCourseDetails();
-  }, [courseId]);
+    fetchCourse();
+  }, [courseIdString]);
 
   return (
     <div className='flex'>
-      <Sidebar
-        items={getSidebarItems(courseId)}
-        headerText={loading ? 'Loading...' : courseTitle}
+      <CourseSidebar
+        courseId={courseIdString}
+        headerText={course ? course.name : 'Course Details'}
       />
-      <main className='flex-1 p-4 overflow-y-auto h-screen'>
-        {loading && <p>Loading course content...</p>}
-        {error && <p className='text-red-500'>{error}</p>}
-        {children}
-      </main>
+      <main className='flex-1 p-6'>{children}</main>
     </div>
   );
 };

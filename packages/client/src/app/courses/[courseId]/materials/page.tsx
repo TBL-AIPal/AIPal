@@ -3,55 +3,41 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { del, get, postWithFile } from '@/lib/apiUtils';
-import logger from '@/lib/logger';
+import { CreateDocument, DeleteDocument } from '@/lib/API/document/mutations';
+import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
+import { Document } from '@/lib/types/document';
+import logger from '@/lib/utils/logger';
 
-import FileUpload from '@/components/FileUpload';
-import DocumentRow from '@/components/tables/document/DocumentRow';
-import DocumentTable from '@/components/tables/document/DocumentTable';
-
-import { jwtToken } from '@/constant/env';
-
-type Document = {
-  id: string;
-  filename: string;
-  createdAt: string;
-  size: number;
-};
+import DocumentRow from './_PageSections/DocumentRow';
+import DocumentTable from './_PageSections/DocumentTable';
+import FileUpload from './_PageSections/FileUpload';
 
 const Materials: React.FC = () => {
-  const { courseId } = useParams();
+  const { courseId } = useParams<{ courseId: string | string[] }>();
+  const courseIdString = Array.isArray(courseId) ? courseId[0] : courseId;
+
   const [documents, setDocuments] = useState<Document[]>([]);
 
   const fetchDocuments = useCallback(async () => {
-    if (!courseId) return;
-
+    if (!courseIdString) return;
     try {
-      const res = await get<Document[]>(`/v1/documents/${courseId}`, jwtToken);
+      const res = await GetDocumentsByCourseId(courseIdString);
       logger(res, 'Fetched documents successfully');
       setDocuments(res || []); // Use empty array as fallback
     } catch (error) {
       logger(error, 'Error fetching documents');
     }
-  }, [courseId]);
-
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+  }, [courseIdString]);
 
   const handleUpload = async (files: FileList) => {
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append('file', file));
-
     try {
-      const response = await postWithFile(
-        `/v1/documents/${courseId}`,
+      await CreateDocument({
+        courseId: courseIdString,
         formData,
-        jwtToken
-      );
-      logger(response, 'Files uploaded successfully!');
-
-      // Refetch documents after a successful upload
+      });
+      logger('Files uploaded successfully!');
       await fetchDocuments();
     } catch (error) {
       logger(error, 'File upload failed.');
@@ -60,13 +46,20 @@ const Materials: React.FC = () => {
 
   const handleDelete = async (documentId: string) => {
     try {
-      await del(`/v1/documents/${courseId}/${documentId}`, jwtToken);
+      await DeleteDocument({
+        courseId: courseIdString,
+        documentId,
+      });
       logger('Document deleted successfully');
       await fetchDocuments();
     } catch (error) {
       logger(error, 'Failed to delete document');
     }
   };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   return (
     <div className='p-4'>
