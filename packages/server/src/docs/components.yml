@@ -5,19 +5,48 @@ components:
       properties:
         id:
           type: string
+          description: The unique identifier for the user
         email:
           type: string
           format: email
+          description: The user's email address
         name:
           type: string
+          description: The user's full name
+        password:
+          type: string
+          description: The user's password (not exposed in responses)
         role:
           type: string
           enum: [user, admin]
+          description: The user's role within the system
+        isEmailVerified:
+          type: boolean
+          description: Indicates if the user's email has been verified
+        courses:
+          type: array
+          items:
+            type: string
+          description: Array of course IDs associated with the user
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the user was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the user was last updated
       example:
         id: 5ebac534954b54139806c112
         email: fake@example.com
-        name: fake name
-        role: user
+        name: John Doe
+        role: admin
+        isEmailVerified: true
+        courses: 
+          - 5ebac534954b54139806c113
+          - 5ebac534954b54139806c114
+        createdAt: 2024-09-28T14:48:00.000Z
+        updatedAt: 2024-10-01T14:48:00.000Z
 
     Token:
       type: object
@@ -46,6 +75,143 @@ components:
           type: number
         message:
           type: string
+
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the course
+        name:
+          type: string
+          description: The name of the course
+        description:
+          type: string
+          description: A brief description of the course
+        apiKey:
+          type: string
+          description: The API key associated with the course (private field)
+        llmConstraints:
+          type: array
+          items:
+            type: string
+          description: List of constraints related to large language models (LLM)
+        owner:
+          type: string
+          description: The ID of the user who owns the course
+        students:
+          type: array
+          items:
+            type: string
+          description: Array of user IDs representing the students enrolled in the course
+        staff:
+          type: array
+          items:
+            type: string
+          description: Array of user IDs representing the staff members for the course
+        documents:
+          type: array
+          items:
+            type: string
+          description: Array of document IDs associated with the course
+        templates:
+          type: array
+          items:
+            type: string
+          description: Array of template IDs associated with the course
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the course was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the course was last updated
+      example:
+        id: 5ebac534954b54139806c115
+        name: Introduction to AI
+        description: A course about artificial intelligence fundamentals
+        apiKey: sk-abc12345xyz67890abcdefghijklmnopqrst
+        llmConstraints: ['max-words', 'no-restricted-topics']
+        owner: 5ebac534954b54139806c112
+        students:
+          - 5ebac534954b54139806c113
+          - 5ebac534954b54139806c114
+        staff:
+          - 5ebac534954b54139806c115
+        documents:
+          - 5ebac534954b54139806c116
+        templates:
+          - 5ebac534954b54139806c117
+        createdAt: 2024-09-28T14:48:00.000Z
+        updatedAt: 2024-10-01T14:48:00.000Z
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the document
+        filename:
+          type: string
+          description: The name of the document file
+        data:
+          type: string
+          format: byte
+          description: The binary data of the document (stored as a buffer)
+        contentType:
+          type: string
+          enum: ['application/pdf']
+          description: The MIME type of the document
+        size:
+          type: number
+          description: The size of the document in bytes, with a maximum limit of 10 MB
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the document was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the document was last updated
+      example:
+        id: 5ebac534954b54139806c120
+        filename: sample-document.pdf
+        contentType: application/pdf
+        size: 1024000
+        createdAt: 2024-09-28T14:48:00.000Z
+        updatedAt: 2024-10-01T14:48:00.000Z
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the template
+        name:
+          type: string
+          description: The name of the template
+        constraints:
+          type: array
+          items:
+            type: string
+          description: An array of constraints associated with the template
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the template was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the template was last updated
+      example:
+        id: 5ebac534954b54139806c130
+        name: Sample Template
+        constraints:
+          - constraint1
+          - constraint2
+        createdAt: 2024-09-28T14:50:00.000Z
+        updatedAt: 2024-10-01T14:50:00.000Z
 
   responses:
     DuplicateEmail:
@@ -84,6 +250,24 @@ components:
           example:
             code: 404
             message: Not found
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 500
+            message: An internal server error occurred
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+            example:
+              code: 400
+              message: Bad Request
 
   securitySchemes:
     bearerAuth:

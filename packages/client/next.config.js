@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
   eslint: {
     dirs: ['src'],
@@ -7,12 +8,19 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
 
-  // Uncoment to add domain whitelist
-  // images: {
-  //   domains: [
-  //     'res.cloudinary.com',
-  //   ],
-  // },
+  images: {
+    domains: ['flowbite.s3.amazonaws.com'],
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/:path*',
+        // TODO: User variable instead
+        destination: `http://localhost:5000/v1/:path*`,
+      },
+    ];
+  },
 
   webpack(config) {
     // Grab the existing rule that handles SVG imports

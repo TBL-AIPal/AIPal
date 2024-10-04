@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const { User } = require('../models');
+const { User, Course } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 /**
@@ -66,7 +66,7 @@ const updateUserById = async (userId, updateBody) => {
 };
 
 /**
- * Delete user by id
+ * Delete user by id and associated courses
  * @param {ObjectId} userId
  * @returns {Promise<User>}
  */
@@ -74,6 +74,9 @@ const deleteUserById = async (userId) => {
   const user = await getUserById(userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  if (user.courses && user.courses.length > 0) {
+    await Course.deleteMany({ _id: { $in: user.courses } });
   }
   await user.remove();
   return user;
