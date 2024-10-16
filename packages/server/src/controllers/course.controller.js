@@ -4,8 +4,11 @@ const catchAsync = require('../utils/catchAsync');
 const { courseService } = require('../services');
 
 const createCourse = catchAsync(async (req, res) => {
-  // TODO: Modify create course to automatically assign ownership to creator
-  const course = await courseService.createCourse(req.body);
+  const courseData = {
+    ...req.body,
+    owner: req.user.id,
+  };
+  const course = await courseService.createCourse(courseData);
   res.status(httpStatus.CREATED).send(course);
 });
 

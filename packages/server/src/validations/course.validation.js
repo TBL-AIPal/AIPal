@@ -11,9 +11,6 @@ const createCourse = {
         'string.pattern.base': 'Name must be valid',
       }),
       description: Joi.string().allow(''),
-      owner: Joi.string().custom(objectId).required().messages({
-        'string.pattern.base': 'Owner must be valid',
-      }),
       apiKey: Joi.string().pattern(apiKeyPattern).required().messages({
         'string.pattern.base': 'API Key must be valid',
       }),
