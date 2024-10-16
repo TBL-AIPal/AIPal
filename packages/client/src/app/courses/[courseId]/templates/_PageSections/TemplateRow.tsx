@@ -16,7 +16,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(name);
-  const [editConstraints, setEditConstraints] = useState(constraints);
+  const [editConstraints, setEditConstraints] = useState(
+    constraints.join(', ')
+  );
 
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
@@ -29,7 +31,8 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   };
 
   const handleUpdate = () => {
-    onUpdate({ name: editName, constraints: editConstraints });
+    const updatedConstraints = editConstraints.split(',').map((c) => c.trim());
+    onUpdate({ name: editName, constraints: updatedConstraints });
     setIsEditing(false);
   };
 
@@ -99,12 +102,8 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
               <div className='mb-2'>
                 <label className='font-semibold'>Constraints:</label>
                 <textarea
-                  value={editConstraints.join(', ')}
-                  onChange={(e) =>
-                    setEditConstraints(
-                      e.target.value.split(',').map((c) => c.trim())
-                    )
-                  }
+                  value={editConstraints}
+                  onChange={(e) => setEditConstraints(e.target.value)}
                   className='border p-1 w-full'
                 />
               </div>
