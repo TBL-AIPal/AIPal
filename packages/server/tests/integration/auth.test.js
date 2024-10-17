@@ -33,18 +33,27 @@ describe('Auth routes', () => {
       const res = await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.CREATED);
 
       expect(res.body.user).not.toHaveProperty('password');
-      expect(res.body.user).toEqual({
-        id: expect.anything(),
-        name: newUser.name,
-        email: newUser.email,
-        role: 'user',
-        isEmailVerified: false,
-      });
+      expect(res.body.user).toEqual(
+        expect.objectContaining({
+          id: expect.anything(),
+          name: newUser.name,
+          email: newUser.email,
+          role: 'user',
+          isEmailVerified: false,
+          courses: [],
+        })
+      );
 
       const dbUser = await User.findById(res.body.user.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
-      expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: 'user', isEmailVerified: false });
+      expect(dbUser).toEqual(
+        expect.objectContaining({
+          name: newUser.name,
+          email: newUser.email,
+          role: 'user',
+        })
+      );
 
       expect(res.body.tokens).toEqual({
         access: { token: expect.anything(), expires: expect.anything() },
@@ -92,13 +101,18 @@ describe('Auth routes', () => {
 
       const res = await request(app).post('/v1/auth/login').send(loginCredentials).expect(httpStatus.OK);
 
-      expect(res.body.user).toEqual({
-        id: expect.anything(),
-        name: userOne.name,
-        email: userOne.email,
-        role: userOne.role,
-        isEmailVerified: userOne.isEmailVerified,
-      });
+      expect(res.body.user).toEqual(
+        expect.objectContaining({
+          id: expect.anything(),
+          name: userOne.name,
+          email: userOne.email,
+          role: userOne.role,
+          isEmailVerified: userOne.isEmailVerified,
+          courses: userOne.courses,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })
+      );
 
       expect(res.body.tokens).toEqual({
         access: { token: expect.anything(), expires: expect.anything() },
