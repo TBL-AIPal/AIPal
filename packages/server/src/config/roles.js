@@ -10,6 +10,8 @@ const allRoles = {
     'manageDocuments',
     'getTemplates',
     'manageTemplates',
+    'getRooms',
+    'manageRooms',
   ],
 };
 
