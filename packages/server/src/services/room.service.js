@@ -31,6 +31,18 @@ const getRoomsByCourseId = async (courseId) => {
 };
 
 /**
+ * Get rooms by template ID
+ * @param {ObjectId} templateId
+ * @returns {Promise<Room[]>}
+ */
+const getRoomsByTemplateId = async (templateId) => {
+  const rooms = await Room.find({ template: templateId });
+
+  // Return an empty array if no rooms are found
+  return rooms.length ? rooms : [];
+};
+
+/**
  * Get a room by ID
  * @param {ObjectId} roomId
  * @returns {Promise<Room>}
@@ -81,6 +93,7 @@ const deleteRoomById = async (courseId, roomId) => {
 module.exports = {
   createRoom,
   getRoomsByCourseId,
+  getRoomsByTemplateId,
   getRoomById,
   updateRoomById,
   deleteRoomById,

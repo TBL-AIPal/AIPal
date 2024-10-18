@@ -52,10 +52,11 @@ router
   .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
 
 // Routes for course rooms
+router.route('/:courseId/rooms').post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
+
 router
-  .route('/:courseId/rooms')
-  .post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom)
-  .get(auth('getRooms'), validate(roomValidation.getRooms), roomController.getRooms);
+  .route('/:courseId/templates/:templateId/rooms')
+  .get(auth('getRooms'), validate(roomValidation.getRoomsByTemplate), roomController.getRoomsByTemplate);
 
 router
   .route('/:courseId/rooms/:roomId')
@@ -640,7 +641,6 @@ module.exports = router;
  *         description: Internal server error.
  *         $ref: '#/components/responses/InternalServerError'
  */
-
 /**
  * @swagger
  * /courses/{courseId}/rooms:
@@ -666,14 +666,18 @@ module.exports = router;
  *             required:
  *               - name
  *               - description
+ *               - code
  *             properties:
  *               name:
  *                 type: string
  *               description:
  *                 type: string
+ *               code:
+ *                 type: string
  *             example:
  *               name: Room A
  *               description: A room equipped with AI learning resources.
+ *               code: RA123
  *     responses:
  *       "201":
  *         description: Created
@@ -785,9 +789,12 @@ module.exports = router;
  *                 type: string
  *               description:
  *                 type: string
+ *               code:
+ *                 type: string
  *             example:
  *               name: Updated Room A
  *               description: Updated description of Room A.
+ *               code: RA456
  *     responses:
  *       "200":
  *         description: OK
@@ -824,8 +831,50 @@ module.exports = router;
  *           type: string
  *         description: Room ID
  *     responses:
- *       "200":
+ *       "204":
  *         description: No content
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ */
+
+/**
+ * @swagger
+ * /courses/{courseId}/templates/{templateId}/rooms:
+ *   get:
+ *     summary: Get all rooms for a specific template
+ *     description: Retrieve a list of rooms associated with a specific template within a course.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: templateId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Template ID
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Room'
  *       "401":
  *         $ref: '#/components/responses/Unauthorized'
  *       "403":

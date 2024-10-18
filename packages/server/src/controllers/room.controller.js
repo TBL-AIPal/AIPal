@@ -1,6 +1,9 @@
 const httpStatus = require('http-status');
+const mongoose = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
 const { roomService } = require('../services');
+
+const { ObjectId } = mongoose.Types; // Import ObjectId
 
 const createRoom = catchAsync(async (req, res) => {
   const room = await roomService.createRoom(req.body);
@@ -17,6 +20,12 @@ const getRoom = catchAsync(async (req, res) => {
   res.send(room);
 });
 
+const getRoomsByTemplate = catchAsync(async (req, res) => {
+  const { templateId } = req.params; // Extract templateId from request parameters
+  const rooms = await roomService.getRoomsByTemplateId(ObjectId(templateId)); // Call the service function
+  res.send(rooms);
+});
+
 const updateRoom = catchAsync(async (req, res) => {
   const room = await roomService.updateRoomById(req.params.roomId, req.body);
   res.send(room);
@@ -31,6 +40,7 @@ module.exports = {
   createRoom,
   getRooms,
   getRoom,
+  getRoomsByTemplate,
   updateRoom,
   deleteRoom,
 };
