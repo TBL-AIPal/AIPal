@@ -2,7 +2,7 @@ const Joi = require('joi');
 const { objectId } = require('./custom.validation');
 
 // API key validation
-const apiKeyPattern = /^sk-[A-Za-z0-9]{48}$/;
+const apiKeyPattern = /^sk-[a-zA-Z0-9-_]{40,}$/;
 
 const createCourse = {
   body: Joi.object()

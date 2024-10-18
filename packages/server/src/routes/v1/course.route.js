@@ -8,6 +8,9 @@ const templateController = require('../../controllers/template.controller');
 const documentValidation = require('../../validations/document.validation');
 const documentController = require('../../controllers/document.controller');
 const upload = require('../../middlewares/upload');
+// New room controller import
+const roomController = require('../../controllers/room.controller');
+const roomValidation = require('../../validations/room.validation');
 
 const router = express.Router();
 
@@ -47,6 +50,19 @@ router
   .route('/:courseId/documents/:documentId')
   .get(auth('getDocuments'), validate(documentValidation.getDocument), documentController.getDocument)
   .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
+
+// Routes for course rooms
+router.route('/:courseId/rooms').post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
+
+router
+  .route('/:courseId/templates/:templateId/rooms')
+  .get(auth('getRooms'), validate(roomValidation.getRoomsByTemplate), roomController.getRoomsByTemplate);
+
+router
+  .route('/:courseId/rooms/:roomId')
+  .get(auth('getRooms'), validate(roomValidation.getRoom), roomController.getRoom)
+  .patch(auth('manageRooms'), validate(roomValidation.updateRoom), roomController.updateRoom)
+  .delete(auth('manageRooms'), validate(roomValidation.deleteRoom), roomController.deleteRoom);
 
 module.exports = router;
 
@@ -624,4 +640,245 @@ module.exports = router;
  *       500:
  *         description: Internal server error.
  *         $ref: '#/components/responses/InternalServerError'
+ */
+/**
+ * @swagger
+ * /courses/{courseId}/rooms:
+ *   post:
+ *     summary: Create a room for a course
+ *     description: Only authorized users can create rooms for a specific course.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - code
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *             example:
+ *               name: Room A
+ *               description: A room equipped with AI learning resources.
+ *               code: RA123
+ *     responses:
+ *       "201":
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema:
+ *                $ref: '#/components/schemas/Room'
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+
+ *   get:
+ *     summary: Get all rooms for a course
+ *     description: Retrieve a list of rooms associated with a specific course.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Room'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
+ * /courses/{courseId}/rooms/{roomId}:
+ *   get:
+ *     summary: Get a specific room
+ *     description: Retrieve a specific room by its ID within a course.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Room ID
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *                $ref: '#/components/schemas/Room'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *
+ *   patch:
+ *     summary: Update a room
+ *     description: Only authorized users can update a room.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Room ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *             example:
+ *               name: Updated Room A
+ *               description: Updated description of Room A.
+ *               code: RA456
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *                $ref: '#/components/schemas/Room'
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+
+ *   delete:
+ *     summary: Delete a room
+ *     description: Only authorized users can delete a room.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Room ID
+ *     responses:
+ *       "204":
+ *         description: No content
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ */
+
+/**
+ * @swagger
+ * /courses/{courseId}/templates/{templateId}/rooms:
+ *   get:
+ *     summary: Get all rooms for a specific template
+ *     description: Retrieve a list of rooms associated with a specific template within a course.
+ *     tags: [Rooms]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Course ID
+ *       - in: path
+ *         name: templateId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Template ID
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Room'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
  */

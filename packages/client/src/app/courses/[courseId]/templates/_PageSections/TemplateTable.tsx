@@ -33,6 +33,7 @@ const TemplateTable: React.FC<TemplateTableProps> = ({
               key={template.id}
               name={template.name}
               constraints={template.constraints}
+              templateId={template.id}
               onDelete={() => onDelete(template.id)}
               onUpdate={(updatedData) => onUpdate(template.id, updatedData)}
             />
