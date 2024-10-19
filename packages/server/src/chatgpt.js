@@ -47,7 +47,7 @@ router.post('/chatgpt', async (req, res) => {
     const primaryResponse = await callOpenAI(conversation, agents[0]);
 
     // Update conversation with the primary response
-    const updatedConversation = [
+    let updatedConversation = [
       ...conversation,
       {
         role: 'assistant',
@@ -55,8 +55,8 @@ router.post('/chatgpt', async (req, res) => {
       },
     ];
 
-    // Step 2: Loop through secondary agents to replace and edit the response
-    for (let i = 1; i < agents.length; i += 1) {
+    // Step 2: Create an array of promises for secondary agent responses
+    const agentPromises = agents.slice(1).map(async (agent) => {
       // Get a reference to the last assistant's response
       const lastResponse = updatedConversation[updatedConversation.length - 1];
 
@@ -70,22 +70,23 @@ router.post('/chatgpt', async (req, res) => {
       ];
 
       // Get the modified response from the current agent
-      const secondaryResponse = callOpenAI(conversationWithTemplate, agents[i]);
+      const secondaryResponse = await callOpenAI(conversationWithTemplate, agent);
 
-      // Remove the last assistant's response
-      updatedConversation.pop();
-
-      // Update conversation by replacing the previous agent's response with the current agent's response
-      updatedConversation.push({
+      return {
         role: 'assistant',
         content: secondaryResponse.data.choices[0].message.content,
-      });
-    }
+      };
+    });
 
-    // Step 3: Return the modified conversation to the client
+    // Step 3: Wait for all promises to resolve
+    const secondaryResponses = await Promise.all(agentPromises);
+
+    // Step 4: Add the responses to the conversation
+    updatedConversation = [...conversation, ...secondaryResponses];
+
+    // Step 5: Return the modified conversation to the client
     res.json({ responses: updatedConversation });
   } catch (error) {
-    // console.error('Error calling OpenAI API:', error);
     res.status(500).json({ error: 'Error interacting with OpenAI API' });
   }
 });
