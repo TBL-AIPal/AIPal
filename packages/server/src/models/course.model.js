@@ -15,7 +15,7 @@ const courseSchema = new mongoose.Schema(
       required: true,
       validate(value) {
         // TODO: Replace validation with real API request validation
-        const apiKeyPattern = /^sk-[A-Za-z0-9]{48}$/;
+        const apiKeyPattern = /^sk-[a-zA-Z0-9-_]{40,}$/;
         if (!apiKeyPattern.test(value)) {
           throw new Error('API Key must be valid');
         }
