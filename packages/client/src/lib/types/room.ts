@@ -1,6 +1,6 @@
 // Interface for a Room
 export interface Room {
-  _id: string;
+  id: string;
   name: string;
   description: string;
   code: string;
