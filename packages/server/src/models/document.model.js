@@ -33,6 +33,9 @@ const documentSchema = new mongoose.Schema(
         message: 'File size cannot exceed 10 MB',
       },
     },
+    text: {
+      type: String,
+    },
   },
   {
     timestamps: true,
