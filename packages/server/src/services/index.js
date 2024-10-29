@@ -6,3 +6,5 @@ module.exports.courseService = require('./course.service');
 module.exports.documentService = require('./document.service');
 module.exports.templateService = require('./template.service');
 module.exports.roomService = require('./room.service');
+
+module.exports.gptService = require('./embedding.service');

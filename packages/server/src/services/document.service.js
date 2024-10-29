@@ -1,16 +1,36 @@
 const httpStatus = require('http-status');
+const pdfParse = require('pdf-parse');
 const { Document, Course } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { generateEmbedding } = require('./embedding.service');
 
 /**
- * Create a document associated with a course
+ * Create a document associated with a course and generate its embedding
  * @param {ObjectId} courseId
- * @param {Object} documentBody
+ * @param {Object} file
  * @returns {Promise<Document>}
  */
-const createDocument = async (courseId, documentBody) => {
+const createDocument = async (courseId, file) => {
+  const documentData = {
+    filename: file.originalname,
+    data: file.buffer,
+    contentType: file.mimetype,
+    size: file.buffer.length,
+    text: '',
+  };
+
+  if (file.mimetype === 'application/pdf') {
+    const pdfData = await pdfParse(file.buffer);
+    documentData.text = pdfData.text;
+  }
+
+  if (documentData.text) {
+    const embedding = await generateEmbedding(documentData.text);
+    documentData.embedding = embedding;
+  }
+
   const document = await Document.create({
-    ...documentBody,
+    ...documentData,
     course: courseId,
   });
 
