@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
 const { Document, Course } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { generateEmbedding } = require('./embedding.service');
+const { generateEmbedding } = require('./RAG/embedding.service');
 
 /**
  * Create a document associated with a course and generate its embedding

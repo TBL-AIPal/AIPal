@@ -1,6 +1,8 @@
 const express = require('express');
 
 const axios = require('axios');
+const logger = require('./config/logger');
+const { generateContextualizedQuery } = require('./services/RAG/vector.search.service');
 
 const router = express.Router();
 require('dotenv').config({ path: '../.env' });
@@ -42,13 +44,30 @@ const callOpenAI = async (conversation, agentInstruction) => {
 router.post('/chatgpt', async (req, res) => {
   const { conversation } = req.body; // Full conversation history
 
+  // Get the most recent query by user
+  const currentQuery = conversation[conversation.length - 1].content;
+
+  // Query with context appended on top of it
+  const contextualizedQuery = await generateContextualizedQuery(currentQuery);
+
+  logger.info(contextualizedQuery);
+
+  // Updated conversation
+  const contextualizedConversation = [
+    ...conversation.slice(0, conversation.length - 1),
+    {
+      role: 'user',
+      content: contextualizedQuery,
+    },
+  ];
+
   try {
     // Step 1: Call the primary agent to generate the initial response
-    const primaryResponse = await callOpenAI(conversation, agents[0]);
+    const primaryResponse = await callOpenAI(contextualizedConversation, agents[0]);
 
     // Update conversation with the primary response
     let updatedConversation = [
-      ...conversation,
+      ...contextualizedConversation,
       {
         role: 'assistant',
         content: primaryResponse.data.choices[0].message.content,
@@ -62,7 +81,7 @@ router.post('/chatgpt', async (req, res) => {
 
       // Create the conversation template using the original user message and the last response
       const conversationWithTemplate = [
-        conversation[0], // Original user message
+        contextualizedConversation[0], // Original user message
         {
           role: 'user', // Treat the previous agent's response as a "template"
           content: lastResponse.content,

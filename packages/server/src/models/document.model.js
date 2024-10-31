@@ -8,7 +8,6 @@ const documentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    // TODO: Replace with GridFS if needed
     data: {
       type: Buffer,
       required: true,

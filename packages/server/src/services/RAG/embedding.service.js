@@ -1,5 +1,5 @@
 const { OpenAI } = require('openai');
-const logger = require('../config/logger');
+const logger = require('../../config/logger');
 
 require('dotenv').config({ path: '../.env' });
 
@@ -24,6 +24,7 @@ const generateEmbedding = async (text) => {
     logger.info('Embedding generated successfully');
     return response.data[0].embedding;
   } catch (error) {
+    logger.info(error);
     throw new Error('Failed to generate embedding');
   }
 };
