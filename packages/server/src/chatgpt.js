@@ -1,5 +1,4 @@
 const express = require('express');
-
 const axios = require('axios');
 const logger = require('./config/logger');
 const { generateContextualizedQuery } = require('./services/RAG/vector.search.service');
@@ -9,28 +8,13 @@ require('dotenv').config({ path: '../.env' });
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-// Define agents with specific instructions
-const agents = [
-  { role: 'system', content: 'You are a helpful assistant.' }, // Primary agent
-  {
-    role: 'system',
-    content:
-      'You will receive a conversation with two messages. Respond to the first message using the second message as a template, ensuring that the user is referred to as "cadet.",',
-  }, // Secondary agent 1 (Cadet Check)
-  {
-    role: 'system',
-    content:
-      'You will receive a conversation with two messages. Respond to the first message using the second message as a template, but speak in Chinese',
-  }, // Secondary agent 2 (Pseudocode Check)
-];
-
-// Function to send a conversation to a specific agent
-const callOpenAI = async (conversation, agentInstruction) => {
+// Function to send a conversation to the OpenAI API
+const callOpenAI = async (messages) => {
   return axios.post(
     OPENAI_API_URL,
     {
       model: 'gpt-4',
-      messages: [...conversation, agentInstruction], // Include conversation history and agent instructions
+      messages, // Use property shorthand
     },
     {
       headers: {
@@ -41,7 +25,84 @@ const callOpenAI = async (conversation, agentInstruction) => {
   );
 };
 
-router.post('/chatgpt', async (req, res) => {
+// Function to segment text into chunks
+const segmentText = (text, chunkSize) => {
+  return Array.from({ length: Math.ceil(text.length / chunkSize) }, (_, i) =>
+    text.slice(i * chunkSize, i * chunkSize + chunkSize)
+  ); // Use Array.from to create chunks
+};
+
+// Function to process chunks sequentially
+const processChunksSequentially = async (chunks, conversation) => {
+  let finalSummary = ''; // Initialize the final summary
+
+  // Process each chunk sequentially using reduce
+  await chunks.reduce(async (previousPromise, chunk) => {
+    await previousPromise; // Wait for the previous promise to resolve
+
+    // Create the system message
+    let systemMessageContent = `You need to read the current source text and summary of previous source text (if any) and generate a summary to include them both.`;
+    // Include the previous summary if it exists
+    if (finalSummary) {
+      systemMessageContent += ` Summary of previous source text: "${finalSummary}".`;
+    }
+
+    // Append the current chunk to the system message
+    systemMessageContent += ` Current source text: "${chunk}"`;
+
+    const conversationWithChunk = [{ role: 'system', content: systemMessageContent }, ...conversation];
+
+    // Call the OpenAI API with the constructed conversation
+    const primaryResponse = await callOpenAI(conversationWithChunk);
+    finalSummary = primaryResponse.data.choices[0].message.content; // Update the final summary with the latest response
+  }, Promise.resolve()); // Start with a resolved promise
+
+  return finalSummary; // Return the final summary after processing all chunks
+};
+
+// Multi-Agent Endpoint
+router.post('/multi-agent', async (req, res) => {
+  const { conversation, documents, constraints } = req.body; // Full conversation history and documents
+
+  try {
+    // Step 1: Process each document and its chunks
+    const summaryPromises = documents.map(async (doc) => {
+      const chunks = segmentText(doc.text, 2048); // Segment document text into 2048-character chunks
+      const finalSummary = await processChunksSequentially(chunks, conversation); // Process chunks sequentially
+      return finalSummary; // Return the final summary for this document
+    });
+
+    // Wait for all document processing to complete
+    const summaries = await Promise.all(summaryPromises);
+    const finalSummary = summaries.join(' '); // Combine summaries if needed
+
+    // Step 3: Call the manager agent with the final summary and constraints
+    const constraintsString = constraints.join(', '); // Convert constraints array to a string
+
+    const managerConversation = [
+      {
+        role: 'system',
+        content: `This source is too long and has been summarized. You need to answer based on the summary: "${finalSummary}". Please ensure your response satisfies the following constraints: ${constraintsString}.`,
+      },
+      {
+        role: 'user',
+        content: conversation[conversation.length - 1].content,
+      }, // Last user query
+    ];
+
+    const managerResponse = await callOpenAI(managerConversation);
+
+    // Step 4: Return the final response to the client
+    res.json({
+      responses: [...conversation, { role: 'assistant', content: managerResponse.data.choices[0].message.content }],
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
+  }
+});
+
+// RAG Endpoint
+router.post('/rag', async (req, res) => {
   const { conversation } = req.body; // Full conversation history
 
   // Get the most recent query by user
@@ -52,7 +113,7 @@ router.post('/chatgpt', async (req, res) => {
 
   logger.info(contextualizedQuery);
 
-  // Updated conversation
+  // Updated conversation with context
   const contextualizedConversation = [
     ...conversation.slice(0, conversation.length - 1),
     {
@@ -62,51 +123,69 @@ router.post('/chatgpt', async (req, res) => {
   ];
 
   try {
-    // Step 1: Call the primary agent to generate the initial response
-    const primaryResponse = await callOpenAI(contextualizedConversation, agents[0]);
+    const response = await callOpenAI(contextualizedConversation);
+    res.json({ responses: [...conversation, { role: 'assistant', content: response.data.choices[0].message.content }] });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
+  }
+});
 
-    // Update conversation with the primary response
-    let updatedConversation = [
-      ...contextualizedConversation,
-      {
-        role: 'assistant',
-        content: primaryResponse.data.choices[0].message.content,
-      },
-    ];
+// RAG and Multi-Agent Endpoint
+router.post('/rag+multi-agent', async (req, res) => {
+  const { conversation, documents, constraints } = req.body; // Full conversation history and documents
 
-    // Step 2: Create an array of promises for secondary agent responses
-    const agentPromises = agents.slice(1).map(async (agent) => {
-      // Get a reference to the last assistant's response
-      const lastResponse = updatedConversation[updatedConversation.length - 1];
+  // Get the most recent query by user
+  const currentQuery = conversation[conversation.length - 1].content;
 
-      // Create the conversation template using the original user message and the last response
-      const conversationWithTemplate = [
-        contextualizedConversation[0], // Original user message
-        {
-          role: 'user', // Treat the previous agent's response as a "template"
-          content: lastResponse.content,
-        },
-      ];
+  // Query with context appended on top of it
+  const contextualizedQuery = await generateContextualizedQuery(currentQuery);
 
-      // Get the modified response from the current agent
-      const secondaryResponse = await callOpenAI(conversationWithTemplate, agent);
-
-      return {
-        role: 'assistant',
-        content: secondaryResponse.data.choices[0].message.content,
-      };
+  try {
+    // Step 1: Process each document and its chunks
+    const summaryPromises = documents.map(async (doc) => {
+      const chunks = segmentText(doc.text, 2048); // Segment document text into 2048-character chunks
+      const finalSummary = await processChunksSequentially(chunks, conversation); // Process chunks sequentially
+      return finalSummary; // Return the final summary for this document
     });
 
-    // Step 3: Wait for all promises to resolve
-    const secondaryResponses = await Promise.all(agentPromises);
+    // Wait for all document processing to complete
+    const summaries = await Promise.all(summaryPromises);
+    const finalSummary = summaries.join(' '); // Combine summaries if needed
 
-    // Step 4: Add the responses to the conversation
-    updatedConversation = [...conversation, ...secondaryResponses];
+    // Step 3: Call the manager agent with the final summary and constraints
+    const constraintsString = constraints.join(', '); // Convert constraints array to a string
 
-    // Step 5: Return the modified conversation to the client
-    res.json({ responses: updatedConversation });
+    const managerConversation = [
+      {
+        role: 'system',
+        content: `This source is too long and has been summarized. You need to answer based on the summary: "${finalSummary}". Please ensure your response satisfies the following constraints: ${constraintsString}.`,
+      },
+      {
+        role: 'user',
+        content: contextualizedQuery,
+      }, // Last user query
+    ];
+
+    const managerResponse = await callOpenAI(managerConversation);
+
+    // Step 4: Return the final response to the client
+    res.json({
+      responses: [...conversation, { role: 'assistant', content: managerResponse.data.choices[0].message.content }],
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error interacting with OpenAI API' });
+    res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
+  }
+});
+
+// Direct API Call Endpoint
+router.post('/chatgpt-direct', async (req, res) => {
+  const { conversation } = req.body; // Full conversation history
+
+  try {
+    const response = await callOpenAI(conversation);
+    res.json({ responses: [...conversation, { role: 'assistant', content: response.data.choices[0].message.content }] });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
   }
 });
 
