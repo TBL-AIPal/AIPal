@@ -223,6 +223,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
         <Modal
           title={`Chat Room - ${selectedRoom.name}`} // Display room name in the modal title
           onClose={() => setIsChatModalOpen(false)} // Close the modal on user action
+          size='xl'
         >
           <ChatRoomPage
             roomName={selectedRoom.name}
