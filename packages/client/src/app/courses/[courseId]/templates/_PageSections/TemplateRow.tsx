@@ -227,6 +227,8 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           <ChatRoomPage
             roomName={selectedRoom.name}
             roomDescription={selectedRoom.description}
+            courseId={courseId}
+            templateId={selectedRoom.templateId}
           />
         </Modal>
       )}

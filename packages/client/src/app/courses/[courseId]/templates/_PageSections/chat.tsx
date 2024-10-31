@@ -1,20 +1,39 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
+import { Document } from '@/lib/types/document';
 
 interface ChatRoomPageProps {
   roomName: string;
   roomDescription: string;
+  courseId: string;
+  templateId: string;
 }
 
 const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   roomName,
   roomDescription,
+  courseId,
+  // templateId
 }) => {
   const [prompt, setPrompt] = useState('');
   const [conversation, setConversation] = useState<
     { role: string; content: string }[]
   >([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
+  const [multiAgent, setMultiAgent] = useState(false); // State for multi-agent toggle
+
+  useEffect(() => {
+    // Fetch documents when component mounts
+    const fetchDocuments = async () => {
+      const response = await GetDocumentsByCourseId(courseId);
+      setDocuments(response);
+    };
+
+    fetchDocuments();
+  }, [courseId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,12 +47,14 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
     setPrompt('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/chatgpt', {
+      const endpoint = multiAgent
+        ? 'http://localhost:5000/api/chatgpt'
+        : 'http://localhost:5000/api/chatgpt-direct'; // Change endpoint based on toggle
+      const res = await axios.post(endpoint, {
         conversation: updatedConversation,
+        documents: documents,
       });
-
-      const finalConversation = res.data.responses;
-      setConversation(finalConversation);
+      setConversation(res.data.responses);
     } catch {
       const errorMessage = {
         role: 'assistant',
@@ -49,6 +70,47 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
     <div>
       <h2 className='text-2xl font-bold'>{roomName}</h2>
       <p className='text-gray-600 mb-4'>{roomDescription}</p>
+
+      {/* Toggle switch for multi-agent architecture */}
+      <div className='mb-4 flex items-center'>
+        <span className='text-gray-700 mr-3'>Multi-Agent Architecture</span>
+        <label className='relative inline-flex items-center cursor-pointer'>
+          <input
+            type='checkbox'
+            className='hidden'
+            checked={multiAgent}
+            onChange={() => setMultiAgent(!multiAgent)} // Toggle the state
+          />
+          <div
+            className={`w-14 h-8 rounded-full transition-colors duration-300 ease-in-out ${
+              multiAgent ? 'bg-green-600' : 'bg-gray-300'
+            }`}
+          ></div>
+          <span
+            className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
+              multiAgent ? 'transform translate-x-6' : ''
+            }`}
+          ></span>
+        </label>
+      </div>
+
+      {/* Display documents list */}
+      <div className='mb-4'>
+        <h3 className='font-semibold'>Documents</h3>
+        {documents.length === 0 ? (
+          <p>No documents available.</p>
+        ) : (
+          <ul className='list-disc pl-5'>
+            {documents.map((doc) => (
+              <li key={doc.id}>
+                {doc.filename} - {doc.contentType} - {doc.size} bytes
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Chat display */}
       <div className='bg-gray-100 p-4 rounded max-h-96 overflow-y-auto'>
         {conversation.map((msg, index) => (
           <div
@@ -63,6 +125,7 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
         ))}
       </div>
 
+      {/* Prompt input */}
       <form onSubmit={handleSubmit} className='mt-4 w-full'>
         <textarea
           className='w-full rounded border p-2 text-gray-700'
