@@ -26,6 +26,8 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [multiAgent, setMultiAgent] = useState(false); // State for multi-agent toggle
+  const [retrievalAugmentedGeneration, setRetrievalAugmentedGeneration] =
+    useState(false); // State for RAG toggle
 
   useEffect(() => {
     // Fetch documents when component mounts
@@ -49,9 +51,14 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
     setPrompt('');
 
     try {
-      const endpoint = multiAgent
-        ? 'http://localhost:5000/api/chatgpt'
-        : 'http://localhost:5000/api/chatgpt-direct'; // Change endpoint based on toggle
+      const endpoint =
+        multiAgent && retrievalAugmentedGeneration
+          ? 'http://localhost:5000/api/rag+multi-agent'
+          : multiAgent
+          ? 'http://localhost:5000/api/multi-agent'
+          : retrievalAugmentedGeneration
+          ? 'http://localhost:5000/api/rag'
+          : 'http://localhost:5000/api/chatgpt-direct'; // Change endpoint based on toggle
       const res = await axios.post(endpoint, {
         conversation: updatedConversation,
         documents: documents,
@@ -76,7 +83,7 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
       {/* Toggle switch for multi-agent architecture */}
       <div className='mb-4 flex items-center'>
-        <span className='text-gray-700 mr-3'>Multi-Agent Architecture</span>
+        <span className='text-white mr-3'>Multi-Agent Architecture</span>
         <label className='relative inline-flex items-center cursor-pointer'>
           <input
             type='checkbox'
@@ -92,6 +99,31 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
           <span
             className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
               multiAgent ? 'transform translate-x-6' : ''
+            }`}
+          ></span>
+        </label>
+      </div>
+
+      {/* Toggle switch for RAG */}
+      <div className='mb-4 flex items-center'>
+        <span className='text-white mr-3'>Retrieval Augmented Generation</span>
+        <label className='relative inline-flex items-center cursor-pointer'>
+          <input
+            type='checkbox'
+            className='hidden'
+            checked={retrievalAugmentedGeneration}
+            onChange={() =>
+              setRetrievalAugmentedGeneration(!retrievalAugmentedGeneration)
+            } // Toggle the state
+          />
+          <div
+            className={`w-14 h-8 rounded-full transition-colors duration-300 ease-in-out ${
+              retrievalAugmentedGeneration ? 'bg-green-600' : 'bg-gray-300'
+            }`}
+          ></div>
+          <span
+            className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
+              retrievalAugmentedGeneration ? 'transform translate-x-6' : ''
             }`}
           ></span>
         </label>
