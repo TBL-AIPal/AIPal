@@ -9,13 +9,15 @@ interface ChatRoomPageProps {
   roomDescription: string;
   courseId: string;
   templateId: string;
+  constraints: string[];
 }
 
 const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   roomName,
   roomDescription,
   courseId,
-  // templateId
+  // templateId,
+  constraints,
 }) => {
   const [prompt, setPrompt] = useState('');
   const [conversation, setConversation] = useState<
@@ -53,6 +55,7 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
       const res = await axios.post(endpoint, {
         conversation: updatedConversation,
         documents: documents,
+        constraints: constraints,
       });
       setConversation(res.data.responses);
     } catch {

@@ -60,7 +60,7 @@ const processChunksSequentially = async (chunks, conversation) => {
 
 // Multi-Agent Endpoint
 router.post('/chatgpt', async (req, res) => {
-  const { conversation, documents } = req.body; // Full conversation history and documents
+  const { conversation, documents, constraints } = req.body; // Full conversation history and documents
 
   try {
     // Step 1: Process each document and its chunks
@@ -74,11 +74,13 @@ router.post('/chatgpt', async (req, res) => {
     const summaries = await Promise.all(summaryPromises);
     const finalSummary = summaries.join(' '); // Combine summaries if needed
 
-    // Step 3: Call the manager agent with the final summary
+    // Step 3: Call the manager agent with the final summary and constraints
+    const constraintsString = constraints.join(', '); // Convert constraints array to a string
+
     const managerConversation = [
       {
         role: 'system',
-        content: `This source is too long and has been summarized. You need to answer based on the summary: "${finalSummary}"`,
+        content: `This source is too long and has been summarized. You need to answer based on the summary: "${finalSummary}". Please ensure your response satisfies the following constraints: ${constraintsString}.`,
       },
       {
         role: 'user',

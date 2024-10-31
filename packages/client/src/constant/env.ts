@@ -12,4 +12,4 @@ export const serverUrl = process.env.SERVER_API_URL || '';
 // TODO: Remove hardcoded token once Authentication is properly implemented
 // curl -X POST "http://localhost:5000/v1/auth/login" -H "Content-Type: application/json" -d "{\"email\": \"kariane50@gmail.com\", \"password\": \"password1\"}"
 export const jwtToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NzEwOGNhNTM3Yjc5ZWM2YTE3YjJkZGEiLCJpYXQiOjE3MzAzNjYxODQsImV4cCI6MTczMDM2Nzk4NCwidHlwZSI6ImFjY2VzcyJ9.Kn4BhIR_x3Ulqyhk9-U8q54KAYP-sxQJDI64ZmXgS5w';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NzEwOGNhNTM3Yjc5ZWM2YTE3YjJkZGEiLCJpYXQiOjE3MzAzOTAzNjMsImV4cCI6MTczMDM5MjE2MywidHlwZSI6ImFjY2VzcyJ9.AilyQe1qtqQrEQV1fDuwjFOsGp5DqH87jFGzYJ5_tUk';
