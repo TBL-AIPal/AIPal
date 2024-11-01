@@ -3,6 +3,7 @@ const pdfParse = require('pdf-parse');
 const { Document, Course } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { generateEmbedding } = require('./RAG/embedding.service');
+const { processText } = require('./RAG/preprocessing.service');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -25,7 +26,8 @@ const createDocument = async (courseId, file) => {
   }
 
   if (documentData.text) {
-    const embedding = await generateEmbedding(documentData.text);
+    const normalizedData = await processText(documentData.text);
+    const embedding = await generateEmbedding(normalizedData);
     documentData.embedding = embedding;
   }
 

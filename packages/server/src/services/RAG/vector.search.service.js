@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 const { generateEmbedding } = require('./embedding.service');
 const config = require('../../config/config');
+const { processText } = require('./preprocessing.service');
 
 // TODO: Filter using the templateId
 async function getContextualData(queryVector) {
@@ -25,6 +26,7 @@ async function getContextualData(queryVector) {
       {
         $project: {
           _id: 0,
+          filename: 1,
           text: 1,
           score: {
             $meta: 'vectorSearchScore',
@@ -45,7 +47,8 @@ async function getContextualData(queryVector) {
 const generateContextualizedQuery = async (query) => {
   try {
     // Generate embedding for query
-    const queryVector = await generateEmbedding(query);
+    const normalizedQuery = await processText(query);
+    const queryVector = await generateEmbedding(normalizedQuery);
 
     // Use vector search to get relevant documents
     const result = await getContextualData(queryVector);
@@ -54,18 +57,24 @@ const generateContextualizedQuery = async (query) => {
 
     let textDocuments = '';
     arrayOfQueryDocs.forEach((doc) => {
-      const string = `${doc.text}\n\n`;
+      const string = `\nTitle: ${doc.filename}\n${doc.text}\n\n`;
       textDocuments += string;
     });
 
     // Append documents to the start of the query
-    const prompt = `Use the following pieces of context to answer the question at the end.
-    Documents:
-    ${textDocuments}
-    End of Documents.
-    
-    Question:
-    ${query}`;
+    const prompt = `
+      Use the following context to answer the question at the end. 
+      While you can include external information, prioritize details from the provided context.
+      Note that it is not necessary for you to use all the information provided as some
+      of the context may be irrelevant to the question. You may use the information as a starting
+      point and expand more on it.
+
+      Documents:
+      ${textDocuments}
+      End of Documents.
+
+      Question:
+      ${query}`;
     return prompt;
   } catch (error) {
     throw new Error('Failed to generate text');
