@@ -30,9 +30,6 @@ def process_text(text):
     text = text.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
     text = text.replace("–", "-").replace("—", "-")
     
-    # Remove all punctuation
-    text = re.sub(r"[^\w\s]", "", text)
-    
     # Tokenize the text
     words = word_tokenize(text)
     
