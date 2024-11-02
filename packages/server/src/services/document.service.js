@@ -1,9 +1,10 @@
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
-const { Document, Course } = require('../models');
+const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { generateEmbedding } = require('./RAG/embedding.service');
 const { processText } = require('./RAG/preprocessing.service');
+const recursiveSplit = require('../utils/recursiveSplit');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -25,19 +26,24 @@ const createDocument = async (courseId, file) => {
     documentData.text = pdfData.text;
   }
 
-  if (documentData.text) {
-    const normalizedData = await processText(documentData.text);
-    const embedding = await generateEmbedding(normalizedData);
-    documentData.embedding = embedding;
-  }
-
   const document = await Document.create({
     ...documentData,
-    course: courseId,
   });
 
   // Update the course to add the document ID to the documents array
   await Course.updateOne({ _id: courseId }, { $push: { documents: document._id } });
+
+  if (documentData.text) {
+    const chunksText = recursiveSplit(documentData.text, 1000, 200);
+    const chunks = await Promise.all(
+      chunksText.map(async (text) => {
+        const normalizedData = await processText(text);
+        const embedding = await generateEmbedding(normalizedData);
+        return { text, embedding };
+      })
+    );
+    await Chunk.insertMany(chunks.map((chunk) => ({ ...chunk, document: document._id })));
+  }
 
   return document;
 };
@@ -83,6 +89,8 @@ const deleteDocumentById = async (courseId, documentId) => {
 
   // Update the course to remove the document ID in the documents array
   await Course.updateOne({ _id: courseId }, { $pull: { documents: document._id } });
+  // Delete the associated chunks using the document ID
+  await Chunk.deleteMany({ Document: document._id });
 
   await document.remove();
   return document;

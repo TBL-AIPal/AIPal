@@ -31,7 +31,7 @@ AI Pal's server uses MongoDB Atlas features, including vector search, to manage 
 After setting up your MongoDB connection, follow these additional steps:
 
 1. Connect to the database and create a new database called `ai-pal-dev`.
-2. **Set up a search index for vector search**: To enable vector search functionality for AI Pal, create a search index for documents with the following configuration. This step is necessary because programmatically creating a search index is not yet available for local Atlas deployments.
+2. **Set up a search index for vector search**: To enable vector search functionality for AI Pal, create a search index for `chunks` with the following configuration. This step is necessary because programmatically creating a search index is not yet available for local Atlas deployments.
 
    ```json
    {
@@ -41,6 +41,10 @@ After setting up your MongoDB connection, follow these additional steps:
          "path": "embedding",
          "numDimensions": 1536,
          "similarity": "euclidean"
+       },
+       {
+      "type": "filter",
+      "path": "document"
        }
      ]
    }

@@ -3,7 +3,7 @@ const { generateEmbedding } = require('./embedding.service');
 const config = require('../../config/config');
 const { processText } = require('./preprocessing.service');
 
-// TODO: Filter using the templateId
+// TODO: Filter using valid list of courses from template
 async function getContextualData(queryVector) {
   // Mongoose does not have support for do vector search in Atlas, thus we are using MongoDB
   const client = new MongoClient(config.mongodb.url);
@@ -11,7 +11,7 @@ async function getContextualData(queryVector) {
     await client.connect();
 
     const db = client.db(config.mongodb.db);
-    const collection = db.collection('documents');
+    const collection = db.collection('chunks');
 
     const aggregate = [
       {
@@ -20,13 +20,12 @@ async function getContextualData(queryVector) {
           path: 'embedding',
           queryVector,
           numCandidates: 20,
-          limit: 1,
+          limit: 3,
         },
       },
       {
         $project: {
           _id: 0,
-          filename: 1,
           text: 1,
           score: {
             $meta: 'vectorSearchScore',
@@ -57,17 +56,13 @@ const generateContextualizedQuery = async (query) => {
 
     let textDocuments = '';
     arrayOfQueryDocs.forEach((doc) => {
-      const string = `\nTitle: ${doc.filename}\n${doc.text}\n\n`;
+      const string = `\n###CHUNK START###\n${doc.text}\n###CHUNK END###\n`;
       textDocuments += string;
     });
 
     // Append documents to the start of the query
     const prompt = `
-      Use the following context to answer the question at the end. 
-      While you can include external information, prioritize details from the provided context.
-      Note that it is not necessary for you to use all the information provided as some
-      of the context may be irrelevant to the question. You may use the information as a starting
-      point and expand more on it.
+      Use the following context to answer the question at the end. While you can include external information, prioritize details from the provided context. Note that it is not necessary for you to use all the information provided as some of the context may be irrelevant to the question. You may use the information as a starting point and expand more on it.
 
       Documents:
       ${textDocuments}
