@@ -4,6 +4,7 @@ export interface Document {
   data: Buffer;
   contentType: DocumentContentType;
   size: number;
+  text: string;
   createdAt: string;
   updatedAt: string;
 }
