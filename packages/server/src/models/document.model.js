@@ -8,7 +8,6 @@ const documentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    // TODO: Replace with GridFS if needed
     data: {
       type: Buffer,
       required: true,
@@ -32,6 +31,9 @@ const documentSchema = new mongoose.Schema(
         },
         message: 'File size cannot exceed 10 MB',
       },
+    },
+    text: {
+      type: String,
     },
   },
   {

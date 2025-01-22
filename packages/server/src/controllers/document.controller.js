@@ -8,14 +8,7 @@ const createDocument = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is required');
   }
 
-  const documentData = {
-    filename: req.file.originalname,
-    data: req.file.buffer,
-    contentType: req.file.mimetype,
-    size: req.file.buffer.length,
-  };
-
-  const document = await documentService.createDocument(req.params.courseId, documentData);
+  const document = await documentService.createDocument(req.params.courseId, req.file);
   res.status(httpStatus.CREATED).send(document);
 });
 

@@ -1,57 +1,7 @@
-# RESTful API Node Server Boilerplate
-
-[![Build Status](https://travis-ci.org/hagopj13/node-express-boilerplate.svg?branch=master)](https://travis-ci.org/hagopj13/node-express-boilerplate)
-[![Coverage Status](https://coveralls.io/repos/github/hagopj13/node-express-boilerplate/badge.svg?branch=master)](https://coveralls.io/github/hagopj13/node-express-boilerplate?branch=master)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-
-A boilerplate/starter project for quickly building RESTful APIs using Node.js, Express, and Mongoose.
-
-By running a single command, you will get a production-ready Node.js app installed and fully configured on your machine. The app comes with many built-in features, such as authentication using JWT, request validation, unit and integration tests, continuous integration, docker support, API documentation, pagination, etc. For more details, check the features list below.
-
-## Quick Start
-
-To create a project, simply run:
-
-```bash
-npx create-nodejs-express-app <project-name>
-```
-
-Or
-
-```bash
-npm init nodejs-express-app <project-name>
-```
-
-## Manual Installation
-
-If you would still prefer to do the installation manually, follow these steps:
-
-Clone the repo:
-
-```bash
-git clone --depth 1 https://github.com/hagopj13/node-express-boilerplate.git
-cd node-express-boilerplate
-npx rimraf ./.git
-```
-
-Install the dependencies:
-
-```bash
-yarn install
-```
-
-Set the environment variables:
-
-```bash
-cp .env.example .env
-
-# open .env and modify the environment variables (if needed)
-```
-
 ## Table of Contents
 
+- [Pre-Requisite](#prerequisite)
 - [Features](#features)
-- [Commands](#commands)
 - [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
@@ -63,6 +13,44 @@ cp .env.example .env
 - [Custom Mongoose Plugins](#custom-mongoose-plugins)
 - [Linting](#linting)
 - [Contributing](#contributing)
+
+## Prerequisite
+AI Pal's server uses MongoDB Atlas features, including vector search, to manage and retrieve data effectively. There are two options for setting up MongoDB Atlas:
+
+1. **Use a cloud-based MongoDB Atlas cluster**:
+   - Sign up or log in to your MongoDB Atlas account.
+   - Set up a cluster that supports vector search. Configure the cluster to include search indexes for relevant fields, as required by the application.
+   - Obtain your connection URI and add it to the `.env` file.
+   - Ensure that vector search is available in your MongoDB plan, as this feature may only be available in specific Atlas configurations.
+
+2. **Run MongoDB Atlas locally**:
+   - Follow the instructions in the [MongoDB Atlas CLI documentation](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local/) to set up MongoDB Atlas on your machine.
+   - When prompted, select "Custom - With custom settings" and set the port to `55800` to match the default configuration in the provided `.env` sample.
+   - Use the connection URI obtained from `atlas deployments connect`.
+
+After setting up your MongoDB connection, follow these additional steps:
+
+1. Connect to the database and create a new database called `ai-pal-dev`.
+2. **Set up a search index for vector search**: To enable vector search functionality for AI Pal, create a search index for `chunks` with the following configuration. This step is necessary because programmatically creating a search index is not yet available for local Atlas deployments.
+
+   ```json
+   {
+     "fields": [
+       {
+         "type": "vector",
+         "path": "embedding",
+         "numDimensions": 1536,
+         "similarity": "euclidean"
+       },
+       {
+      "type": "filter",
+      "path": "document"
+       }
+     ]
+   }
+   ```
+
+   This index should target the `embedding` field, setting it up to use **euclidean similarity** across **1536 dimensions**.
 
 ## Features
 
@@ -88,72 +76,20 @@ cp .env.example .env
 - **Linting**: with [ESLint](https://eslint.org) and [Prettier](https://prettier.io)
 - **Editor config**: consistent editor configuration using [EditorConfig](https://editorconfig.org)
 
-## Commands
-
-Running locally:
-
-```bash
-yarn dev
-```
-
-Running in production:
-
-```bash
-yarn start
-```
-
-Testing:
-
-```bash
-# run all tests
-yarn test
-
-# run all tests in watch mode
-yarn test:watch
-
-# run test coverage
-yarn coverage
-```
-
-Docker:
-
-```bash
-# run docker container in development mode
-yarn docker:dev
-
-# run docker container in production mode
-yarn docker:prod
-
-# run all tests in a docker container
-yarn docker:test
-```
-
-Linting:
-
-```bash
-# run ESLint
-yarn lint
-
-# fix ESLint errors
-yarn lint:fix
-
-# run prettier
-yarn prettier
-
-# fix prettier errors
-yarn prettier:fix
-```
-
 ## Environment Variables
 
 The environment variables can be found and modified in the `.env` file. They come with these default values:
 
 ```bash
 # Port number
-PORT=3000
+PORT=5000
 
 # URL of the Mongo DB
-MONGODB_URL=mongodb://127.0.0.1:27017/node-boilerplate
+MONGODB_URL=mongodb://localhost:55800/
+DATABASE_NAME=ai-pal
+
+# Temporary API Key
+OPENAI_API_KEY=[INSERT YOUR API KEY]
 
 # JWT
 # JWT secret key
@@ -162,6 +98,10 @@ JWT_SECRET=thisisasamplesecret
 JWT_ACCESS_EXPIRATION_MINUTES=30
 # Number of days after which a refresh token expires
 JWT_REFRESH_EXPIRATION_DAYS=30
+# Number of minutes after which a reset password token expires
+JWT_RESET_PASSWORD_EXPIRATION_MINUTES=10
+# Number of minutes after which a verify email token expires
+JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=10
 
 # SMTP configuration options for the email service
 # For testing, you can use a fake SMTP service like Ethereal: https://ethereal.email/create

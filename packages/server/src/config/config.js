@@ -36,12 +36,16 @@ module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
   mongoose: {
-    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
+    url: envVars.MONGODB_URL + envVars.DATABASE_NAME + (envVars.NODE_ENV === 'test' ? '-test' : '-dev'),
     options: {
       useCreateIndex: true,
       useNewUrlParser: true,
       useUnifiedTopology: true,
     },
+  },
+  mongodb: {
+    url: `${envVars.MONGODB_URL}?directConnection=true`,
+    db: envVars.DATABASE_NAME + (envVars.NODE_ENV === 'test' ? '-test' : '-dev'),
   },
   jwt: {
     secret: envVars.JWT_SECRET,
