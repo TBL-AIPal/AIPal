@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 interface CreateRoomProps {
   courseId: string; // Add courseId to the parameters
@@ -25,9 +25,14 @@ export const CreateRoom = async ({
   };
 
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.post(`${proxyUrl}/courses/${courseId}/rooms`, data, {
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (err) {

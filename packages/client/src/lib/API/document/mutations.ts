@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 
 import { DocumentFormValues } from '@/lib/types/document';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 interface DeleteDocumentPropsI {
   courseId: string;
@@ -14,9 +14,14 @@ export const CreateDocument = async ({
   formData,
 }: DocumentFormValues) => {
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.post(`${proxyUrl}/courses/${courseId}/documents`, formData, {
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data',
       },
     });
@@ -30,11 +35,16 @@ export const DeleteDocument = async ({
   documentId,
 }: DeleteDocumentPropsI) => {
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.delete(
       `${proxyUrl}/courses/${courseId}/documents/${documentId}`,
       {
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );

@@ -2,19 +2,24 @@ import axios, { AxiosError } from 'axios';
 import { cache } from 'react';
 
 import { Course } from '@/lib/types/course';
-
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 export const GetCourseByUserId = cache(
   async (page = 1, limit = 10): Promise<Course[]> => {
     try {
-      const courses = await axios.get(`${proxyUrl}/courses`, {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/courses`, {
         params: { page, limit },
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      return courses.data.results;
+
+      return response.data.results;
     } catch (err) {
       throw new AxiosError((err as Error).message);
     }
@@ -24,12 +29,18 @@ export const GetCourseByUserId = cache(
 export const GetCourseById = cache(
   async (courseId: string): Promise<Course> => {
     try {
-      const course = await axios.get(`${proxyUrl}/courses/${courseId}`, {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/courses/${courseId}`, {
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      return course.data;
+
+      return response.data;
     } catch (err) {
       throw new AxiosError((err as Error).message);
     }

@@ -3,17 +3,22 @@ import { cache } from 'react';
 
 import { Room } from '@/lib/types/room';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 // Function to get rooms by templateId
 export const GetRoomsByTemplateId = cache(
   async (courseId: string, templateId: string): Promise<Room[]> => {
     try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
       const rooms = await axios.get(
         `${proxyUrl}/courses/${courseId}/templates/${templateId}/rooms`, // Updated API endpoint
         {
           headers: {
-            Authorization: `Bearer ${jwtToken}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

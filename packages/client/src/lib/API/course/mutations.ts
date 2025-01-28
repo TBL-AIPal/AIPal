@@ -6,7 +6,7 @@ import {
   CourseUpdateInput,
 } from '@/lib/types/course';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 interface UpdateCoursePropsI extends CourseFormValues {
   id: string;
@@ -28,9 +28,14 @@ export const CreateCourse = async ({
   };
 
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.post(`${proxyUrl}/courses`, data, {
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (err) {
@@ -59,9 +64,14 @@ export const UpdateCourse = async ({
   };
 
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.patch(`${proxyUrl}/courses/${id}`, data, {
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (err) {
@@ -71,9 +81,14 @@ export const UpdateCourse = async ({
 
 export const DeleteCourse = async ({ id }: DeleteCoursePropsI) => {
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.delete(`${proxyUrl}/courses/${id}`, {
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (err) {

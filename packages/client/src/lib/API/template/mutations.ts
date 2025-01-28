@@ -6,7 +6,7 @@ import {
   TemplateUpdateInput,
 } from '@/lib/types/template';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 interface CreateTemplatePropsI extends TemplateFormValues {
   courseId: string;
@@ -33,9 +33,14 @@ export const CreateTemplate = async ({
   };
 
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.post(`${proxyUrl}/courses/${courseId}/templates`, data, {
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (err) {
@@ -55,12 +60,17 @@ export const UpdateTemplate = async ({
   };
 
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.patch(
       `${proxyUrl}/courses/${courseId}/templates/${templateId}`,
       data,
       {
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -74,11 +84,16 @@ export const DeleteTemplate = async ({
   templateId,
 }: DeleteTemplatePropsI) => {
   try {
+    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
     await axios.delete(
       `${proxyUrl}/courses/${courseId}/templates/${templateId}`,
       {
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );

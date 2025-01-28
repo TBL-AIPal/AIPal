@@ -3,14 +3,19 @@ import { cache } from 'react';
 
 import { Document } from '@/lib/types/document';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
+import { proxyUrl } from '@/constant/env';
 
 export const GetDocumentsByCourseId = cache(
   async (id: string): Promise<Document[]> => {
     try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
       const documents = await axios.get(`${proxyUrl}/courses/${id}/documents`, {
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       return documents.data;
@@ -23,11 +28,16 @@ export const GetDocumentsByCourseId = cache(
 export const GetDocumentById = cache(
   async (courseId: string, documentId: string): Promise<Document> => {
     try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
       const document = await axios.get(
         `${proxyUrl}/courses/${courseId}/documents/${documentId}`,
         {
           headers: {
-            Authorization: `Bearer ${jwtToken}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
