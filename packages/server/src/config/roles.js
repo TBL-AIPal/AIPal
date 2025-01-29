@@ -13,6 +13,32 @@ const allRoles = {
     'getRooms',
     'manageRooms',
   ],
+  teacher: [
+    'getUsers',
+    'manageUsers',
+    'createCourses',
+    'getCourses',
+    'manageCourses',
+    'getDocuments',
+    'manageDocuments',
+    'getTemplates',
+    'manageTemplates',
+    'getRooms',
+    'manageRooms',
+  ],
+  student: [
+    'getUsers',
+    'manageUsers',
+    'createCourses',
+    'getCourses',
+    'manageCourses',
+    'getDocuments',
+    'manageDocuments',
+    'getTemplates',
+    'manageTemplates',
+    'getRooms',
+    'manageRooms',
+  ],
 };
 
 const roles = Object.keys(allRoles);
