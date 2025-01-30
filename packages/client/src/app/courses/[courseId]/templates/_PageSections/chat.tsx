@@ -57,8 +57,8 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
           : multiAgent
           ? 'http://localhost:5000/api/multi-agent'
           : retrievalAugmentedGeneration
-          ? 'http://localhost:5000/api/rag'
-          : 'http://localhost:5000/api/chatgpt-direct'; // Change endpoint based on toggle
+          ? `http://localhost:5000/v1/messages/rag/${courseId}`
+          : `http://localhost:5000/v1/messages/direct/${courseId}`; // Change endpoint based on toggle
       const res = await axios.post(endpoint, {
         conversation: updatedConversation,
         documents: documents,

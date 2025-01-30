@@ -1,8 +1,6 @@
 const { OpenAI } = require('openai');
 const logger = require('../../config/logger');
 
-require('dotenv').config({ path: '../.env' });
-
 /**
  * Generates an embedding for a given text using OpenAI API
  * @param {string} text - Text to generate embedding for

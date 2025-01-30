@@ -4,3 +4,4 @@ module.exports.courseController = require('./course.controller');
 module.exports.documentController = require('./document.controller');
 module.exports.templateController = require('./template.controller');
 module.exports.roomController = require('./room.controller');
+module.exports.messageController = require('./message.controller');
