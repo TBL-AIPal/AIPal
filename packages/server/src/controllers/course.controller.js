@@ -41,7 +41,15 @@ const getCourse = catchAsync(async (req, res) => {
 });
 
 const updateCourse = catchAsync(async (req, res) => {
-  const course = await courseService.updateCourseById(req.params.courseId, req.body);
+  const { courseId } = req.params;
+  const updateData = { ...req.body };
+
+  // Encrypt the API key if it exists in the request body
+  if (updateData.apiKey) {
+    updateData.apiKey = encrypt(updateData.apiKey, config.encryption.key);
+  }
+
+  const course = await courseService.updateCourseById(courseId, updateData);
   res.send(course);
 });
 
