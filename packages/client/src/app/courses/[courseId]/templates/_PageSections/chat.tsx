@@ -1,6 +1,5 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { Document } from '@/lib/types/document';
 
@@ -8,7 +7,6 @@ interface ChatRoomPageProps {
   roomName: string;
   roomDescription: string;
   courseId: string;
-  templateId: string;
   constraints: string[];
 }
 
@@ -16,7 +14,6 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   roomName,
   roomDescription,
   courseId,
-  // templateId,
   constraints,
 }) => {
   const [prompt, setPrompt] = useState('');
@@ -25,24 +22,19 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   >([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [multiAgent, setMultiAgent] = useState(false); // State for multi-agent toggle
-  const [retrievalAugmentedGeneration, setRetrievalAugmentedGeneration] =
-    useState(false); // State for RAG toggle
+  const [selectedModel, setSelectedModel] = useState('chatgpt-direct');
 
   useEffect(() => {
-    // Fetch documents when component mounts
     const fetchDocuments = async () => {
       const response = await GetDocumentsByCourseId(courseId);
       setDocuments(response);
     };
-
     fetchDocuments();
   }, [courseId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt) return;
-
     setLoading(true);
 
     const userMessage = { role: 'user', content: prompt };
@@ -51,14 +43,17 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
     setPrompt('');
 
     try {
+      const endpointMap: Record<string, string> = {
+        'chatgpt-direct': 'http://localhost:5000/api/chatgpt-direct',
+        'multi-agent': 'http://localhost:5000/api/multi-agent',
+        rag: 'http://localhost:5000/api/rag',
+        'rag+multi-agent': 'http://localhost:5000/api/rag+multi-agent',
+        gemini: 'http://localhost:5000/api/gemini',
+        llama3: 'http://localhost:5000/api/llama3',
+      };
+
       const endpoint =
-        multiAgent && retrievalAugmentedGeneration
-          ? 'http://localhost:5000/api/rag+multi-agent'
-          : multiAgent
-          ? 'http://localhost:5000/api/multi-agent'
-          : retrievalAugmentedGeneration
-          ? 'http://localhost:5000/api/rag'
-          : 'http://localhost:5000/api/chatgpt-direct'; // Change endpoint based on toggle
+        endpointMap[selectedModel] || endpointMap['chatgpt-direct'];
       const res = await axios.post(endpoint, {
         conversation: updatedConversation,
         documents: documents,
@@ -66,11 +61,10 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
       });
       setConversation(res.data.responses);
     } catch {
-      const errorMessage = {
-        role: 'assistant',
-        content: 'An error occurred. Please try again.',
-      };
-      setConversation((prev) => [...prev, errorMessage]);
+      setConversation((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'An error occurred. Please try again.' },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -81,52 +75,23 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
       <h2 className='text-2xl font-bold'>{roomName}</h2>
       <p className='text-gray-600 mb-4'>{roomDescription}</p>
 
-      {/* Toggle switch for multi-agent architecture */}
-      <div className='mb-4 flex items-center'>
-        <span className='text-white mr-3'>Multi-Agent Architecture</span>
-        <label className='relative inline-flex items-center cursor-pointer'>
-          <input
-            type='checkbox'
-            className='hidden'
-            checked={multiAgent}
-            onChange={() => setMultiAgent(!multiAgent)} // Toggle the state
-          />
-          <div
-            className={`w-14 h-8 rounded-full transition-colors duration-300 ease-in-out ${
-              multiAgent ? 'bg-green-600' : 'bg-gray-300'
-            }`}
-          ></div>
-          <span
-            className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
-              multiAgent ? 'transform translate-x-6' : ''
-            }`}
-          ></span>
+      {/* Model Selection Dropdown */}
+      <div className='mb-4'>
+        <label className='block text-white font-bold mb-2'>
+          Select AI Model:
         </label>
-      </div>
-
-      {/* Toggle switch for RAG */}
-      <div className='mb-4 flex items-center'>
-        <span className='text-white mr-3'>Retrieval Augmented Generation</span>
-        <label className='relative inline-flex items-center cursor-pointer'>
-          <input
-            type='checkbox'
-            className='hidden'
-            checked={retrievalAugmentedGeneration}
-            onChange={() =>
-              setRetrievalAugmentedGeneration(!retrievalAugmentedGeneration)
-            } // Toggle the state
-          />
-          <div
-            className={`w-14 h-8 rounded-full transition-colors duration-300 ease-in-out ${
-              retrievalAugmentedGeneration ? 'bg-green-600' : 'bg-gray-300'
-            }`}
-          ></div>
-          <span
-            className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
-              retrievalAugmentedGeneration ? 'transform translate-x-6' : ''
-            }`}
-          ></span>
-        </label>
+        <select
+          className='w-full p-2 border rounded'
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+        >
+          <option value='chatgpt-direct'>ChatGPT Direct</option>
+          <option value='multi-agent'>Multi-Agent</option>
+          <option value='rag'>Retrieval Augmented Generation</option>
+          <option value='rag+multi-agent'>RAG + Multi-Agent</option>
+          <option value='gemini'>Gemini</option>
+          <option value='llama3'>Llama 3.1</option>
+        </select>
       </div>
 
       {/* Display documents list */}
