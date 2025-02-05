@@ -2,6 +2,8 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const catchAsync = require('../utils/catchAsync');
 const { courseService } = require('../services');
+const Course = require('../models/course.model');
+const User = require('../models/user.model'); // Assuming you have a User model
 
 const createCourse = catchAsync(async (req, res) => {
   const courseData = {
@@ -45,10 +47,43 @@ const deleteCourse = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+// Add a user to the course
+const addUserToCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { userId } = req.body; // The ID of the user to add
+
+    // Find the course by courseId
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    // Ensure the user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Add user to the course's students array
+    if (!course.students.includes(userId)) {
+      course.students.push(userId); // Add user to students (or staff)
+      await course.save(); // Save the updated course
+    }
+
+    // Respond with the updated course
+    return res.status(200).json(course);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createCourse,
   getCourses,
   getCourse,
   updateCourse,
   deleteCourse,
+  addUserToCourse,
 };

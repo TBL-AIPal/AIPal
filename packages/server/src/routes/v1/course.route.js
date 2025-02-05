@@ -64,6 +64,14 @@ router
   .patch(auth('manageRooms'), validate(roomValidation.updateRoom), roomController.updateRoom)
   .delete(auth('manageRooms'), validate(roomValidation.deleteRoom), roomController.deleteRoom);
 
+  router
+  .route('/:courseId/users')
+  .post(
+    auth('manageCourses'), // Only allow users with permission to manage courses
+    validate(courseValidation.addUserToCourse), // Optional: Validation for the userId (can be added in `courseValidation` file)
+    courseController.addUserToCourse // Controller function to handle adding the user
+  );
+
 module.exports = router;
 
 /**

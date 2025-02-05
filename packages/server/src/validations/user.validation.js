@@ -16,6 +16,7 @@ const getUsers = {
   query: Joi.object().keys({
     name: Joi.string(),
     role: Joi.string(),
+    courseId: Joi.string().custom(objectId).optional(), // Added courseId
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),

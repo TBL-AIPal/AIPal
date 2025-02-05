@@ -1,13 +1,70 @@
+import axios, { AxiosError } from 'axios';
 import { cache } from 'react';
 
-interface User {
-  id: string;
-}
+import { User } from '@/lib/types/user';
+import { proxyUrl } from '@/constant/env';
 
-// TODO: Connect to Auth API
-export const GetUser = cache(async (): Promise<User> => {
-  const placeholder: User = {
-    id: '66f7eb4b31e23a3668e5b2ad',
-  };
-  return placeholder;
-});
+export const GetUsers = cache(
+  async (page = 1, limit = 10): Promise<User[]> => {
+    try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/users`, {
+        params: { page, limit },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data.results;
+    } catch (err) {
+      throw new AxiosError((err as Error).message);
+    }
+  }
+);
+
+export const GetUsersByCourseId = cache(
+  async (courseId: string, page = 1, limit = 10): Promise<User[]> => {
+    try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/users`, {
+        params: { courseId, page, limit },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data.results;
+    } catch (err) {
+      throw new AxiosError((err as Error).message);
+    }
+  }
+);
+
+export const GetUserById = cache(
+  async (userId: string): Promise<User> => {
+    try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (err) {
+      throw new AxiosError((err as Error).message);
+    }
+  }
+);
