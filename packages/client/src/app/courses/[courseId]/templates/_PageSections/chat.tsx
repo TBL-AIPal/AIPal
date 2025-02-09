@@ -1,7 +1,12 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
+import {
+  createCombinedMessage,
+  createDirectMessage,
+  createMultiAgentMessage,
+  createRAGMessage,
+} from '@/lib/API/message/mutations';
 import { Document } from '@/lib/types/document';
 
 interface ChatRoomPageProps {
@@ -41,37 +46,59 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Ensure there is a prompt before proceeding
     if (!prompt) return;
 
     setLoading(true);
 
+    // Add the user's message to the conversation
     const userMessage = { role: 'user', content: prompt };
     const updatedConversation = [...conversation, userMessage];
     setConversation(updatedConversation);
     setPrompt('');
 
     try {
-      const endpoint =
-        multiAgent && retrievalAugmentedGeneration
-          ? 'http://localhost:5000/api/rag+multi-agent'
-          : multiAgent
-          ? 'http://localhost:5000/api/multi-agent'
-          : retrievalAugmentedGeneration
-          ? `http://localhost:5000/v1/messages/rag/${courseId}`
-          : `http://localhost:5000/v1/messages/direct/${courseId}`; // Change endpoint based on toggle
-      const res = await axios.post(endpoint, {
-        conversation: updatedConversation,
-        documents: documents,
-        constraints: constraints,
-      });
-      setConversation(res.data.responses);
-    } catch {
+      let response;
+
+      // Determine which API function to call based on toggles
+      if (multiAgent && retrievalAugmentedGeneration) {
+        response = await createCombinedMessage({
+          courseId,
+          conversation: updatedConversation,
+          documents,
+          constraints,
+        });
+      } else if (multiAgent) {
+        response = await createMultiAgentMessage({
+          courseId,
+          conversation: updatedConversation,
+          documents,
+          constraints,
+        });
+      } else if (retrievalAugmentedGeneration) {
+        response = await createRAGMessage({
+          courseId,
+          conversation: updatedConversation,
+        });
+      } else {
+        response = await createDirectMessage({
+          courseId,
+          conversation: updatedConversation,
+        });
+      }
+
+      // Update the conversation with the assistant's response
+      setConversation(response.responses);
+    } catch (error) {
+      // Handle errors by appending an error message to the conversation
       const errorMessage = {
         role: 'assistant',
         content: 'An error occurred. Please try again.',
       };
       setConversation((prev) => [...prev, errorMessage]);
     } finally {
+      // Ensure loading state is reset
       setLoading(false);
     }
   };

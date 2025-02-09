@@ -40,6 +40,60 @@ const callOpenAI = async (messages, apiKey) => {
   }
 };
 
+// Helper function to decrypt the API key and fetch the course
+const getCourseAndApiKey = async (courseId) => {
+  const course = await Course.findById(courseId);
+  if (!course) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
+  }
+  const apiKey = decrypt(course.apiKey, config.encryption.key);
+  return { course, apiKey };
+};
+
+// Helper function to segment text into chunks
+const segmentText = (text, chunkSize) => {
+  return Array.from({ length: Math.ceil(text.length / chunkSize) }, (_, i) =>
+    text.slice(i * chunkSize, i * chunkSize + chunkSize)
+  ); // Use Array.from to create chunks
+};
+
+// Helper function to process chunks sequentially
+const processChunksSequentially = async (chunks, conversation, apiKey) => {
+  let finalSummary = ''; // Initialize the final summary
+
+  // Process each chunk sequentially using reduce
+  await chunks.reduce(async (previousPromise, chunk) => {
+    await previousPromise; // Wait for the previous promise to resolve
+
+    // Create the system message
+    let systemMessageContent = `You need to read the current source text and summary of previous source text (if any) and generate a summary to include them both.`;
+    // Include the previous summary if it exists
+    if (finalSummary) {
+      systemMessageContent += ` Summary of previous source text: "${finalSummary}".`;
+    }
+
+    // Append the current chunk to the system message
+    systemMessageContent += ` Current source text: "${chunk}"`;
+
+    const conversationWithChunk = [{ role: 'system', content: systemMessageContent }, ...conversation];
+
+    // Call the OpenAI API with the constructed conversation
+    const primaryResponse = await callOpenAI(conversationWithChunk, apiKey);
+    finalSummary = primaryResponse.choices[0].message.content; // Update the final summary with the latest response
+  }, Promise.resolve()); // Start with a resolved promise
+
+  return finalSummary; // Return the final summary after processing all chunks
+};
+
+// Helper function to process documents into summaries
+const processDocuments = async (documents, conversation, apiKey) => {
+  const summaryPromises = documents.map(async (doc) => {
+    const chunks = segmentText(doc.text, 2048); // Segment document text into 2048-character chunks
+    return processChunksSequentially(chunks, conversation, apiKey); // Process chunks sequentially
+  });
+  return Promise.all(summaryPromises); // Wait for all document processing to complete
+};
+
 /**
  * Create a reply associated with a message
  * @param {ObjectId} courseId
@@ -54,7 +108,7 @@ const createDirectReply = async (courseId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
 
-  const apiKey = decrypt(course.apiKey, config.encryption.key);
+  const { apiKey } = await getCourseAndApiKey(courseId);
 
   const response = await callOpenAI(conversation, apiKey);
 
@@ -83,7 +137,7 @@ const createContextualizedReply = async (courseId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
 
-  const apiKey = decrypt(course.apiKey, config.encryption.key);
+  const { apiKey } = await getCourseAndApiKey(courseId);
 
   // Query with context appended on top of it
   const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey);
@@ -109,10 +163,86 @@ const createContextualizedReply = async (courseId, messageBody) => {
   };
 };
 
+/**
+ * Create a multi-agent reply associated with a message
+ * @param {ObjectId} courseId
+ * @param {Object} messageBody
+ * @returns {Promise<Object>}
+ */
+const createMultiAgentReply = async (courseId, messageBody) => {
+  const { conversation, documents, constraints } = messageBody;
+
+  const { apiKey } = await getCourseAndApiKey(courseId);
+
+  // Process documents into summaries
+  const summaries = await processDocuments(documents, conversation, apiKey);
+  const finalSummary = summaries.join(' ');
+
+  // Prepare the manager agent conversation
+  const constraintsString = constraints.join(', ');
+  const managerConversation = [
+    {
+      role: 'system',
+      content: `This source is too long and has been summarized. You need to answer based on the summary: "${finalSummary}". Please ensure your response satisfies the following constraints: ${constraintsString}.`,
+    },
+    {
+      role: 'user',
+      content: conversation[conversation.length - 1].content,
+    },
+  ];
+
+  const response = await callOpenAI(managerConversation, apiKey);
+  const assistantResponse = response.choices[0].message.content;
+
+  return {
+    responses: [...conversation, { role: 'assistant', content: assistantResponse }],
+  };
+};
+
+/**
+ * Create a contextualized and multi-agent reply associated with a message
+ * @param {ObjectId} courseId
+ * @param {Object} messageBody
+ * @returns {Promise<Object>}
+ */
+const createContextualizedAndMultiAgentReply = async (courseId, messageBody) => {
+  const { conversation, documents, constraints } = messageBody;
+
+  const { apiKey } = await getCourseAndApiKey(courseId);
+
+  // Generate a contextualized query
+  const currentQuery = conversation[conversation.length - 1].content;
+  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey);
+  logger.info(contextualizedQuery);
+
+  // Process documents into summaries
+  const summaries = await processDocuments(documents, conversation, apiKey);
+  const finalSummary = summaries.join(' ');
+
+  // Prepare the manager agent conversation
+  const constraintsString = constraints.join(', ');
+  const managerConversation = [
+    {
+      role: 'system',
+      content: `This source is too long and has been summarized. You need to answer based on the summary: "${finalSummary}". Please ensure your response satisfies the following constraints: ${constraintsString}.`,
+    },
+    {
+      role: 'user',
+      content: contextualizedQuery,
+    },
+  ];
+
+  const response = await callOpenAI(managerConversation, apiKey);
+  const assistantResponse = response.choices[0].message.content;
+
+  return {
+    responses: [...conversation, { role: 'assistant', content: assistantResponse }],
+  };
+};
+
 module.exports = {
   createDirectReply,
   createContextualizedReply,
-  // TODO:
-  //   createMultiAgentReply,
-  //   createContextualizedAndMultiAgentReply,
+  createMultiAgentReply,
+  createContextualizedAndMultiAgentReply,
 };
