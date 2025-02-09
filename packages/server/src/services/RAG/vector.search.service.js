@@ -43,11 +43,11 @@ async function getContextualData(queryVector) {
   }
 }
 
-const generateContextualizedQuery = async (query) => {
+const generateContextualizedQuery = async (query, apiKey) => {
   try {
     // Generate embedding for query
     const normalizedQuery = await processText(query);
-    const queryVector = await generateEmbedding(normalizedQuery);
+    const queryVector = await generateEmbedding(normalizedQuery, apiKey);
 
     // Use vector search to get relevant documents
     const result = await getContextualData(queryVector);

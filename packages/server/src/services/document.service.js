@@ -5,6 +5,8 @@ const ApiError = require('../utils/ApiError');
 const { generateEmbedding } = require('./RAG/embedding.service');
 const { processText } = require('./RAG/preprocessing.service');
 const recursiveSplit = require('../utils/recursiveSplit');
+const { decrypt } = require('../utils/cryptoUtils');
+const config = require('../config/config');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -33,12 +35,19 @@ const createDocument = async (courseId, file) => {
   // Update the course to add the document ID to the documents array
   await Course.updateOne({ _id: courseId }, { $push: { documents: document._id } });
 
+  const course = await Course.findById(courseId);
+  if (!course) {
+    throw new Error('Course not found');
+  }
+
+  const apiKey = decrypt(course.apiKey, config.encryption.key);
+
   if (documentData.text) {
     const chunksText = recursiveSplit(documentData.text, 1000, 200);
     const chunks = await Promise.all(
       chunksText.map(async (text) => {
         const normalizedData = await processText(text);
-        const embedding = await generateEmbedding(normalizedData);
+        const embedding = await generateEmbedding(normalizedData, apiKey);
         return { text, embedding };
       })
     );

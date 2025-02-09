@@ -2,12 +2,17 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const catchAsync = require('../utils/catchAsync');
 const { courseService } = require('../services');
+const config = require('../config/config');
+const { encrypt } = require('../utils/cryptoUtils');
 
 const createCourse = catchAsync(async (req, res) => {
   const courseData = {
     ...req.body,
     owner: req.user.id,
   };
+
+  courseData.apiKey = encrypt(courseData.apiKey, config.encryption.key);
+
   const course = await courseService.createCourse(courseData);
   res.status(httpStatus.CREATED).send(course);
 });
@@ -36,7 +41,15 @@ const getCourse = catchAsync(async (req, res) => {
 });
 
 const updateCourse = catchAsync(async (req, res) => {
-  const course = await courseService.updateCourseById(req.params.courseId, req.body);
+  const { courseId } = req.params;
+  const updateData = { ...req.body };
+
+  // Encrypt the API key if it exists in the request body
+  if (updateData.apiKey) {
+    updateData.apiKey = encrypt(updateData.apiKey, config.encryption.key);
+  }
+
+  const course = await courseService.updateCourseById(courseId, updateData);
   res.send(course);
 });
 

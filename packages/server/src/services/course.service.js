@@ -45,12 +45,16 @@ const getCourseById = async (id) => {
  * @returns {Promise<Course>}
  */
 const updateCourseById = async (courseId, updateBody) => {
-  const course = await getCourseById(courseId);
+  const course = await Course.findByIdAndUpdate(
+    courseId,
+    { $set: updateBody }, // Use $set to update only the provided fields
+    { new: true } // Return the updated document
+  );
+
   if (!course) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
+    throw new Error('Course not found');
   }
-  Object.assign(course, updateBody);
-  await course.save();
+
   return course;
 };
 
