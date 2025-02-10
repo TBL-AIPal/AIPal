@@ -4,6 +4,7 @@ const createMessage = {
   params: {
     method: Joi.string().allow('direct', 'rag', 'multi-agent', 'combined'),
     courseId: Joi.string().required(),
+    templateId: Joi.string().required(),
   },
   body: Joi.object({
     conversation: Joi.array().items(Joi.object()).required(),

@@ -1,11 +1,13 @@
 const httpStatus = require('http-status');
 const axios = require('axios');
 const ApiError = require('../utils/ApiError');
-const { decrypt } = require('../utils/cryptoUtils');
-const config = require('../config/config');
+
 const Course = require('../models/course.model');
 const logger = require('../config/logger');
 const { generateContextualizedQuery } = require('./RAG/vector.search.service');
+
+const { getApiKeyById } = require('./course.service');
+const { getTemplateById } = require('./template.service');
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
@@ -38,16 +40,6 @@ const callOpenAI = async (messages, apiKey) => {
       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Error calling OpenAI API: ${error.message}`);
     }
   }
-};
-
-// Helper function to decrypt the API key and fetch the course
-const getCourseAndApiKey = async (courseId) => {
-  const course = await Course.findById(courseId);
-  if (!course) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
-  }
-  const apiKey = decrypt(course.apiKey, config.encryption.key);
-  return { course, apiKey };
 };
 
 // Helper function to segment text into chunks
@@ -108,7 +100,7 @@ const createDirectReply = async (courseId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
 
-  const { apiKey } = await getCourseAndApiKey(courseId);
+  const { apiKey } = await getApiKeyById(courseId);
 
   const response = await callOpenAI(conversation, apiKey);
 
@@ -123,11 +115,12 @@ const createDirectReply = async (courseId, messageBody) => {
 /**
  * Create a contextualized reply associated with a message
  * @param {ObjectId} courseId
+ * @param {ObjectId} templateId
  * @param {Object} messageBody
  * @returns {Promise<Object>}
  */
-const createContextualizedReply = async (courseId, messageBody) => {
-  const { conversation } = messageBody; // Full conversation history
+const createContextualizedReply = async (courseId, templateId, messageBody) => {
+  const { conversation } = messageBody;
 
   // Get the most recent query by user
   const currentQuery = conversation[conversation.length - 1].content;
@@ -137,10 +130,16 @@ const createContextualizedReply = async (courseId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
 
-  const { apiKey } = await getCourseAndApiKey(courseId);
+  const { apiKey } = await getApiKeyById(courseId);
 
-  // Query with context appended on top of it
-  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey);
+  const template = await getTemplateById(templateId);
+  if (!template) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
+  }
+
+  const documentIds = template.documents;
+
+  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey, documentIds);
 
   logger.info(contextualizedQuery);
 
@@ -172,7 +171,7 @@ const createContextualizedReply = async (courseId, messageBody) => {
 const createMultiAgentReply = async (courseId, messageBody) => {
   const { conversation, documents, constraints } = messageBody;
 
-  const { apiKey } = await getCourseAndApiKey(courseId);
+  const { apiKey } = await getApiKeyById(courseId);
 
   // Process documents into summaries
   const summaries = await processDocuments(documents, conversation, apiKey);
@@ -202,17 +201,19 @@ const createMultiAgentReply = async (courseId, messageBody) => {
 /**
  * Create a contextualized and multi-agent reply associated with a message
  * @param {ObjectId} courseId
+ * @param {ObjectId} templateId
  * @param {Object} messageBody
  * @returns {Promise<Object>}
  */
-const createContextualizedAndMultiAgentReply = async (courseId, messageBody) => {
+const createContextualizedAndMultiAgentReply = async (courseId, templateId, messageBody) => {
   const { conversation, documents, constraints } = messageBody;
 
-  const { apiKey } = await getCourseAndApiKey(courseId);
+  const { apiKey } = await getApiKeyById(courseId);
 
   // Generate a contextualized query
   const currentQuery = conversation[conversation.length - 1].content;
-  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey);
+  const documentIds = getTemplateById(templateId).documents;
+  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey, documentIds);
   logger.info(contextualizedQuery);
 
   // Process documents into summaries
