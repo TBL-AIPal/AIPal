@@ -13,6 +13,7 @@ const createTemplate = {
         'any.required': 'Template name is required',
       }),
       constraints: Joi.array().items(Joi.string()),
+      documents: Joi.array().items(Joi.string()),
     })
     .strict(),
 };
@@ -45,6 +46,7 @@ const updateTemplate = {
     .keys({
       name: Joi.string(),
       constraints: Joi.array().items(Joi.string()),
+      documents: Joi.array().items(Joi.string().custom(objectId)),
     })
     .min(1)
     .strict(),

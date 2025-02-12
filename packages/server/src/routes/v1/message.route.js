@@ -7,7 +7,7 @@ const messageController = require('../../controllers/message.controller');
 const router = express.Router();
 
 router
-  .route('/:method(rag|multi-agent|combined|direct)/:courseId')
+  .route('/:method(rag|multi-agent|combined|direct)/:courseId/:templateId')
   .post(auth('createMessage'), validate(messageValidation.createMessage), messageController.createMessage);
 
 module.exports = router;

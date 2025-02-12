@@ -1,6 +1,8 @@
 const httpStatus = require('http-status');
 const { Course, Template, Document } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { decrypt } = require('../utils/cryptoUtils');
+const config = require('../config/config');
 
 /**
  * Create a course
@@ -36,6 +38,20 @@ const getCourseById = async (id) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
   return course;
+};
+
+/**
+ * Get API key by course id
+ * @param {ObjectId} id
+ * @returns {Promise<Course>}
+ */
+const getApiKeyById = async (courseId) => {
+  const course = await Course.findById(courseId);
+  if (!course) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
+  }
+  const apiKey = decrypt(course.apiKey, config.encryption.key);
+  return { course, apiKey };
 };
 
 /**
@@ -87,6 +103,7 @@ module.exports = {
   createCourse,
   queryCourses,
   getCourseById,
+  getApiKeyById,
   updateCourseById,
   deleteCourseById,
 };

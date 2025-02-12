@@ -6,9 +6,10 @@ import { jwtToken, proxyUrl } from '@/constant/env';
 
 export const createDirectMessage = async ({
   courseId,
+  templateId,
   conversation,
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/direct/${courseId}`;
+  const endpoint = `${proxyUrl}/messages/direct/${courseId}/${templateId}`;
 
   const data = { conversation };
 
@@ -28,9 +29,10 @@ export const createDirectMessage = async ({
 
 export const createRAGMessage = async ({
   courseId,
+  templateId,
   conversation,
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/rag/${courseId}`;
+  const endpoint = `${proxyUrl}/messages/rag/${courseId}/${templateId}`;
 
   const data = { conversation };
 
@@ -50,13 +52,13 @@ export const createRAGMessage = async ({
 
 export const createMultiAgentMessage = async ({
   courseId,
+  templateId,
   conversation,
-  documents = [],
   constraints = [],
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/multi-agent/${courseId}`;
+  const endpoint = `${proxyUrl}/messages/multi-agent/${courseId}/${templateId}`;
 
-  const data = { conversation, documents, constraints };
+  const data = { conversation, constraints };
 
   try {
     const response = await axios.post(endpoint, data, {
@@ -74,13 +76,13 @@ export const createMultiAgentMessage = async ({
 
 export const createCombinedMessage = async ({
   courseId,
+  templateId,
   conversation,
-  documents = [],
   constraints = [],
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/combined/${courseId}`;
+  const endpoint = `${proxyUrl}/messages/combined/${courseId}/${templateId}`;
 
-  const data = { conversation, documents, constraints };
+  const data = { conversation, constraints };
 
   try {
     const response = await axios.post(endpoint, data, {

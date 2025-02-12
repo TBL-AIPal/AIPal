@@ -12,7 +12,7 @@ interface CreateTemplatePropsI extends TemplateFormValues {
   courseId: string;
 }
 
-interface UpdateTemplatePropsI extends TemplateFormValues {
+interface UpdateTemplatePropsI extends TemplateUpdateInput {
   courseId: string;
   templateId: string;
 }
@@ -26,10 +26,12 @@ export const CreateTemplate = async ({
   courseId,
   name,
   constraints,
+  documents,
 }: CreateTemplatePropsI) => {
   const data: TemplateCreateInput = {
     name,
     constraints,
+    documents,
   };
 
   try {
@@ -48,10 +50,12 @@ export const UpdateTemplate = async ({
   templateId,
   name,
   constraints,
+  documents,
 }: UpdateTemplatePropsI) => {
   const data: TemplateUpdateInput = {
     name,
     constraints,
+    documents,
   };
 
   try {

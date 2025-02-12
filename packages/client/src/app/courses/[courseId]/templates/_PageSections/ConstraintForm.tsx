@@ -56,7 +56,9 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
             ))}
           </ul>
         ) : (
-          <p className='text-sm text-white'>No constraints added yet.</p>
+          <p className='block text-sm font-normal text-gray-900 dark:text-white'>
+            No constraints added yet.
+          </p>
         )}
       </div>
     </FormItem>
