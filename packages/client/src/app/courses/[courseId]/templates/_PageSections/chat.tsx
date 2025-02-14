@@ -162,17 +162,23 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
       {/* Chat display */}
       <div className='bg-gray-100 p-4 rounded max-h-96 overflow-y-auto'>
-        {conversation.map((msg, index) => (
-          <div
-            key={index}
-            className={`my-2 ${
-              msg.role === 'user' ? 'text-blue-700' : 'text-gray-700'
-            }`}
-          >
-            <strong>{msg.role === 'user' ? 'You' : msg.role}:</strong>{' '}
-            {msg.content}
+        {conversation.length > 0 ? (
+          conversation.map((msg, index) => (
+            <div
+              key={index}
+              className={`my-2 ${
+                msg.role === 'user' ? 'text-blue-700' : 'text-gray-700'
+              }`}
+            >
+              <strong>{msg.role === 'user' ? 'You' : msg.role}:</strong>{' '}
+              {msg.content}
+            </div>
+          ))
+        ) : (
+          <div className='text-center text-gray-500 italic'>
+            No messages yet
           </div>
-        ))}
+        )}
       </div>
 
       {/* Prompt input */}
