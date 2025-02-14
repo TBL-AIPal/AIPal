@@ -110,7 +110,9 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
       {/* Toggle switch for multi-agent architecture */}
       <div className='mb-4 flex items-center'>
-        <span className='text-white mr-3'>Multi-Agent Architecture</span>
+        <span className='text-gray-900 dark:text-white mr-3'>
+          Multi-Agent Architecture
+        </span>
         <label className='relative inline-flex items-center cursor-pointer'>
           <input
             type='checkbox'
@@ -133,7 +135,9 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
       {/* Toggle switch for RAG */}
       <div className='mb-4 flex items-center'>
-        <span className='text-white mr-3'>Retrieval Augmented Generation</span>
+        <span className='text-gray-900 dark:text-white mr-3'>
+          Retrieval Augmented Generation
+        </span>
         <label className='relative inline-flex items-center cursor-pointer'>
           <input
             type='checkbox'
@@ -154,22 +158,6 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
             }`}
           ></span>
         </label>
-      </div>
-
-      {/* Display documents list */}
-      <div className='mb-4'>
-        <h3 className='font-semibold'>Documents</h3>
-        {documents.length === 0 ? (
-          <p>No documents available.</p>
-        ) : (
-          <ul className='list-disc pl-5'>
-            {documents.map((doc) => (
-              <li key={doc.id}>
-                {doc.filename} - {doc.contentType} - {doc.size} bytes
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
       {/* Chat display */}
