@@ -28,3 +28,47 @@ export const GetRoomsByTemplateId = cache(
     }
   }
 );
+
+export const GetRoomsByTemplateIds = cache(
+  async (courseId: string, templateIds: string[]): Promise<Room[]> => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/courses/${courseId}/rooms`, {
+        params: { templateIds: templateIds.join(',') }, // Convert array to comma-separated string
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data; // Assuming response contains an array of rooms
+    } catch (err) {
+      throw new AxiosError((err as Error).message);
+    }
+  }
+);
+
+
+export const GetRoomById = cache(
+  async (courseId: string, roomId: string): Promise<Room> => {
+    try {
+      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/courses/${courseId}/rooms/${roomId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (err) {
+      throw new AxiosError((err as Error).message);
+    }
+  }
+);

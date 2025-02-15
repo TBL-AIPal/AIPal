@@ -15,8 +15,24 @@ const getRooms = catchAsync(async (req, res) => {
   res.send(rooms);
 });
 
+const getRoomsByCourse = catchAsync(async (req, res) => {
+  const { courseId } = req.params;
+
+  // Fetch all rooms linked to any template in the course
+  const rooms = await roomService.getRoomsByCourse(courseId);
+  
+  res.send(rooms);
+});
+
 const getRoom = catchAsync(async (req, res) => {
-  const room = await roomService.getRoomById(req.params.roomId);
+  const { courseId, roomId } = req.params;
+  if (!courseId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Course ID is required');
+  }
+  const room = await roomService.getRoomById(roomId);
+  if (!room) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Room not found');
+  }
   res.send(room);
 });
 
@@ -41,6 +57,7 @@ module.exports = {
   getRooms,
   getRoom,
   getRoomsByTemplate,
+  getRoomsByCourse,
   updateRoom,
   deleteRoom,
 };

@@ -51,9 +51,12 @@ router
   .get(auth('getDocuments'), validate(documentValidation.getDocument), documentController.getDocument)
   .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
 
-// Routes for course rooms
-router.route('/:courseId/rooms').post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
-
+// ✅ Update the route to fetch ALL rooms for a course
+router
+  .route('/:courseId/rooms')
+  .get(auth('getRooms'), validate(roomValidation.getRoomsByCourse), roomController.getRoomsByCourse) // ⬅ New Route
+  .post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
+  
 router
   .route('/:courseId/templates/:templateId/rooms')
   .get(auth('getRooms'), validate(roomValidation.getRoomsByTemplate), roomController.getRoomsByTemplate);

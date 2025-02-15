@@ -24,9 +24,14 @@ const getRooms = {
 
 const getRoom = {
   params: Joi.object().keys({
-    roomId: Joi.string().custom(objectId).required().messages({
-      'any.required': 'Room ID is required',
-    }),
+    courseId: Joi.string().custom(objectId), // Ensure this is allowed
+    roomId: Joi.string().custom(objectId).required(),
+  }),
+};
+
+const getRoomsByCourse = {
+  params: Joi.object().keys({
+    courseId: Joi.string().custom(objectId).required(),
   }),
 };
 
@@ -71,6 +76,7 @@ module.exports = {
   getRooms,
   getRoom,
   getRoomsByTemplate,
+  getRoomsByCourse,
   updateRoom,
   deleteRoom,
 };
