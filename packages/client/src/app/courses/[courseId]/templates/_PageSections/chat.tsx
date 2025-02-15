@@ -21,7 +21,7 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   roomName,
   roomDescription,
   courseId,
-  // templateId,
+  templateId,
   constraints,
 }) => {
   const [prompt, setPrompt] = useState('');
@@ -65,25 +65,27 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
       if (multiAgent && retrievalAugmentedGeneration) {
         response = await createCombinedMessage({
           courseId,
+          templateId,
           conversation: updatedConversation,
-          documents,
           constraints,
         });
       } else if (multiAgent) {
         response = await createMultiAgentMessage({
           courseId,
+          templateId,
           conversation: updatedConversation,
-          documents,
           constraints,
         });
       } else if (retrievalAugmentedGeneration) {
         response = await createRAGMessage({
           courseId,
+          templateId,
           conversation: updatedConversation,
         });
       } else {
         response = await createDirectMessage({
           courseId,
+          templateId,
           conversation: updatedConversation,
         });
       }
