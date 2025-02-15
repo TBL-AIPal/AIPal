@@ -16,12 +16,23 @@ const createCourse = catchAsync(async (req, res) => {
 
 const getCourses = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const filter = {
-    $or: [{ owner: userId }, { students: userId }, { staff: userId }],
-  };
+  const isAdmin = req.user.role === 'admin'; // Check if the user is an admin
+
+  let filter = {};
+  if (!isAdmin) {
+    // If not an admin, filter by user courses and ensure the user is approved
+    filter = {
+      $or: [
+        { owner: userId },
+        { students: userId, "students.status": "approved" }, // Only approved students
+        { staff: userId, "staff.status": "approved" }, // Only approved staff
+      ],
+    };
+  }
 
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await courseService.queryCourses(filter, options);
+
   const courses = result.results.map((course) => ({
     id: course._id,
     name: course.name,
@@ -66,8 +77,11 @@ const addUserToCourse = async (req, res) => {
     }
 
     // Add user to the course's students array
-    if (!course.students.includes(userId)) {
-      course.students.push(userId); // Add user to students (or staff)
+    if (!course.students.includes(userId) && user.role === "student") {
+      course.students.push(userId); // Add user to students
+      await course.save(); // Save the updated course
+    } else if (!course.staff.includes(userId) && user.role === "teacher") {
+      course.staff.push(userId); // Add user to staff
       await course.save(); // Save the updated course
     }
 

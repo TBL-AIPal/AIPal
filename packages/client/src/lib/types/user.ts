@@ -1,6 +1,7 @@
 export interface User {
     id: string; // Converted from MongoDB ObjectId
-    role: 'admin' | 'teacher' | 'student'; // Assuming role types
+    role: 'admin' | 'teacher' | 'student'; // User role types
+    status: 'pending' | 'approved' | 'rejected'; // New status field
     isEmailVerified: boolean;
     courses: string[]; // List of course IDs the user is enrolled in
     name: string;
@@ -12,6 +13,7 @@ export interface User {
   
   export interface UserFormValues {
     role?: 'admin' | 'teacher' | 'student';
+    status?: 'pending' | 'approved' | 'rejected'; // Include status for forms
     isEmailVerified?: boolean;
     courses?: string[];
     name?: string;
@@ -21,6 +23,7 @@ export interface User {
   
   export interface UserCreateInput {
     role: 'admin' | 'teacher' | 'student';
+    status?: 'pending' | 'approved' | 'rejected'; // Include status in user creation
     isEmailVerified?: boolean;
     courses?: string[];
     name: string;
@@ -30,6 +33,7 @@ export interface User {
   
   export interface UserUpdateInput {
     role?: 'admin' | 'teacher' | 'student';
+    status?: 'pending' | 'approved' | 'rejected'; // Allow status updates
     isEmailVerified?: boolean;
     courses?: string[];
     name?: string;

@@ -52,6 +52,9 @@ const updateCourse = {
       owner: Joi.string().custom(objectId),
       students: Joi.array().items(Joi.string().custom(objectId)),
       staff: Joi.array().items(Joi.string().custom(objectId)),
+      whitelist: Joi.array().items(Joi.string().email()).messages({
+        'string.email': 'Whitelist must contain valid email addresses',
+      }), // Add whitelist support with email validation
     })
     .min(1)
     .strict(),

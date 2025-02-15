@@ -229,7 +229,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
             roomName={selectedRoom.name}
             roomDescription={selectedRoom.description}
             courseId={courseId}
-            templateId={selectedRoom.templateId}
             constraints={constraints}
           />
         </Modal>

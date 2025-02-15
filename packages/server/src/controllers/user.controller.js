@@ -18,20 +18,23 @@ const getUsers = catchAsync(async (req, res) => {
   let result;
 
   if (courseId) {
-    // Find the course by courseId and get the list of students
+    // Find the course by courseId and get the list of students and staff
     const course = await Course.findById(courseId);
 
     if (!course) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
     }
 
-    // If courseId is present, filter users by whether they exist in the students array
+    // Combine students and staff IDs
+    const userIds = [...course.students, ...course.staff];
+
+    // Filter users by student and staff IDs in the course
     result = await userService.queryUsers({
       ...filter,
-      _id: { $in: course.students }, // Filter users by student IDs in the course
+      _id: { $in: userIds },
     }, options);
   } else {
-    // If no courseId is provided, just return all users based on filter and options
+    // If no courseId is provided, return all users based on filter and options
     result = await userService.queryUsers(filter, options);
   }
 

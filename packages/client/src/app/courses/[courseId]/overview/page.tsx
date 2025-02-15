@@ -18,9 +18,10 @@ const Overview: React.FC = () => {
 
   const [accounts, setAccounts] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [courseDetails, setCourseDetails] = useState<{ name: string; apiKey: string } | null>(null);
+  const [courseDetails, setCourseDetails] = useState<{ name: string; description: string; apiKey: string; whitelist: string[] } | null>(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [emailList, setEmailList] = useState<string>('');
+  const [userRole, setUserRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
 
   const fetchUsers = useCallback(async () => {
     if (!courseIdString) return;
@@ -35,7 +36,7 @@ const Overview: React.FC = () => {
 
   const fetchAllUsers = useCallback(async () => {
     try {
-      const users = await GetUsers(); // Fetch all users for selection
+      const users = await GetUsers();
       setAllUsers(users || []);
     } catch (error) {
       logger(error, 'Error fetching all users');
@@ -45,34 +46,12 @@ const Overview: React.FC = () => {
   const fetchCourseDetails = useCallback(async () => {
     if (!courseIdString) return;
     try {
-      const course = await GetCourseById(courseIdString); // Fetch course details
-      setCourseDetails({ name: course.name, apiKey: course.apiKey });
+      const course = await GetCourseById(courseIdString);
+      setCourseDetails({ name: course.name, description: course.description || "", apiKey: course.apiKey, whitelist: course.whitelist || [] });
     } catch (error) {
       logger(error, 'Error fetching course details');
     }
   }, [courseIdString]);
-
-  const handleAddUser = async () => {
-    if (!courseIdString || !courseDetails || !selectedUserId) return;
-
-    try {
-      const { name, apiKey } = courseDetails;
-
-      // Update the course with the new student added
-      await UpdateCourse({
-        id: courseIdString,
-        name,
-        apiKey,
-        students: [...accounts.map(account => account.id), selectedUserId],
-        staff: [], // Assuming no staff for simplicity, modify as needed
-      });
-
-      fetchUsers(); // Re-fetch the users after adding the new one
-      setDialogOpen(false); // Close the dialog after adding the user
-    } catch (error) {
-      logger(error, 'Error adding user');
-    }
-  };
 
   useEffect(() => {
     fetchUsers();
@@ -80,74 +59,93 @@ const Overview: React.FC = () => {
     fetchCourseDetails();
   }, [fetchUsers, fetchAllUsers, fetchCourseDetails]);
 
+  const handleAddUsers = async () => {
+    if (!courseIdString || !courseDetails || !emailList) return;
+    try {
+      const { name, apiKey, whitelist } = courseDetails;
+      const emails = emailList.split(',').map(email => email.trim());
+      const existingUsers = allUsers.filter(user => emails.includes(user.email));
+      const newUsers = emails.filter(email => !existingUsers.some(user => user.email === email));
+
+      const staffIds = existingUsers.filter(user => user.role === 'teacher').map(user => user.id);
+      const studentIds = existingUsers
+        .filter(user => user.role !== 'teacher')
+        .map(user => user.id); // Extract only user IDs
+
+      await UpdateCourse({
+        id: courseIdString,
+        name,
+        apiKey,
+        students: [
+          ...accounts.filter(user => user.role !== 'teacher').map(user => user.id), // Keep existing students
+          ...studentIds, // Add new students (approved automatically)
+        ],
+        staff: [
+          ...accounts.filter(user => user.role === 'teacher').map(user => user.id), // Keep existing staff
+          ...staffIds, // Add new teachers
+        ],
+        whitelist: [...whitelist, ...newUsers], // Store new user emails in the whitelist
+      });
+
+      fetchUsers();
+      setDialogOpen(false);
+    } catch (error) {
+      logger(error, 'Error adding users');
+    }
+  };
+
   return (
     <div className="p-4">
-      {/* Description Section */}
       <h1 className="text-2xl font-semibold mb-2 text-blue-600">Description</h1>
-      <p className="mb-4 text-gray-700">
-        This page is still a work in progress. We will update this page once the authentication feature is ready.
-      </p>
-
-      {/* Divider */}
+      <p className="mb-4 text-gray-700">{courseDetails?.description || 'No description available for this course.'}</p>
       <div className="mt-4"></div>
+      
+      <h1 className="text-2xl font-semibold mb-2 text-blue-600">Staff and Students</h1>
+      <AccountTable>
+        {accounts.map((account) => (
+          <AccountRow key={account.email} name={account.name} email={account.email} role={account.role} />
+        ))}
+      </AccountTable>
 
-      {/* Dialog for Adding User */}
+      {/* Show Whitelisted Emails */}
+      {courseDetails?.whitelist && courseDetails.whitelist.length > 0 && (
+        <div className="mt-4">
+          <h2 className="text-xl font-semibold text-gray-700">Whitelisted Emails</h2>
+          <ul className="border rounded p-4 bg-gray-100">
+            {courseDetails.whitelist.map((email) => (
+              <li key={email} className="text-gray-800 p-2 border-b last:border-b-0">{email}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {userRole !== 'student' && (
+        <button onClick={() => setDialogOpen(true)} className="bg-blue-600 text-white p-2 rounded mt-4">
+          Add Users
+        </button>
+      )}
+
       {isDialogOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-1/3">
-            <h3 className="text-xl font-semibold mb-4">Select a user to add:</h3>
-            <ul className="mb-4">
-              {allUsers.map((user) => (
-                <li
-                  key={user.id}
-                  className="flex items-center justify-between mb-2 cursor-pointer"
-                  onClick={() => setSelectedUserId(user.id)}
-                >
-                  <span>{user.name} ({user.role})</span>
-                  {selectedUserId === user.id && (
-                    <span className="text-blue-600">Selected</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <h3 className="text-xl font-semibold mb-4">Enter email addresses (comma separated):</h3>
+            <textarea
+              value={emailList}
+              onChange={(e) => setEmailList(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+              placeholder="user1@example.com, user2@example.com"
+            />
             <div className="flex justify-between">
-              <button
-                onClick={() => setDialogOpen(false)}
-                className="bg-gray-500 text-white p-2 rounded"
-              >
+              <button onClick={() => setDialogOpen(false)} className="bg-gray-500 text-white p-2 rounded">
                 Close
               </button>
-              <button
-                onClick={handleAddUser}
-                disabled={!selectedUserId}
-                className="bg-blue-600 text-white p-2 rounded"
-              >
-                Add User
+              <button onClick={handleAddUsers} disabled={!emailList} className="bg-blue-600 text-white p-2 rounded">
+                Add Users
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Staff and Students Section */}
-      <h1 className="text-2xl font-semibold mb-2 text-blue-600">Staff and Students</h1>
-      <AccountTable>
-        {accounts.map((account) => (
-          <AccountRow
-            key={account.email}
-            name={account.name}
-            email={account.email}
-            role={account.role}
-          />
-        ))}
-      </AccountTable>
-            {/* Add User Section (Button) */}
-            <button
-        onClick={() => setDialogOpen(true)}
-        className="bg-blue-600 text-white p-2 rounded mt-4"
-      >
-        Add User
-      </button>
     </div>
   );
 };

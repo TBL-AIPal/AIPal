@@ -7,6 +7,7 @@ export interface Course {
   owner: string;
   students: string[];
   staff: string[];
+  whitelist: string[]; // New field for storing whitelisted emails
   documents: string[];
   templates: string[];
   createdAt: string;
@@ -21,6 +22,7 @@ export interface CourseFormValues {
   owner?: string;
   students?: string[];
   staff?: string[];
+  whitelist?: string[]; // Include whitelist field for form handling
   documents?: string[];
   templates?: string[];
 }
@@ -29,6 +31,7 @@ export interface CourseCreateInput {
   name: string;
   description?: string;
   apiKey: string;
+  whitelist?: string[]; // Allow setting a whitelist when creating a course
 }
 
 export interface CourseUpdateInput {
@@ -39,4 +42,5 @@ export interface CourseUpdateInput {
   owner?: string;
   students?: string[];
   staff?: string[];
+  whitelist?: string[]; // Allow updating the whitelist
 }

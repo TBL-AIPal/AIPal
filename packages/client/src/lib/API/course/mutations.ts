@@ -52,6 +52,7 @@ export const UpdateCourse = async ({
   owner,
   students,
   staff,
+  whitelist, // Add whitelist support
 }: UpdateCoursePropsI) => {
   const data: CourseUpdateInput = {
     name,
@@ -61,6 +62,7 @@ export const UpdateCourse = async ({
     owner,
     students,
     staff,
+    whitelist, // Include whitelist when updating the course
   };
 
   try {

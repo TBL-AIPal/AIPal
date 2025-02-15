@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   PanelsTopLeft,
   SlidersHorizontal,
+  DoorOpen,
 } from 'lucide-react';
 
 export const CourseSidebarIcons = {
@@ -10,4 +11,5 @@ export const CourseSidebarIcons = {
   Database,
   SlidersHorizontal,
   LayoutDashboard,
+  DoorOpen,
 };

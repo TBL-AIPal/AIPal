@@ -33,6 +33,7 @@ const courseSchema = new mongoose.Schema(
     },
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    whitelist: [{ type: String, default: [] }], // New field for storing whitelisted emails
     documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] }],
     templates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] }],
   },

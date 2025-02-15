@@ -4,7 +4,7 @@ import { cache } from 'react';
 import { Course } from '@/lib/types/course';
 import { proxyUrl } from '@/constant/env';
 
-export const GetCourseByUserId = cache(
+export const GetCoursesForUser = cache(
   async (page = 1, limit = 10): Promise<Course[]> => {
     try {
       const token = localStorage.getItem('authToken'); // Retrieve token dynamically

@@ -38,10 +38,12 @@ const updateUser = {
       email: Joi.string().email(),
       password: Joi.string().custom(password),
       name: Joi.string(),
+      status: Joi.string().valid('approved', 'rejected', 'pending'), // Allow 'status' updates
     })
     .min(1)
-    .pattern(Joi.string(), Joi.forbidden()),
+    .pattern(Joi.string(), Joi.forbidden()), 
 };
+
 
 const deleteUser = {
   params: Joi.object().keys({

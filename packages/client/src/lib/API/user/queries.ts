@@ -7,7 +7,7 @@ import { proxyUrl } from '@/constant/env';
 export const GetUsers = cache(
   async (page = 1, limit = 10): Promise<User[]> => {
     try {
-      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('User not authenticated. Please log in.');
       }
@@ -29,7 +29,7 @@ export const GetUsers = cache(
 export const GetUsersByCourseId = cache(
   async (courseId: string, page = 1, limit = 10): Promise<User[]> => {
     try {
-      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('User not authenticated. Please log in.');
       }
@@ -51,7 +51,7 @@ export const GetUsersByCourseId = cache(
 export const GetUserById = cache(
   async (userId: string): Promise<User> => {
     try {
-      const token = localStorage.getItem('authToken'); // Retrieve token dynamically
+      const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('User not authenticated. Please log in.');
       }
@@ -68,3 +68,59 @@ export const GetUserById = cache(
     }
   }
 );
+
+export const GetUsersByRole = cache(
+  async (role: string): Promise<User[]> => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+
+      const response = await axios.get(`${proxyUrl}/users`, {
+        params: { role },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data.results;
+    } catch (err) {
+      throw new AxiosError((err as Error).message);
+    }
+  }
+);
+
+export const ApproveUser = async (userId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
+    await axios.patch(`${proxyUrl}/users/${userId}`, { status: 'approved' }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (err) {
+    throw new AxiosError((err as Error).message);
+  }
+};
+
+export const RejectUser = async (userId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('User not authenticated. Please log in.');
+    }
+
+    await axios.patch(`${proxyUrl}/users/${userId}`, { status: 'rejected' }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (err) {
+    throw new AxiosError((err as Error).message);
+  }
+};
