@@ -205,13 +205,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           <td colSpan={2} className='border-b py-2 px-4'>
             {isEditing ? (
               <div className='mb-2'>
-                <label className='font-semibold'>Name:</label>
-                <input
-                  type='text'
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className='border p-1 w-full'
-                />
                 <label className='font-semibold mt-2 block'>Constraints:</label>
                 <textarea
                   value={editConstraints}
@@ -245,6 +238,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                 </div>
                 {/* Display the rooms when expanded */}
                 <div className='mt-4'>
+                  {/* Header for Rooms */}
                   <h3 className='font-semibold'>Rooms</h3>
                   {rooms.length === 0 ? (
                     <p>No rooms available for this template.</p>
@@ -264,6 +258,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                 </div>
                 {/* Display the documents when expanded */}
                 <div className='mt-4'>
+                  {/* Header for Documents */}
                   <h3 className='font-semibold'>Documents</h3>
                   {template.documents.length === 0 ? (
                     <p>No documents available for this template.</p>
