@@ -54,7 +54,10 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   };
 
   const handleUpdate = () => {
-    const updatedConstraints = editConstraints.split(',').map((c) => c.trim());
+    const updatedConstraints = editConstraints
+      .split(',')
+      .map((c) => c.trim())
+      .filter((c) => c !== '');
     const updatedData: TemplateUpdateInput = {
       name: editName !== template.name ? editName : undefined,
       constraints:
@@ -226,11 +229,20 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
               </div>
             ) : (
               <>
-                <ul className='list-disc pl-5'>
-                  {template.constraints.map((constraint, index) => (
-                    <li key={index}>{constraint}</li>
-                  ))}
-                </ul>
+                {/* Display the constraints when expanded */}
+                <div className='mt-4'>
+                  {/* Header for Constraints */}
+                  <h3 className='font-semibold'>Constraints</h3>
+                  {template.constraints.length === 0 ? (
+                    <p>No constraints available for this template.</p>
+                  ) : (
+                    <ul className='list-disc pl-5'>
+                      {template.constraints.map((constraint, index) => (
+                        <li key={index}>{constraint}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 {/* Display the rooms when expanded */}
                 <div className='mt-4'>
                   <h3 className='font-semibold'>Rooms</h3>
