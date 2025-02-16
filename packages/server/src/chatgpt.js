@@ -9,6 +9,8 @@ const router = express.Router();
 require('dotenv').config({ path: '../.env' });
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Function to send a conversation to the OpenAI API
 const callOpenAI = async (messages) => {
@@ -24,6 +26,32 @@ const callOpenAI = async (messages) => {
         'Content-Type': 'application/json',
       },
     }
+  );
+};
+
+// Function to call Groq LLaMA 3 API
+const callGroqLLaMA = async (messages) => {
+  return axios.post(
+    GROQ_API_URL,
+    {
+      model: 'llama-3.3-70b-versatile', // ✅ Use Groq-supported model
+      messages,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`, // ✅ Use Groq API key
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+};
+
+// Gemini Call
+const callGemini = async (messages) => {
+  return axios.post(
+    `${GEMINI_API_URL}?key=${process.env.GEMINI_API_KEY}`,
+    { contents: [{ role: 'user', parts: [{ text: messages[messages.length - 1].content }] }] }, // Gemini expects a different format
+    { headers: { 'Content-Type': 'application/json' } }
   );
 };
 
@@ -232,5 +260,84 @@ router.post('/chatgpt-direct', async (req, res) => {
     res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
   }
 });
+
+// ✅ **LLaMA 3 (Groq) Endpoint**
+router.post('/llama3', async (req, res) => {
+  try {
+    const { conversation, roomId, userId } = req.body;
+
+    if (!roomId || !userId) return res.status(400).json({ error: 'Missing roomId or userId' });
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ error: 'Invalid roomId format' });
+    }
+
+    if (!conversation || !Array.isArray(conversation) || conversation.length === 0) {
+      return res.status(400).json({ error: 'Conversation history cannot be empty' });
+    }
+
+    console.log('Sending to Groq LLaMA 3:', JSON.stringify(conversation, null, 2));
+
+    // Convert sender → role for Groq API
+    const groqFormattedMessages = conversation.map((msg) => ({
+      role: msg.sender === 'assistant' ? 'assistant' : 'user',
+      content: msg.content,
+    }));
+
+    // Call Groq API
+    const response = await callGroqLLaMA(groqFormattedMessages);
+    const assistantReply = response?.data?.choices?.[0]?.message?.content || 'No response from LLaMA 3';
+
+    console.log('Groq LLaMA 3 API response:', assistantReply);
+
+    // Save messages with sender for database
+    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content };
+    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply };
+
+    await ChatMessage.insertMany([userMessage, assistantMessage]);
+
+    // Return updated conversation
+    res.json({ responses: [...conversation, { sender: 'assistant', content: assistantReply }] });
+  } catch (error) {
+    console.error('Error interacting with Groq LLaMA 3:', error);
+    res.status(500).json({ error: 'Error with Groq API', details: error.message });
+  }
+});
+
+// ✅ **Gemini Endpoint**
+router.post('/gemini', async (req, res) => {
+  try {
+    const { conversation, roomId, userId } = req.body;
+
+    if (!roomId || !userId) return res.status(400).json({ error: 'Missing roomId or userId' });
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ error: 'Invalid roomId format' });
+    }
+
+    if (!conversation || !Array.isArray(conversation) || conversation.length === 0) {
+      return res.status(400).json({ error: 'Conversation history cannot be empty' });
+    }
+
+    console.log('Sending to Gemini:', JSON.stringify(conversation, null, 2));
+
+    const response = await callGemini(conversation);
+    const assistantReply = response?.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini';
+
+    console.log('Gemini API response:', assistantReply);
+
+    // Save conversation
+    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content };
+    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply };
+
+    await ChatMessage.insertMany([userMessage, assistantMessage]);
+
+    res.json({ responses: [...conversation, { sender: 'assistant', content: assistantReply }] });
+  } catch (error) {
+    console.error('Error interacting with Gemini:', error);
+    res.status(500).json({ error: 'Error with Gemini API', details: error.message });
+  }
+});
+
 
 module.exports = router;
