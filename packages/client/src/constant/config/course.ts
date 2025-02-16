@@ -41,11 +41,6 @@ export const sidebarConfig = {
       return items.filter(item => item.name !== 'Materials' && item.name !== 'Templates');
     }
 
-    // Filter out 'Rooms' if the user is a teacher
-    if (userRole === 'teacher') {
-      return items.filter(item => item.name !== 'Rooms');
-    }
-
     return items;
   },
 };
