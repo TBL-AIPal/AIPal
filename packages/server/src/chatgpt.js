@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const logger = require('./config/logger');
 const { generateContextualizedQuery } = require('./services/RAG/vector.search.service');
+const ChatMessage = require('./models/chatMessage.model'); // Import the schema
+const mongoose = require('mongoose');
 
 const router = express.Router();
 require('dotenv').config({ path: '../.env' });
@@ -177,14 +179,56 @@ router.post('/rag+multi-agent', async (req, res) => {
   }
 });
 
-// Direct API Call Endpoint
 router.post('/chatgpt-direct', async (req, res) => {
-  const { conversation } = req.body; // Full conversation history
-
   try {
-    const response = await callOpenAI(conversation);
-    res.json({ responses: [...conversation, { role: 'assistant', content: response.data.choices[0].message.content }] });
+    const { conversation, roomId, userId } = req.body;
+
+    if (!roomId || !userId) {
+      console.error('Missing required parameters:', { roomId, userId });
+      return res.status(400).json({ error: 'Missing roomId or userId' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(roomId) || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid roomId or userId format' });
+    }
+
+    if (!conversation || !Array.isArray(conversation) || conversation.length === 0) {
+      return res.status(400).json({ error: 'Conversation history cannot be empty' });
+    }
+
+    // Convert sender → role for OpenAI
+    const openAIConversation = conversation.map(msg => ({
+      role: msg.sender === 'assistant' ? 'assistant' : 'user',
+      content: msg.content,
+    }));
+
+    console.log('Sending to OpenAI:', JSON.stringify(openAIConversation, null, 2));
+
+    // Call OpenAI
+    const response = await callOpenAI(openAIConversation);
+    const assistantReply = response?.data?.choices?.[0]?.message?.content || 'No response from AI';
+
+    console.log('OpenAI API response:', assistantReply);
+
+    // Save messages with `sender` for database
+    const userMessage = {
+      roomId,
+      sender: userId, // Store userId as sender in MongoDB
+      content: conversation[conversation.length - 1].content,
+    };
+
+    const assistantMessage = {
+      roomId,
+      sender: 'assistant',
+      content: assistantReply,
+    };
+
+    await ChatMessage.insertMany([userMessage, assistantMessage]);
+
+    // Send response back with correct format
+    res.json({ responses: [...conversation, { sender: 'assistant', content: assistantReply }] });
   } catch (error) {
+    console.error('Error sending message:', error);
     res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
   }
 });

@@ -1,54 +1,31 @@
-import axios, { AxiosError } from 'axios';
-
+import api from '@/lib/API/auth/interceptor';
 import { DocumentFormValues } from '@/lib/types/document';
-
-import { proxyUrl } from '@/constant/env';
 
 interface DeleteDocumentPropsI {
   courseId: string;
   documentId: string;
 }
 
-export const CreateDocument = async ({
-  courseId,
-  formData,
-}: DocumentFormValues) => {
+// Create a new document
+export const CreateDocument = async ({ courseId, formData }: DocumentFormValues) => {
   try {
-    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.post(`${proxyUrl}/courses/${courseId}/documents`, formData, {
+    await api.post(`/courses/${courseId}/documents`, formData, {
       headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'multipart/form-data', // ✅ Ensures correct handling of file uploads
       },
     });
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error uploading document for course ${courseId}:`, err);
+    throw err;
   }
 };
 
-export const DeleteDocument = async ({
-  courseId,
-  documentId,
-}: DeleteDocumentPropsI) => {
+// Delete a document
+export const DeleteDocument = async ({ courseId, documentId }: DeleteDocumentPropsI) => {
   try {
-    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.delete(
-      `${proxyUrl}/courses/${courseId}/documents/${documentId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    await api.delete(`/courses/${courseId}/documents/${documentId}`);
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error deleting document ${documentId} from course ${courseId}:`, err);
+    throw err;
   }
 };

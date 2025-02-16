@@ -71,6 +71,24 @@ const deleteRoom = {
   }),
 };
 
+const getMessagesByRoom = {
+  params: Joi.object().keys({
+    courseId: Joi.string().custom(objectId).required(),
+    roomId: Joi.string().custom(objectId).required(),
+  }),
+};
+
+const sendMessage = {
+  params: Joi.object().keys({
+    courseId: Joi.string().custom(objectId).required(),
+    roomId: Joi.string().custom(objectId).required(),
+  }),
+  body: Joi.object().keys({
+    sender: Joi.string().required(),
+    content: Joi.string().required(),
+  }),
+};
+
 module.exports = {
   createRoom,
   getRooms,
@@ -79,4 +97,6 @@ module.exports = {
   getRoomsByCourse,
   updateRoom,
   deleteRoom,
+  getMessagesByRoom,
+  sendMessage
 };

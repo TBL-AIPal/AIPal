@@ -1,27 +1,15 @@
-import axios, { AxiosError } from 'axios';
+import api from '@/lib/API/auth/interceptor';
 import { cache } from 'react';
-
 import { User } from '@/lib/types/user';
-import { proxyUrl } from '@/constant/env';
 
 export const GetUsers = cache(
   async (page = 1, limit = 10): Promise<User[]> => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('User not authenticated. Please log in.');
-      }
-
-      const response = await axios.get(`${proxyUrl}/users`, {
-        params: { page, limit },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await api.get('/users', { params: { page, limit } });
       return response.data.results;
     } catch (err) {
-      throw new AxiosError((err as Error).message);
+      console.error('Error fetching users:', err);
+      throw err;
     }
   }
 );
@@ -29,21 +17,11 @@ export const GetUsers = cache(
 export const GetUsersByCourseId = cache(
   async (courseId: string, page = 1, limit = 10): Promise<User[]> => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('User not authenticated. Please log in.');
-      }
-
-      const response = await axios.get(`${proxyUrl}/users`, {
-        params: { courseId, page, limit },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await api.get('/users', { params: { courseId, page, limit } });
       return response.data.results;
     } catch (err) {
-      throw new AxiosError((err as Error).message);
+      console.error(`Error fetching users for course ${courseId}:`, err);
+      throw err;
     }
   }
 );
@@ -51,20 +29,11 @@ export const GetUsersByCourseId = cache(
 export const GetUserById = cache(
   async (userId: string): Promise<User> => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('User not authenticated. Please log in.');
-      }
-
-      const response = await axios.get(`${proxyUrl}/users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await api.get(`/users/${userId}`);
       return response.data;
     } catch (err) {
-      throw new AxiosError((err as Error).message);
+      console.error(`Error fetching user ${userId}:`, err);
+      throw err;
     }
   }
 );
@@ -72,55 +41,29 @@ export const GetUserById = cache(
 export const GetUsersByRole = cache(
   async (role: string): Promise<User[]> => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('User not authenticated. Please log in.');
-      }
-
-      const response = await axios.get(`${proxyUrl}/users`, {
-        params: { role },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await api.get('/users', { params: { role } });
       return response.data.results;
     } catch (err) {
-      throw new AxiosError((err as Error).message);
+      console.error(`Error fetching users with role ${role}:`, err);
+      throw err;
     }
   }
 );
 
 export const ApproveUser = async (userId: string): Promise<void> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.patch(`${proxyUrl}/users/${userId}`, { status: 'approved' }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.patch(`/users/${userId}`, { status: 'approved' });
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error approving user ${userId}:`, err);
+    throw err;
   }
 };
 
 export const RejectUser = async (userId: string): Promise<void> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.patch(`${proxyUrl}/users/${userId}`, { status: 'rejected' }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.patch(`/users/${userId}`, { status: 'rejected' });
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error rejecting user ${userId}:`, err);
+    throw err;
   }
 };

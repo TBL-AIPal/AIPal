@@ -1,12 +1,10 @@
-import axios, { AxiosError } from 'axios';
+import api from '@/lib/API/auth/interceptor';
 
 import {
   CourseCreateInput,
   CourseFormValues,
   CourseUpdateInput,
 } from '@/lib/types/course';
-
-import { proxyUrl } from '@/constant/env';
 
 interface UpdateCoursePropsI extends CourseFormValues {
   id: string;
@@ -16,6 +14,7 @@ interface DeleteCoursePropsI {
   id: string;
 }
 
+// Create a new course
 export const CreateCourse = async ({
   name,
   description,
@@ -28,21 +27,14 @@ export const CreateCourse = async ({
   };
 
   try {
-    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.post(`${proxyUrl}/courses`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.post('/courses', data); // Token auto-attached ✅
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error('Error creating course:', err);
+    throw err;
   }
 };
 
+// Update an existing course
 export const UpdateCourse = async ({
   id,
   name,
@@ -52,7 +44,7 @@ export const UpdateCourse = async ({
   owner,
   students,
   staff,
-  whitelist, // Add whitelist support
+  whitelist, // Keep whitelist support
 }: UpdateCoursePropsI) => {
   const data: CourseUpdateInput = {
     name,
@@ -66,34 +58,19 @@ export const UpdateCourse = async ({
   };
 
   try {
-    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.patch(`${proxyUrl}/courses/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.patch(`/courses/${id}`, data); // Token auto-attached ✅
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error('Error updating course:', err);
+    throw err;
   }
 };
 
+// Delete a course
 export const DeleteCourse = async ({ id }: DeleteCoursePropsI) => {
   try {
-    const token = localStorage.getItem('authToken'); // Retrieve token dynamically
-    if (!token) {
-      throw new Error('User not authenticated. Please log in.');
-    }
-
-    await axios.delete(`${proxyUrl}/courses/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.delete(`/courses/${id}`); // Token auto-attached ✅
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error('Error deleting course:', err);
+    throw err;
   }
 };

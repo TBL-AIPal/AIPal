@@ -56,7 +56,7 @@ router
   .route('/:courseId/rooms')
   .get(auth('getRooms'), validate(roomValidation.getRoomsByCourse), roomController.getRoomsByCourse) // ⬅ New Route
   .post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
-  
+
 router
   .route('/:courseId/templates/:templateId/rooms')
   .get(auth('getRooms'), validate(roomValidation.getRoomsByTemplate), roomController.getRoomsByTemplate);
@@ -74,6 +74,11 @@ router
     validate(courseValidation.addUserToCourse), // Optional: Validation for the userId (can be added in `courseValidation` file)
     courseController.addUserToCourse // Controller function to handle adding the user
   );
+
+  router
+  .route('/:courseId/rooms/:roomId/messages')
+  .get(auth('getMessages'), validate(roomValidation.getMessagesByRoom), roomController.getMessagesByRoom)
+  .post(auth('sendMessage'), validate(roomValidation.sendMessage), roomController.sendMessage);
 
 module.exports = router;
 
