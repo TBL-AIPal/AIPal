@@ -15,6 +15,10 @@ const chatMessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    modelUsed: {
+      type: String, // ✅ Store which model was used (e.g., 'chatgpt-direct', 'llama3', 'gemini')
+      required: true,
+    },
     timestamp: {
       type: Date,
       default: Date.now, // Auto-generate timestamp
@@ -25,7 +29,6 @@ const chatMessageSchema = new mongoose.Schema(
   }
 );
 
-// Convert Mongoose object to JSON
 chatMessageSchema.set('toJSON', { virtuals: true });
 
 const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);

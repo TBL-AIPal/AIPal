@@ -22,7 +22,7 @@ const RoomChatPage: React.FC = () => {
   const [room, setRoom] = useState<Room | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [messages, setMessages] = useState<{ sender: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<{ sender: string; content: string; modelUsed?: string }[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,28 +154,31 @@ const RoomChatPage: React.FC = () => {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 mt-4 p-4 border rounded bg-gray-100 overflow-y-auto">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`mb-2 flex ${
-              msg.sender === userId ? 'justify-end' : 'justify-start'
+    <div className="flex-1 mt-4 p-4 border rounded bg-gray-100 overflow-y-auto">
+    {messages.map((msg, index) => (
+        <div
+        key={index}
+        className={`mb-2 flex ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
+        >
+        <div
+            className={`p-2 rounded-lg max-w-xs ${
+            msg.sender === userId ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
             }`}
-          >
-            <div
-              className={`p-2 rounded-lg max-w-xs ${
-                msg.sender === userId ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
-              }`}
-            >
-              <span className="block text-xs font-bold">
-                {msg.sender === userId ? 'You' : msg.sender}
-              </span>
-              <span>{msg.content}</span>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+        >
+            <span className="block text-xs font-bold">
+            {/* ✅ Display model name if available, otherwise "assistant" */}
+            {msg.sender === userId 
+                ? 'You' 
+                : msg.sender === 'assistant' 
+                ? msg.modelUsed || 'assistant' 
+                : msg.sender}
+            </span>
+            <span>{msg.content}</span>
+        </div>
+        </div>
+    ))}
+    <div ref={messagesEndRef} />
+    </div>
 
       {/* Message Input */}
       <div className="mt-4 flex items-center gap-2">

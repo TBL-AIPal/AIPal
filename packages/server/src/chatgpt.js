@@ -210,54 +210,28 @@ router.post('/rag+multi-agent', async (req, res) => {
 router.post('/chatgpt-direct', async (req, res) => {
   try {
     const { conversation, roomId, userId } = req.body;
-
-    if (!roomId || !userId) {
-      console.error('Missing required parameters:', { roomId, userId });
-      return res.status(400).json({ error: 'Missing roomId or userId' });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(roomId) || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid roomId or userId format' });
-    }
+    if (!roomId || !userId) return res.status(400).json({ error: 'Missing roomId or userId' });
 
     if (!conversation || !Array.isArray(conversation) || conversation.length === 0) {
       return res.status(400).json({ error: 'Conversation history cannot be empty' });
     }
 
-    // Convert sender → role for OpenAI
     const openAIConversation = conversation.map(msg => ({
       role: msg.sender === 'assistant' ? 'assistant' : 'user',
       content: msg.content,
     }));
 
-    console.log('Sending to OpenAI:', JSON.stringify(openAIConversation, null, 2));
-
-    // Call OpenAI
     const response = await callOpenAI(openAIConversation);
     const assistantReply = response?.data?.choices?.[0]?.message?.content || 'No response from AI';
 
-    console.log('OpenAI API response:', assistantReply);
-
-    // Save messages with `sender` for database
-    const userMessage = {
-      roomId,
-      sender: userId, // Store userId as sender in MongoDB
-      content: conversation[conversation.length - 1].content,
-    };
-
-    const assistantMessage = {
-      roomId,
-      sender: 'assistant',
-      content: assistantReply,
-    };
+    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content, modelUsed: 'chatgpt-direct' };
+    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply, modelUsed: 'chatgpt-direct' };
 
     await ChatMessage.insertMany([userMessage, assistantMessage]);
 
-    // Send response back with correct format
     res.json({ responses: [...conversation, { sender: 'assistant', content: assistantReply }] });
   } catch (error) {
-    console.error('Error sending message:', error);
-    res.status(500).json({ error: 'Error interacting with OpenAI API', details: error.message });
+    res.status(500).json({ error: 'Error with ChatGPT API', details: error.message });
   }
 });
 
@@ -265,41 +239,23 @@ router.post('/chatgpt-direct', async (req, res) => {
 router.post('/llama3', async (req, res) => {
   try {
     const { conversation, roomId, userId } = req.body;
-
     if (!roomId || !userId) return res.status(400).json({ error: 'Missing roomId or userId' });
 
-    if (!mongoose.Types.ObjectId.isValid(roomId)) {
-      return res.status(400).json({ error: 'Invalid roomId format' });
-    }
-
-    if (!conversation || !Array.isArray(conversation) || conversation.length === 0) {
-      return res.status(400).json({ error: 'Conversation history cannot be empty' });
-    }
-
-    console.log('Sending to Groq LLaMA 3:', JSON.stringify(conversation, null, 2));
-
-    // Convert sender → role for Groq API
     const groqFormattedMessages = conversation.map((msg) => ({
       role: msg.sender === 'assistant' ? 'assistant' : 'user',
       content: msg.content,
     }));
 
-    // Call Groq API
     const response = await callGroqLLaMA(groqFormattedMessages);
     const assistantReply = response?.data?.choices?.[0]?.message?.content || 'No response from LLaMA 3';
 
-    console.log('Groq LLaMA 3 API response:', assistantReply);
-
-    // Save messages with sender for database
-    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content };
-    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply };
+    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content, modelUsed: 'llama3' };
+    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply, modelUsed: 'llama3' };
 
     await ChatMessage.insertMany([userMessage, assistantMessage]);
 
-    // Return updated conversation
     res.json({ responses: [...conversation, { sender: 'assistant', content: assistantReply }] });
   } catch (error) {
-    console.error('Error interacting with Groq LLaMA 3:', error);
     res.status(500).json({ error: 'Error with Groq API', details: error.message });
   }
 });
@@ -308,33 +264,18 @@ router.post('/llama3', async (req, res) => {
 router.post('/gemini', async (req, res) => {
   try {
     const { conversation, roomId, userId } = req.body;
-
     if (!roomId || !userId) return res.status(400).json({ error: 'Missing roomId or userId' });
-
-    if (!mongoose.Types.ObjectId.isValid(roomId)) {
-      return res.status(400).json({ error: 'Invalid roomId format' });
-    }
-
-    if (!conversation || !Array.isArray(conversation) || conversation.length === 0) {
-      return res.status(400).json({ error: 'Conversation history cannot be empty' });
-    }
-
-    console.log('Sending to Gemini:', JSON.stringify(conversation, null, 2));
 
     const response = await callGemini(conversation);
     const assistantReply = response?.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini';
 
-    console.log('Gemini API response:', assistantReply);
-
-    // Save conversation
-    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content };
-    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply };
+    const userMessage = { roomId, sender: userId, content: conversation[conversation.length - 1].content, modelUsed: 'gemini' };
+    const assistantMessage = { roomId, sender: 'assistant', content: assistantReply, modelUsed: 'gemini' };
 
     await ChatMessage.insertMany([userMessage, assistantMessage]);
 
     res.json({ responses: [...conversation, { sender: 'assistant', content: assistantReply }] });
   } catch (error) {
-    console.error('Error interacting with Gemini:', error);
     res.status(500).json({ error: 'Error with Gemini API', details: error.message });
   }
 });
