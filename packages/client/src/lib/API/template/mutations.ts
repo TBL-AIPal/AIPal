@@ -10,7 +10,7 @@ interface CreateTemplatePropsI extends TemplateFormValues {
   courseId: string;
 }
 
-interface UpdateTemplatePropsI extends TemplateFormValues {
+interface UpdateTemplatePropsI extends TemplateUpdateInput {
   courseId: string;
   templateId: string;
 }
@@ -20,8 +20,17 @@ interface DeleteTemplatePropsI {
   templateId: string;
 }
 
-export const CreateTemplate = async ({ courseId, name, constraints }: CreateTemplatePropsI) => {
-  const data: TemplateCreateInput = { name, constraints };
+export const CreateTemplate = async ({
+  courseId,
+  name,
+  constraints,
+  documents,
+}: CreateTemplatePropsI) => {
+  const data: TemplateCreateInput = {
+    name,
+    constraints,
+    documents,
+  };
 
   try {
     await api.post(`/courses/${courseId}/templates`, data);
@@ -31,8 +40,18 @@ export const CreateTemplate = async ({ courseId, name, constraints }: CreateTemp
   }
 };
 
-export const UpdateTemplate = async ({ courseId, templateId, name, constraints }: UpdateTemplatePropsI) => {
-  const data: TemplateUpdateInput = { name, constraints };
+export const UpdateTemplate = async ({
+  courseId,
+  templateId,
+  name,
+  constraints,
+  documents,
+}: UpdateTemplatePropsI) => {
+  const data: TemplateUpdateInput = {
+    name,
+    constraints,
+    documents,
+  };
 
   try {
     await api.patch(`/courses/${courseId}/templates/${templateId}`, data);

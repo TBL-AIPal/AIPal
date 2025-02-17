@@ -1,10 +1,9 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const { generateEmbedding } = require('./embedding.service');
 const config = require('../../config/config');
 const { processText } = require('./preprocessing.service');
 
-// TODO: Filter using valid list of courses from template
-async function getContextualData(queryVector) {
+async function getContextualData(queryVector, documentIds) {
   // Mongoose does not have support for do vector search in Atlas, thus we are using MongoDB
   const client = new MongoClient(config.mongodb.url);
   try {
@@ -13,11 +12,19 @@ async function getContextualData(queryVector) {
     const db = client.db(config.mongodb.db);
     const collection = db.collection('chunks');
 
+    const objectIdList = documentIds.map((id) => new ObjectId(id));
+
     const aggregate = [
       {
         $vectorSearch: {
           index: 'default',
           path: 'embedding',
+          filter: {
+            // eslint-disable-next-line prettier/prettier
+            'document': {
+              $in: objectIdList,
+            },
+          },
           queryVector,
           numCandidates: 20,
           limit: 3,
@@ -43,14 +50,14 @@ async function getContextualData(queryVector) {
   }
 }
 
-const generateContextualizedQuery = async (query) => {
+const generateContextualizedQuery = async (query, apiKey, documentIds) => {
   try {
     // Generate embedding for query
     const normalizedQuery = await processText(query);
-    const queryVector = await generateEmbedding(normalizedQuery);
+    const queryVector = await generateEmbedding(normalizedQuery, apiKey);
 
     // Use vector search to get relevant documents
-    const result = await getContextualData(queryVector);
+    const result = await getContextualData(queryVector, documentIds);
 
     const arrayOfQueryDocs = await result;
 

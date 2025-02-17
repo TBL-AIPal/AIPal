@@ -4,7 +4,7 @@ export interface Room {
   name: string;
   description: string;
   code: string;
-  templateId: string; // The ID of the associated template
+  template: string; // The ID of the associated template
   createdAt: string;
   updatedAt: string;
 }

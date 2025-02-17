@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
-// TODO: Add properties to select files included in template
 const templateSchema = new mongoose.Schema(
   {
     name: {
@@ -10,6 +9,11 @@ const templateSchema = new mongoose.Schema(
     },
     constraints: {
       type: [String],
+      default: [],
+    },
+    documents: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
+      default: [],
     },
   },
   {

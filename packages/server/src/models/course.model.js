@@ -13,13 +13,6 @@ const courseSchema = new mongoose.Schema(
     apiKey: {
       type: String,
       required: true,
-      validate(value) {
-        // TODO: Replace validation with real API request validation
-        const apiKeyPattern = /^sk-[a-zA-Z0-9-_]{40,}$/;
-        if (!apiKeyPattern.test(value)) {
-          throw new Error('API Key must be valid');
-        }
-      },
       private: true, // used by the toJSON plugin
     },
     llmConstraints: {

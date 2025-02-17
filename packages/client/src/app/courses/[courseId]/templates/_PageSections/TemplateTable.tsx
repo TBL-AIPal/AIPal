@@ -1,20 +1,19 @@
 import React from 'react';
 
-import { Template } from '@/lib/types/template';
+import { Document } from '@/lib/types/document';
+import { Template, TemplateUpdateInput } from '@/lib/types/template';
 
 import TemplateRow from '@/app/courses/[courseId]/templates/_PageSections/TemplateRow';
-
 interface TemplateTableProps {
   templates: Template[];
+  courseDocuments: Document[];
   onDelete: (templateId: string) => void;
-  onUpdate: (
-    templateId: string,
-    updatedData: { name: string; constraints: string[] }
-  ) => void;
+  onUpdate: (templateId: string, updatedData: TemplateUpdateInput) => void;
 }
 
 const TemplateTable: React.FC<TemplateTableProps> = ({
   templates,
+  courseDocuments,
   onDelete,
   onUpdate,
 }) => {
@@ -31,9 +30,8 @@ const TemplateTable: React.FC<TemplateTableProps> = ({
           {templates.map((template) => (
             <TemplateRow
               key={template.id}
-              name={template.name}
-              constraints={template.constraints}
-              templateId={template.id}
+              template={template}
+              courseDocuments={courseDocuments}
               onDelete={() => onDelete(template.id)}
               onUpdate={(updatedData) => onUpdate(template.id, updatedData)}
             />

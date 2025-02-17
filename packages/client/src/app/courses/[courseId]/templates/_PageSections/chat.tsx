@@ -1,6 +1,11 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
+import {
+  createCombinedMessage,
+  createDirectMessage,
+  createMultiAgentMessage,
+  createRAGMessage,
+} from '@/lib/API/message/mutations';
 import { Document } from '@/lib/types/document';
 
 interface ChatRoomPageProps {
@@ -14,6 +19,7 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   roomName,
   roomDescription,
   courseId,
+  templateId,
   constraints,
 }) => {
   const [prompt, setPrompt] = useState('');
@@ -34,38 +40,60 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Ensure there is a prompt before proceeding
     if (!prompt) return;
     setLoading(true);
 
+    // Add the user's message to the conversation
     const userMessage = { role: 'user', content: prompt };
     const updatedConversation = [...conversation, userMessage];
     setConversation(updatedConversation);
     setPrompt('');
 
     try {
-      const endpointMap: Record<string, string> = {
-        'chatgpt-direct': 'http://localhost:5000/api/chatgpt-direct',
-        'multi-agent': 'http://localhost:5000/api/multi-agent',
-        rag: 'http://localhost:5000/api/rag',
-        'rag+multi-agent': 'http://localhost:5000/api/rag+multi-agent',
-        gemini: 'http://localhost:5000/api/gemini',
-        llama3: 'http://localhost:5000/api/llama3',
-      };
+      let response;
 
-      const endpoint =
-        endpointMap[selectedModel] || endpointMap['chatgpt-direct'];
-      const res = await axios.post(endpoint, {
-        conversation: updatedConversation,
-        documents: documents,
-        constraints: constraints,
-      });
-      setConversation(res.data.responses);
-    } catch {
-      setConversation((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'An error occurred. Please try again.' },
-      ]);
+      // Determine which API function to call based on toggles
+      if (multiAgent && retrievalAugmentedGeneration) {
+        response = await createCombinedMessage({
+          courseId,
+          templateId,
+          conversation: updatedConversation,
+          constraints,
+        });
+      } else if (multiAgent) {
+        response = await createMultiAgentMessage({
+          courseId,
+          templateId,
+          conversation: updatedConversation,
+          constraints,
+        });
+      } else if (retrievalAugmentedGeneration) {
+        response = await createRAGMessage({
+          courseId,
+          templateId,
+          conversation: updatedConversation,
+        });
+      } else {
+        response = await createDirectMessage({
+          courseId,
+          templateId,
+          conversation: updatedConversation,
+        });
+      }
+
+      // Update the conversation with the assistant's response
+      setConversation(response.responses);
+    } catch (error) {
+      // Handle errors by appending an error message to the conversation
+      const errorMessage = {
+        role: 'assistant',
+        content: 'An error occurred. Please try again.',
+      };
+      setConversation((prev) => [...prev, errorMessage]);
     } finally {
+      // Ensure loading state is reset
       setLoading(false);
     }
   };

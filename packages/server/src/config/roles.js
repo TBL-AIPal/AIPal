@@ -1,5 +1,5 @@
 const allRoles = {
-  user: ['getCourses', 'getRooms', 'getMessages'], // Users can view courses, rooms, and messages
+  user: ['getCourses', 'createMessage', 'getRooms', 'getMessages'], // Users can view courses, rooms, and messages
 
   admin: [
     'getUsers',
@@ -13,6 +13,7 @@ const allRoles = {
     'manageTemplates',
     'getRooms',
     'manageRooms',
+    'createMessage',
     'getMessages',  // Admins can read messages
     'sendMessage',  // Admins can send messages
   ],
