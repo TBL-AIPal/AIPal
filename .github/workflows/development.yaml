@@ -1,0 +1,93 @@
+name: Build and Deploy Dev
+on:
+  push:
+    branches:
+      - deployment
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Create a custom Docker network
+      - name: Create Docker Network
+        run: docker network create my-network || true
+
+      # Step 3: Build the database image
+      - name: Build Database Image
+        run: docker build -t mongodb -f ./packages/mongodb/Dockerfile.development .
+
+      # Step 4: Run the database container
+      - name: Run Database Container
+        run: |
+          docker run -d \
+            --name mongodb-container \
+            --network my-network \
+            --env NODE_ENV=development \
+            --env MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGODB_INITDB_ROOT_USERNAME }} \
+            --env MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGODB_INITDB_ROOT_PASSWORD }} \
+            mongodb
+
+      # Step 5: Wait for MongoDB to be ready
+      - name: Wait for MongoDB to Start
+        run: |
+          until docker exec mongodb-container mongo --eval "db.adminCommand('ping')"; do
+            echo "Waiting for MongoDB to start..."
+            sleep 5
+          done
+
+      # Step 6: Get IP Address of MongoDB and store as env variable
+      - name: Get IP Address of MongoDB
+        id: get-mongodb-ip
+        run: |
+          MONGODB_IP=$(docker inspect \
+            -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mongodb-container)
+          echo "MONGODB_IP=$MONGODB_IP" >> $GITHUB_ENV
+
+      # Step 7: Build the server image
+      - name: Build Server Image
+        run: docker build -t server -f ./packages/server/Dockerfile.development .
+
+      # Step 8: Run the server container and set MongoDB IP Address
+      - name: Run Server Container
+        run: |
+          docker run -d \
+            --name server-container \
+            --network my-network \
+            -p 5000:5000 \
+            --env NODE_ENV=development \
+            --env MONGODB_HOST=${{ env.MONGODB_IP }} \
+            server
+
+      # Step 9: Get IP Address of server and store as env variable
+      - name: Get IP Address of Server
+        id: get-server-ip
+        run: |
+          SERVER_IP=$(docker inspect \
+            -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' server-container)
+          echo "SERVER_IP=$SERVER_IP" >> $GITHUB_ENV
+
+      # Step 10: Build the client image
+      - name: Build Client Image
+        run: docker build -t client -f ./packages/client/Dockerfile.development .
+
+      # Step 11: Run the client container and set Server IP Address
+      - name: Run Client Container
+        run: |
+          docker run -d \
+            --name client-container \
+            --network my-network \
+            -p 3000:3000 \
+            --env NODE_ENV=development \
+            --env SERVER_HOST=${{ env.SERVER_IP }} \
+            client
+
+      # Step 12: Cleanup Containers and Network
+      - name: Cleanup Containers and Network
+        if: always()
+        run: |
+          docker stop mongodb-container server-container client-container || true
+          docker rm mongodb-container server-container client-container || true
+          docker network rm my-network || true
