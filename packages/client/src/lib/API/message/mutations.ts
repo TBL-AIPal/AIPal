@@ -97,3 +97,50 @@ export const createCombinedMessage = async ({
     throw new Error((err as Error).message);
   }
 };
+
+export const createGeminiMessage = async ({
+  courseId,
+  templateId,
+  conversation,
+}: SendMessageInput) => {
+  const endpoint = `${proxyUrl}/messages/gemini/${courseId}/${templateId}`;
+
+  const data = { conversation };
+
+  try {
+    const response = await axios.post(endpoint, data, {
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (err) {
+    throw new Error((err as Error).message);
+  }
+};
+
+export const createLlama3Message = async ({
+  courseId,
+  templateId,
+  conversation,
+}: SendMessageInput) => {
+  const endpoint = `${proxyUrl}/messages/llama3/${courseId}/${templateId}`;
+
+  const data = { conversation };
+
+  try {
+    const response = await axios.post(endpoint, data, {
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (err) {
+    throw new Error((err as Error).message);
+  }
+};
+

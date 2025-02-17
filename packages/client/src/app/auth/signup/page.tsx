@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import axios from 'axios';
+import { CreateUser } from '@/lib/API/user/mutations';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -26,17 +26,8 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        'http://localhost:5000/v1/auth/register',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      console.log('Signup Successful:', response.data);
+      await CreateUser(formData);
+      console.log('Signup Successful');
       window.location.href = '/'; // Redirect to home page after signup
     } catch (err: any) {
       setError(

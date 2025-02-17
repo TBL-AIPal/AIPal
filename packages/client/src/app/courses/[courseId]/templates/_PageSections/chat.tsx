@@ -12,6 +12,7 @@ interface ChatRoomPageProps {
   roomName: string;
   roomDescription: string;
   courseId: string;
+  templateId: string;
   constraints: string[];
 }
 
@@ -29,6 +30,9 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState('chatgpt-direct');
+  const [multiAgent, setMultiAgent] = useState(false);
+  const [retrievalAugmentedGeneration, setRetrievalAugmentedGeneration] = useState(false);
+
 
   useEffect(() => {
     const fetchDocuments = async () => {

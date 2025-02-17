@@ -10,6 +10,8 @@ const { getApiKeyById } = require('./course.service');
 const { getTemplateById } = require('./template.service');
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 // Function to send a conversation to the OpenAI API
 const callOpenAI = async (messages, apiKey) => {
@@ -40,6 +42,30 @@ const callOpenAI = async (messages, apiKey) => {
       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Error calling OpenAI API: ${error.message}`);
     }
   }
+};
+
+const callGroqLLaMA = async (messages, apiKey) => {
+  return axios.post(
+    GROQ_API_URL,
+    {
+      model: 'llama-3.3-70b-versatile',
+      messages,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+};
+
+const callGemini = async (messages, apiKey) => {
+  return axios.post(
+    `${GEMINI_API_URL}?key=${apiKey}`,
+    { contents: [{ role: 'user', parts: [{ text: messages[messages.length - 1].content }] }] },
+    { headers: { 'Content-Type': 'application/json' } }
+  );
 };
 
 // Helper function to segment text into chunks
@@ -241,9 +267,27 @@ const createContextualizedAndMultiAgentReply = async (courseId, templateId, mess
   };
 };
 
+const createGeminiReply = async (courseId, templateId, messageBody) => {
+  const { conversation } = messageBody;
+  const { apiKey } = await getApiKeyById(courseId);
+  const response = await callGemini(conversation, apiKey);
+  const assistantResponse = response?.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini';
+  return { responses: [...conversation, { role: 'assistant', content: assistantResponse }] };
+};
+
+const createLlama3Reply = async (courseId, templateId, messageBody) => {
+  const { conversation } = messageBody;
+  const { apiKey } = await getApiKeyById(courseId);
+  const response = await callGroqLLaMA(conversation, apiKey);
+  const assistantResponse = response?.data?.choices?.[0]?.message?.content || 'No response from LLaMA 3';
+  return { responses: [...conversation, { role: 'assistant', content: assistantResponse }] };
+};
+
 module.exports = {
   createDirectReply,
   createContextualizedReply,
   createMultiAgentReply,
   createContextualizedAndMultiAgentReply,
+  createGeminiReply,
+  createLlama3Reply,
 };

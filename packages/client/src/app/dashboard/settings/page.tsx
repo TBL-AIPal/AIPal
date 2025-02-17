@@ -15,17 +15,6 @@ export default function SettingsPage() {
         throw new Error('User not authenticated.');
       }
 
-      // Send a POST request to log out (refresh token)
-      // await axios.post(
-      //   'http://localhost:5000/v1/auth/logout', // Adjust the URL to your backend
-      //   {},
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
-
       // Remove the token from localStorage after logout
       localStorage.removeItem('authToken');
 

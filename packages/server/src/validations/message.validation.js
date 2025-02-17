@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const createMessage = {
   params: {
-    method: Joi.string().allow('direct', 'rag', 'multi-agent', 'combined'),
+    method: Joi.string().allow('direct', 'rag', 'multi-agent', 'combined', 'gemini', 'llama3'),
     courseId: Joi.string().required(),
     templateId: Joi.string().required(),
   },

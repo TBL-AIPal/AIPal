@@ -45,8 +45,8 @@ const RoomChatPage: React.FC = () => {
         const fetchedRoom = await GetRoomById(courseId, roomId);
         setRoom(fetchedRoom);
 
-        if (fetchedRoom.templateId) {
-          const fetchedTemplate = await GetTemplateById(courseId, fetchedRoom.templateId);
+        if (fetchedRoom.template) {
+          const fetchedTemplate = await GetTemplateById(courseId, fetchedRoom.template);
           setTemplate(fetchedTemplate);
         }
       } catch (err) {
