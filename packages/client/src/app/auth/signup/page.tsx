@@ -4,12 +4,18 @@ import React, { useState } from 'react';
 import { CreateUser } from '@/lib/API/user/mutations';
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    role: 'student' | 'teacher'; // ✅ Explicitly define role type
+  }>({
     name: '',
     email: '',
     password: '',
     role: 'student',
   });
+  
 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

@@ -19,18 +19,15 @@ interface AddFormProps {
   onCourseCreated: () => void;
 }
 
-export default function CourseCreateForm({
-  course,
-  onCourseCreated,
-}: AddFormProps) {
+export default function CourseCreateForm({ course, onCourseCreated }: AddFormProps) {
   const router = useRouter();
-  const { name, description, apiKey } = course;
+  const { name, description, apiKeys } = course;
 
   const formMethods = useForm<CourseFormValues>({
     defaultValues: {
       name,
       description,
-      apiKey,
+      apiKeys: apiKeys || { gemini: '', llama: '', chatgpt: '' },
     },
   });
 
@@ -41,11 +38,11 @@ export default function CourseCreateForm({
   } = formMethods;
 
   const onSubmit = async (values: CourseFormValues) => {
-    const { name, description, apiKey } = values;
+    const { name, description, apiKeys } = values;
 
     try {
-      await CreateCourse({ name, description, apiKey });
-      reset({ name: '', description: '', apiKey: '' });
+      await CreateCourse({ name, description, apiKeys });
+      reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
       router.refresh();
       onCourseCreated();
     } catch (err) {

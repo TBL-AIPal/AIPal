@@ -56,7 +56,7 @@ api.interceptors.response.use(
         console.error('Token refresh failed, logging out...', refreshError);
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = 'auth/login';
+        window.location.href = '/auth/login';
         return Promise.reject(refreshError);
       }
     }

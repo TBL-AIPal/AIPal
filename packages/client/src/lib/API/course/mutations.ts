@@ -18,12 +18,12 @@ interface DeleteCoursePropsI {
 export const CreateCourse = async ({
   name,
   description,
-  apiKey,
+  apiKeys,
 }: CourseFormValues) => {
   const data: CourseCreateInput = {
     name,
     description,
-    apiKey,
+    apiKeys, // ✅ Now supports multiple API keys
   };
 
   try {
@@ -39,7 +39,7 @@ export const UpdateCourse = async ({
   id,
   name,
   description,
-  apiKey,
+  apiKeys,
   llmConstraints,
   owner,
   students,
@@ -49,7 +49,7 @@ export const UpdateCourse = async ({
   const data: CourseUpdateInput = {
     name,
     description,
-    apiKey,
+    apiKeys, // ✅ Now supports updating multiple API keys
     llmConstraints,
     owner,
     students,

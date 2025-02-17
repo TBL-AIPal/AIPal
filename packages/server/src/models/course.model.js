@@ -10,10 +10,10 @@ const courseSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    apiKey: {
-      type: String,
-      required: true,
-      private: true, // used by the toJSON plugin
+    apiKeys: {
+      gemini: { type: String, required: false, private: true }, // ✅ Updated to support multiple API keys
+      llama: { type: String, required: false, private: true },
+      chatgpt: { type: String, required: false, private: true },
     },
     llmConstraints: {
       type: [String],

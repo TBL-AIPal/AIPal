@@ -8,7 +8,7 @@ import { GetRoomById } from '@/lib/API/room/queries';
 import { GetTemplateById } from '@/lib/API/template/queries';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
-import { proxyUrl } from '@/constant/env';
+import { createDirectMessage, createMultiAgentMessage, createRAGMessage, createCombinedMessage, createGeminiMessage, createLlama3Message } from '@/lib/API/message/mutations';
 
 import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
@@ -22,7 +22,12 @@ const RoomChatPage: React.FC = () => {
   const [room, setRoom] = useState<Room | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [messages, setMessages] = useState<{ sender: string; content: string; modelUsed?: string }[]>([]);
+  const [messages, setMessages] = useState<{ 
+    role: 'user' | 'assistant' | 'system';
+    sender: string;
+    content: string;
+    modelUsed?: string;
+  }[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,36 +101,48 @@ const RoomChatPage: React.FC = () => {
       return;
     }
 
-    const userMessage = { sender: userId, content: newMessage };
+    const userMessage = { role: 'user' as const, sender: userId, content: newMessage };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setNewMessage('');
 
     try {
-      const endpointMap: Record<string, string> = {
-        'chatgpt-direct': 'http://localhost:5000/api/chatgpt-direct',
-        'multi-agent': 'http://localhost:5000/api/multi-agent',
-        rag: 'http://localhost:5000/api/rag',
-        'rag+multi-agent': 'http://localhost:5000/api/rag+multi-agent',
-        gemini: 'http://localhost:5000/api/gemini',
-        llama3: 'http://localhost:5000/api/llama3',
-      };
-
-      const endpoint = endpointMap[selectedModel] || endpointMap['chatgpt-direct'];
+      let response;
       const constraints = template?.constraints || [];
+      const templateId = template?.id ?? '';
 
-      const response = await axios.post(endpoint, {
-        conversation: updatedMessages,
-        roomId,
-        userId,
-        documents: documents,
-        constraints: constraints,
-      });
+      switch (selectedModel) {
+        case 'multi-agent':
+          response = await createMultiAgentMessage({ courseId, templateId: templateId, conversation: updatedMessages, constraints });
+          break;
+        case 'rag':
+          response = await createRAGMessage({ courseId, templateId: templateId, conversation: updatedMessages });
+          break;
+        case 'rag+multi-agent':
+          response = await createCombinedMessage({ courseId, templateId: templateId, conversation: updatedMessages, constraints });
+          break;
+        case 'gemini':
+          response = await createGeminiMessage({ courseId, templateId: templateId, conversation: updatedMessages });
+          break;
+        case 'llama3':
+          response = await createLlama3Message({ courseId, templateId: templateId, conversation: updatedMessages });
+          break;
+        default:
+          response = await createDirectMessage({ courseId, templateId: templateId, conversation: updatedMessages });
+      }
+
+    //   const response = await axios.post(endpoint, {
+    //     conversation: updatedMessages,
+    //     roomId,
+    //     userId,
+    //     documents: documents,
+    //     constraints: constraints,
+    //   });
 
       setMessages(response.data.responses);
     } catch (error) {
       logger(error, 'Error sending message');
-      setMessages((prev) => [...prev, { sender: 'assistant', content: 'An error occurred. Please try again.' }]);
+      setMessages((prev) => [...prev, { role: 'assistant' as const, sender: 'assistant', content: 'An error occurred. Please try again.' }]);
     } finally {
       setLoadingMessage(false);
     }

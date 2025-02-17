@@ -6,6 +6,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { GetUsers, GetUsersByCourseId } from '@/lib/API/user/queries';
 import { GetCourseById } from '@/lib/API/course/queries';
 import { User } from '@/lib/types/user';
+import { Course } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 import { UpdateCourse } from '@/lib/API/course/mutations';
 
@@ -18,7 +19,7 @@ const Overview: React.FC = () => {
 
   const [accounts, setAccounts] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [courseDetails, setCourseDetails] = useState<{ name: string; description: string; apiKey: string; whitelist: string[] } | null>(null);
+  const [courseDetails, setCourseDetails] = useState<Course | null>(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [emailList, setEmailList] = useState<string>('');
   const [userRole, setUserRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
@@ -47,7 +48,7 @@ const Overview: React.FC = () => {
     if (!courseIdString) return;
     try {
       const course = await GetCourseById(courseIdString);
-      setCourseDetails({ name: course.name, description: course.description || "", apiKey: course.apiKey, whitelist: course.whitelist || [] });
+      setCourseDetails(course);
     } catch (error) {
       logger(error, 'Error fetching course details');
     }
@@ -62,7 +63,7 @@ const Overview: React.FC = () => {
   const handleAddUsers = async () => {
     if (!courseIdString || !courseDetails || !emailList) return;
     try {
-      const { name, apiKey, whitelist } = courseDetails;
+      const { name, apiKeys, whitelist } = courseDetails;
       const emails = emailList.split(',').map(email => email.trim());
       const existingUsers = allUsers.filter(user => emails.includes(user.email));
       const newUsers = emails.filter(email => !existingUsers.some(user => user.email === email));
@@ -70,21 +71,21 @@ const Overview: React.FC = () => {
       const staffIds = existingUsers.filter(user => user.role === 'teacher').map(user => user.id);
       const studentIds = existingUsers
         .filter(user => user.role !== 'teacher')
-        .map(user => user.id); // Extract only user IDs
+        .map(user => user.id);
 
       await UpdateCourse({
         id: courseIdString,
         name,
-        apiKey,
+        apiKeys, // ✅ Updated to support multiple API keys
         students: [
-          ...accounts.filter(user => user.role !== 'teacher').map(user => user.id), // Keep existing students
-          ...studentIds, // Add new students (approved automatically)
+          ...accounts.filter(user => user.role !== 'teacher').map(user => user.id), 
+          ...studentIds,
         ],
         staff: [
-          ...accounts.filter(user => user.role === 'teacher').map(user => user.id), // Keep existing staff
-          ...staffIds, // Add new teachers
+          ...accounts.filter(user => user.role === 'teacher').map(user => user.id),
+          ...staffIds,
         ],
-        whitelist: [...whitelist, ...newUsers], // Store new user emails in the whitelist
+        whitelist: [...whitelist, ...newUsers],
       });
 
       fetchUsers();

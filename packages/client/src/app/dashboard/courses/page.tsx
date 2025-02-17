@@ -35,7 +35,7 @@ export default function CoursesPage() {
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   // Fetch user data and check permissions
   const fetchUser = async () => {
@@ -89,7 +89,11 @@ export default function CoursesPage() {
       {isModalOpen && (
         <Modal title='Add New Course' onClose={handleModalClose}>
           <CourseCreateForm
-            course={{ name: '', description: '', apiKey: '' }}
+            course={{
+              name: '',
+              description: '',
+              apiKeys: { gemini: '', llama: '', chatgpt: '' }, // ✅ Updated to include multiple API keys
+            }}
             onCourseCreated={() => {
               handleModalClose();
               fetchCourses();
