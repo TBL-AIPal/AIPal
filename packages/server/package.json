@@ -55,6 +55,7 @@
   "devDependencies": {
     "coveralls": "^3.1.1",
     "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^28.11.0",
     "eslint-plugin-prettier": "^5.2.3",
@@ -66,6 +67,7 @@
     "lint-staged": "^15.4.3",
     "node-mocks-http": "^1.16.2",
     "nodemon": "^3.1.9",
+    "prettier": "3.5.1",
     "supertest": "^7.0.0",
     "xss-clean": "^0.1.4"
   },
