@@ -13,7 +13,9 @@ describe('Template model', () => {
     });
 
     test('should correctly validate a valid template', async () => {
-      await expect(new Template(newTemplate).validate()).resolves.toBeUndefined();
+      await expect(
+        new Template(newTemplate).validate(),
+      ).resolves.toBeUndefined();
     });
 
     test('should throw a validation error if name is missing', async () => {
@@ -23,7 +25,9 @@ describe('Template model', () => {
 
     test('should not throw an error if constraints are not provided', async () => {
       newTemplate.constraints = undefined;
-      await expect(new Template(newTemplate).validate()).resolves.toBeUndefined();
+      await expect(
+        new Template(newTemplate).validate(),
+      ).resolves.toBeUndefined();
     });
   });
 

@@ -33,7 +33,10 @@ const createDocument = async (courseId, file) => {
   });
 
   // Update the course to add the document ID to the documents array
-  await Course.updateOne({ _id: courseId }, { $push: { documents: document._id } });
+  await Course.updateOne(
+    { _id: courseId },
+    { $push: { documents: document._id } },
+  );
 
   const course = await Course.findById(courseId);
   if (!course) {
@@ -49,9 +52,11 @@ const createDocument = async (courseId, file) => {
         const normalizedData = await processText(text);
         const embedding = await generateEmbedding(normalizedData, apiKey);
         return { text, embedding };
-      })
+      }),
     );
-    await Chunk.insertMany(chunks.map((chunk) => ({ ...chunk, document: document._id })));
+    await Chunk.insertMany(
+      chunks.map((chunk) => ({ ...chunk, document: document._id })),
+    );
   }
 
   return document;
@@ -97,7 +102,10 @@ const deleteDocumentById = async (courseId, documentId) => {
   }
 
   // Update the course to remove the document ID in the documents array
-  await Course.updateOne({ _id: courseId }, { $pull: { documents: document._id } });
+  await Course.updateOne(
+    { _id: courseId },
+    { $pull: { documents: document._id } },
+  );
   // Delete the associated chunks using the document ID
   await Chunk.deleteMany({ Document: document._id });
 

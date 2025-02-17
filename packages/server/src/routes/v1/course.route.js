@@ -16,25 +16,65 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageCourses'), validate(courseValidation.createCourse), courseController.createCourse)
-  .get(auth('getCourses'), validate(courseValidation.getCourses), courseController.getCourses);
+  .post(
+    auth('manageCourses'),
+    validate(courseValidation.createCourse),
+    courseController.createCourse,
+  )
+  .get(
+    auth('getCourses'),
+    validate(courseValidation.getCourses),
+    courseController.getCourses,
+  );
 
 router
   .route('/:courseId')
-  .get(auth('getCourses'), validate(courseValidation.getCourse), courseController.getCourse)
-  .patch(auth('manageCourses'), validate(courseValidation.updateCourse), courseController.updateCourse)
-  .delete(auth('manageCourses'), validate(courseValidation.deleteCourse), courseController.deleteCourse);
+  .get(
+    auth('getCourses'),
+    validate(courseValidation.getCourse),
+    courseController.getCourse,
+  )
+  .patch(
+    auth('manageCourses'),
+    validate(courseValidation.updateCourse),
+    courseController.updateCourse,
+  )
+  .delete(
+    auth('manageCourses'),
+    validate(courseValidation.deleteCourse),
+    courseController.deleteCourse,
+  );
 
 router
   .route('/:courseId/templates')
-  .post(auth('manageTemplates'), validate(templateValidation.createTemplate), templateController.createTemplate)
-  .get(auth('getTemplates'), validate(templateValidation.getTemplates), templateController.getTemplates);
+  .post(
+    auth('manageTemplates'),
+    validate(templateValidation.createTemplate),
+    templateController.createTemplate,
+  )
+  .get(
+    auth('getTemplates'),
+    validate(templateValidation.getTemplates),
+    templateController.getTemplates,
+  );
 
 router
   .route('/:courseId/templates/:templateId')
-  .get(auth('getTemplates'), validate(templateValidation.getTemplate), templateController.getTemplate)
-  .patch(auth('manageTemplates'), validate(templateValidation.updateTemplate), templateController.updateTemplate)
-  .delete(auth('manageTemplates'), validate(templateValidation.deleteTemplate), templateController.deleteTemplate);
+  .get(
+    auth('getTemplates'),
+    validate(templateValidation.getTemplate),
+    templateController.getTemplate,
+  )
+  .patch(
+    auth('manageTemplates'),
+    validate(templateValidation.updateTemplate),
+    templateController.updateTemplate,
+  )
+  .delete(
+    auth('manageTemplates'),
+    validate(templateValidation.deleteTemplate),
+    templateController.deleteTemplate,
+  );
 
 router
   .route('/:courseId/documents')
@@ -42,27 +82,61 @@ router
     auth('manageDocuments'),
     upload.single('file'),
     validate(documentValidation.createDocument),
-    documentController.createDocument
+    documentController.createDocument,
   )
-  .get(auth('getDocuments'), validate(documentValidation.getDocuments), documentController.getDocuments);
+  .get(
+    auth('getDocuments'),
+    validate(documentValidation.getDocuments),
+    documentController.getDocuments,
+  );
 
 router
   .route('/:courseId/documents/:documentId')
-  .get(auth('getDocuments'), validate(documentValidation.getDocument), documentController.getDocument)
-  .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
+  .get(
+    auth('getDocuments'),
+    validate(documentValidation.getDocument),
+    documentController.getDocument,
+  )
+  .delete(
+    auth('manageDocuments'),
+    validate(documentValidation.getDocument),
+    documentController.deleteDocument,
+  );
 
 // Routes for course rooms
-router.route('/:courseId/rooms').post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
+router
+  .route('/:courseId/rooms')
+  .post(
+    auth('manageRooms'),
+    validate(roomValidation.createRoom),
+    roomController.createRoom,
+  );
 
 router
   .route('/:courseId/templates/:templateId/rooms')
-  .get(auth('getRooms'), validate(roomValidation.getRoomsByTemplate), roomController.getRoomsByTemplate);
+  .get(
+    auth('getRooms'),
+    validate(roomValidation.getRoomsByTemplate),
+    roomController.getRoomsByTemplate,
+  );
 
 router
   .route('/:courseId/rooms/:roomId')
-  .get(auth('getRooms'), validate(roomValidation.getRoom), roomController.getRoom)
-  .patch(auth('manageRooms'), validate(roomValidation.updateRoom), roomController.updateRoom)
-  .delete(auth('manageRooms'), validate(roomValidation.deleteRoom), roomController.deleteRoom);
+  .get(
+    auth('getRooms'),
+    validate(roomValidation.getRoom),
+    roomController.getRoom,
+  )
+  .patch(
+    auth('manageRooms'),
+    validate(roomValidation.updateRoom),
+    roomController.updateRoom,
+  )
+  .delete(
+    auth('manageRooms'),
+    validate(roomValidation.deleteRoom),
+    roomController.deleteRoom,
+  );
 
 module.exports = router;
 

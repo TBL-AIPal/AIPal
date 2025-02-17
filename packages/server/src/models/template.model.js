@@ -10,11 +10,13 @@ const templateSchema = new mongoose.Schema(
     constraints: {
       type: [String],
     },
-    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] }],
+    documents: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] },
+    ],
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json

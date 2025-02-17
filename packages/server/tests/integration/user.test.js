@@ -4,8 +4,16 @@ const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { User } = require('../../src/models');
-const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const {
+  userOne,
+  userTwo,
+  admin,
+  insertUsers,
+} = require('../fixtures/user.fixture');
+const {
+  userOneAccessToken,
+  adminAccessToken,
+} = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -46,7 +54,12 @@ describe('User routes', () => {
       const dbUser = await User.findById(res.body.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
-      expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: newUser.role, isEmailVerified: false });
+      expect(dbUser).toMatchObject({
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        isEmailVerified: false,
+      });
     });
 
     test('should be able to create an admin as well', async () => {
@@ -66,7 +79,10 @@ describe('User routes', () => {
     });
 
     test('should return 401 error if access token is missing', async () => {
-      await request(app).post('/v1/users').send(newUser).expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .post('/v1/users')
+        .send(newUser)
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if logged in user is not admin', async () => {
@@ -176,7 +192,10 @@ describe('User routes', () => {
     test('should return 401 if access token is missing', async () => {
       await insertUsers([userOne, userTwo, admin]);
 
-      await request(app).get('/v1/users').send().expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .get('/v1/users')
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 if a non-admin is trying to access all users', async () => {
@@ -382,7 +401,10 @@ describe('User routes', () => {
     test('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
 
-      await request(app).get(`/v1/users/${userOne._id}`).send().expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .get(`/v1/users/${userOne._id}`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if user is trying to get another user', async () => {
@@ -443,7 +465,10 @@ describe('User routes', () => {
     test('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
 
-      await request(app).delete(`/v1/users/${userOne._id}`).send().expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .delete(`/v1/users/${userOne._id}`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if user is trying to delete another user', async () => {
@@ -517,14 +542,21 @@ describe('User routes', () => {
       const dbUser = await User.findById(userOne._id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(updateBody.password);
-      expect(dbUser).toMatchObject({ name: updateBody.name, email: updateBody.email, role: 'user' });
+      expect(dbUser).toMatchObject({
+        name: updateBody.name,
+        email: updateBody.email,
+        role: 'user',
+      });
     });
 
     test('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
       const updateBody = { name: faker.name.findName() };
 
-      await request(app).patch(`/v1/users/${userOne._id}`).send(updateBody).expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .patch(`/v1/users/${userOne._id}`)
+        .send(updateBody)
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 if user is updating another user', async () => {

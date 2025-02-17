@@ -5,9 +5,21 @@ const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { Document } = require('../../src/models');
 const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
-const { courseOne, insertCourses, courseTwo } = require('../fixtures/course.fixture');
-const { documentOne, documentTwo, documentThree, insertDocuments } = require('../fixtures/document.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const {
+  courseOne,
+  insertCourses,
+  courseTwo,
+} = require('../fixtures/course.fixture');
+const {
+  documentOne,
+  documentTwo,
+  documentThree,
+  insertDocuments,
+} = require('../fixtures/document.fixture');
+const {
+  userOneAccessToken,
+  adminAccessToken,
+} = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -29,7 +41,7 @@ describe('Document routes', () => {
           filename: 'testOne.pdf',
           contentType: 'application/pdf',
           size: expect.any(Number),
-        })
+        }),
       );
 
       const dbDocument = await Document.findById(res.body.id);
@@ -39,7 +51,7 @@ describe('Document routes', () => {
           filename: 'testOne.pdf',
           contentType: 'application/pdf',
           size: expect.any(Number),
-        })
+        }),
       );
     });
 
@@ -102,7 +114,7 @@ describe('Document routes', () => {
             filename: documentTwo.filename,
             contentType: documentTwo.contentType,
           }),
-        ])
+        ]),
       );
     });
 
@@ -133,7 +145,7 @@ describe('Document routes', () => {
         expect.objectContaining({
           filename: documentOne.filename,
           contentType: documentOne.contentType,
-        })
+        }),
       );
     });
 

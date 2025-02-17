@@ -8,12 +8,17 @@ const createDocument = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is required');
   }
 
-  const document = await documentService.createDocument(req.params.courseId, req.file);
+  const document = await documentService.createDocument(
+    req.params.courseId,
+    req.file,
+  );
   res.status(httpStatus.CREATED).send(document);
 });
 
 const getDocuments = catchAsync(async (req, res) => {
-  const documents = await documentService.getDocumentsByCourseId(req.params.courseId);
+  const documents = await documentService.getDocumentsByCourseId(
+    req.params.courseId,
+  );
   res.send(documents);
 });
 
@@ -23,7 +28,10 @@ const getDocument = catchAsync(async (req, res) => {
 });
 
 const deleteDocument = catchAsync(async (req, res) => {
-  await documentService.deleteDocumentById(req.params.courseId, req.params.documentId);
+  await documentService.deleteDocumentById(
+    req.params.courseId,
+    req.params.documentId,
+  );
   res.status(httpStatus.NO_CONTENT).send();
 });
 

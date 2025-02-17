@@ -4,11 +4,32 @@ const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { Course, Template, Document } = require('../../src/models');
-const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
-const { templateOne, templateTwo, insertTemplates } = require('../fixtures/template.fixture');
-const { courseOne, courseTwo, insertCourses } = require('../fixtures/course.fixture');
-const { documentOne, documentTwo, insertDocuments } = require('../fixtures/document.fixture');
-const { userOneAccessToken, userTwoAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const {
+  userOne,
+  userTwo,
+  admin,
+  insertUsers,
+} = require('../fixtures/user.fixture');
+const {
+  templateOne,
+  templateTwo,
+  insertTemplates,
+} = require('../fixtures/template.fixture');
+const {
+  courseOne,
+  courseTwo,
+  insertCourses,
+} = require('../fixtures/course.fixture');
+const {
+  documentOne,
+  documentTwo,
+  insertDocuments,
+} = require('../fixtures/document.fixture');
+const {
+  userOneAccessToken,
+  userTwoAccessToken,
+  adminAccessToken,
+} = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -38,7 +59,7 @@ describe('Course routes', () => {
         expect.objectContaining({
           name: newCourse.name,
           owner: newCourse.owner.toString(),
-        })
+        }),
       );
       expect(res.body).toEqual({
         id: expect.anything(),
@@ -59,12 +80,15 @@ describe('Course routes', () => {
         expect.objectContaining({
           name: newCourse.name,
           owner: newCourse.owner,
-        })
+        }),
       );
     });
 
     test('should return 401 error if access token is missing', async () => {
-      await request(app).post('/v1/courses').send(newCourse).expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .post('/v1/courses')
+        .send(newCourse)
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if logged in user does not have manageCourses permission', async () => {
@@ -97,7 +121,7 @@ describe('Course routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body.results).toBeInstanceOf(Array);
-      expect(res.body.results.length).toBe(2);
+      expect(res.body.results).toHaveLength(2);
       expect(res.body.results[0]).toMatchObject({
         id: courseOne._id.toString(),
       });
@@ -115,7 +139,7 @@ describe('Course routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body.results).toBeInstanceOf(Array);
-      expect(res.body.results.length).toBe(1);
+      expect(res.body.results).toHaveLength(1);
     });
 
     test('should return 401 error if access token is missing', async () => {
@@ -130,7 +154,7 @@ describe('Course routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body.results).toBeInstanceOf(Array);
-      expect(res.body.results.length).toBe(0);
+      expect(res.body.results).toHaveLength(0);
     });
   });
 
@@ -152,7 +176,9 @@ describe('Course routes', () => {
     });
 
     test('should return 401 error if access token is missing', async () => {
-      await request(app).get(`/v1/courses/${courseOne._id}`).expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .get(`/v1/courses/${courseOne._id}`)
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 404 error if course is not found', async () => {
@@ -182,7 +208,9 @@ describe('Course routes', () => {
     });
 
     test('should return 401 error if access token is missing', async () => {
-      await request(app).patch(`/v1/courses/${courseOne._id}`).expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .patch(`/v1/courses/${courseOne._id}`)
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if user does not have manageCourses permission', async () => {
@@ -221,7 +249,9 @@ describe('Course routes', () => {
       await insertTemplates([templateOne, templateTwo]);
 
       // Check the initial state before deletion
-      const dbCourseBefore = await Course.findById(courseOne._id).populate('templates');
+      const dbCourseBefore = await Course.findById(courseOne._id).populate(
+        'templates',
+      );
       const dbTemplateOneBefore = await Template.findById(templateOne._id);
       const dbTemplateTwoBefore = await Template.findById(templateTwo._id);
 
@@ -251,7 +281,9 @@ describe('Course routes', () => {
       await insertDocuments([documentOne, documentTwo]);
 
       // Check the initial state before deletion
-      const dbCourseBefore = await Course.findById(courseOne._id).populate('templates');
+      const dbCourseBefore = await Course.findById(courseOne._id).populate(
+        'templates',
+      );
       const dbDocumentOneBefore = await Document.findById(documentOne._id);
       const dbDocumentTwoBefore = await Document.findById(documentTwo._id);
 
@@ -276,7 +308,9 @@ describe('Course routes', () => {
     });
 
     test('should return 401 error if access token is missing', async () => {
-      await request(app).delete(`/v1/courses/${courseOne._id}`).expect(httpStatus.UNAUTHORIZED);
+      await request(app)
+        .delete(`/v1/courses/${courseOne._id}`)
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if user does not have manageCourses permission', async () => {

@@ -64,7 +64,7 @@ const updateCourseById = async (courseId, updateBody) => {
   const course = await Course.findByIdAndUpdate(
     courseId,
     { $set: updateBody }, // Use $set to update only the provided fields
-    { new: true } // Return the updated document
+    { new: true }, // Return the updated document
   );
 
   if (!course) {

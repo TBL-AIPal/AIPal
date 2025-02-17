@@ -24,14 +24,20 @@ const courseSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    students: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] },
+    ],
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
-    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] }],
-    templates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] }],
+    documents: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] },
+    ],
+    templates: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] },
+    ],
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json

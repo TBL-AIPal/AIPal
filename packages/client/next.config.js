@@ -6,18 +6,16 @@ const nextConfig = {
   },
 
   reactStrictMode: true,
-  swcMinify: true,
 
   images: {
-    domains: ['flowbite.s3.amazonaws.com'],
+    domains: [],
   },
 
   async rewrites() {
     return [
       {
         source: '/api/proxy/:path*',
-        // TODO: User variable instead
-        destination: `http://localhost:5000/v1/:path*`,
+        destination: `${process.env.SERVER_API_URL}/v1/:path*`,
       },
     ];
   },
