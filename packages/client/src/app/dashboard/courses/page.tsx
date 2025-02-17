@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 
 import { GetCoursesForUser } from '@/lib/API/course/queries';
@@ -86,6 +85,7 @@ export default function CoursesPage() {
         </TextButton>
       )}
 
+      {/* Modal for Adding a New Course */}
       {isModalOpen && (
         <Modal title='Add New Course' onClose={handleModalClose}>
           <CourseCreateForm
@@ -98,6 +98,7 @@ export default function CoursesPage() {
         </Modal>
       )}
 
+      {/* Course Gallery */}
       <div className='mt-8'>
         <CourseGallery courses={courses} />
       </div>

@@ -107,54 +107,77 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
       <h2 className='text-2xl font-bold'>{roomName}</h2>
       <p className='text-gray-600 mb-4'>{roomDescription}</p>
 
-      {/* Model Selection Dropdown */}
-      <div className='mb-4'>
-        <label className='block text-white font-bold mb-2'>
-          Select AI Model:
+      {/* Toggle switch for multi-agent architecture */}
+      <div className='mb-4 flex items-center'>
+        <span className='text-gray-900 dark:text-white mr-3'>
+          Multi-Agent Architecture
+        </span>
+        <label className='relative inline-flex items-center cursor-pointer'>
+          <input
+            type='checkbox'
+            className='hidden'
+            checked={multiAgent}
+            onChange={() => setMultiAgent(!multiAgent)} // Toggle the state
+          />
+          <div
+            className={`w-14 h-8 rounded-full transition-colors duration-300 ease-in-out ${
+              multiAgent ? 'bg-green-600' : 'bg-gray-300'
+            }`}
+          ></div>
+          <span
+            className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
+              multiAgent ? 'transform translate-x-6' : ''
+            }`}
+          ></span>
         </label>
-        <select
-          className='w-full p-2 border rounded'
-          value={selectedModel}
-          onChange={(e) => setSelectedModel(e.target.value)}
-        >
-          <option value='chatgpt-direct'>ChatGPT Direct</option>
-          <option value='multi-agent'>Multi-Agent</option>
-          <option value='rag'>Retrieval Augmented Generation</option>
-          <option value='rag+multi-agent'>RAG + Multi-Agent</option>
-          <option value='gemini'>Gemini</option>
-          <option value='llama3'>Llama 3.1</option>
-        </select>
       </div>
 
-      {/* Display documents list */}
-      <div className='mb-4'>
-        <h3 className='font-semibold'>Documents</h3>
-        {documents.length === 0 ? (
-          <p>No documents available.</p>
-        ) : (
-          <ul className='list-disc pl-5'>
-            {documents.map((doc) => (
-              <li key={doc.id}>
-                {doc.filename} - {doc.contentType} - {doc.size} bytes
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Toggle switch for RAG */}
+      <div className='mb-4 flex items-center'>
+        <span className='text-gray-900 dark:text-white mr-3'>
+          Retrieval Augmented Generation
+        </span>
+        <label className='relative inline-flex items-center cursor-pointer'>
+          <input
+            type='checkbox'
+            className='hidden'
+            checked={retrievalAugmentedGeneration}
+            onChange={() =>
+              setRetrievalAugmentedGeneration(!retrievalAugmentedGeneration)
+            } // Toggle the state
+          />
+          <div
+            className={`w-14 h-8 rounded-full transition-colors duration-300 ease-in-out ${
+              retrievalAugmentedGeneration ? 'bg-green-600' : 'bg-gray-300'
+            }`}
+          ></div>
+          <span
+            className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
+              retrievalAugmentedGeneration ? 'transform translate-x-6' : ''
+            }`}
+          ></span>
+        </label>
       </div>
 
       {/* Chat display */}
       <div className='bg-gray-100 p-4 rounded max-h-96 overflow-y-auto'>
-        {conversation.map((msg, index) => (
-          <div
-            key={index}
-            className={`my-2 ${
-              msg.role === 'user' ? 'text-blue-700' : 'text-gray-700'
-            }`}
-          >
-            <strong>{msg.role === 'user' ? 'You' : msg.role}:</strong>{' '}
-            {msg.content}
+        {conversation.length > 0 ? (
+          conversation.map((msg, index) => (
+            <div
+              key={index}
+              className={`my-2 ${
+                msg.role === 'user' ? 'text-blue-700' : 'text-gray-700'
+              }`}
+            >
+              <strong>{msg.role === 'user' ? 'You' : msg.role}:</strong>{' '}
+              {msg.content}
+            </div>
+          ))
+        ) : (
+          <div className='text-center text-gray-500 italic'>
+            No messages yet
           </div>
-        ))}
+        )}
       </div>
 
       {/* Prompt input */}

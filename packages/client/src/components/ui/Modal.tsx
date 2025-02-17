@@ -23,15 +23,19 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
       <div
         ref={ref}
         className={cn(
-          'fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden',
+          'fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/50 backdrop-blur-sm',
           className
         )}
         {...props}
       >
         <div
-          className={cn('relative p-4 w-full', sizeClasses[size], 'max-h-full')}
+          className={cn(
+            'relative p-4 w-full',
+            sizeClasses[size],
+            'max-h-full animate-fade-in-up'
+          )}
         >
-          <div className='relative bg-white rounded-lg shadow dark:bg-gray-700'>
+          <div className='relative rounded-lg shadow bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-300'>
             <div className='flex items-center justify-between p-4 border-b rounded-t dark:border-gray-600'>
               <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
                 {title}
