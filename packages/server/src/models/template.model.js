@@ -9,8 +9,12 @@ const templateSchema = new mongoose.Schema(
     },
     constraints: {
       type: [String],
+      default: [],
     },
-    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] }],
+    documents: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
+      default: [],
+    },
   },
   {
     timestamps: true,

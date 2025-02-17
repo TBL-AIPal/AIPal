@@ -8,7 +8,6 @@ const createMessage = {
   },
   body: Joi.object({
     conversation: Joi.array().items(Joi.object()).required(),
-    documents: Joi.array().items(Joi.object()).optional(),
     constraints: Joi.array().items(Joi.string()).optional(),
   }),
 };
