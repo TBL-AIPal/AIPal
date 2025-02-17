@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 
 import { GetCourseByUserId } from '@/lib/API/course/queries';
@@ -39,8 +38,9 @@ export default function CoursesPage() {
 
   return (
     <div className='relative text-center'>
+      {/* Add Course Button */}
       <TextButton
-        className='fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg'
+        className='fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg z-50'
         variant='primary'
         onClick={() => setIsModalOpen(true)}
         disabled={loading}
@@ -48,6 +48,7 @@ export default function CoursesPage() {
         {loading ? 'Adding...' : '+ Add Course'}
       </TextButton>
 
+      {/* Modal for Adding a New Course */}
       {isModalOpen && (
         <Modal title='Add New Course' onClose={handleModalClose}>
           <CourseCreateForm
@@ -60,6 +61,7 @@ export default function CoursesPage() {
         </Modal>
       )}
 
+      {/* Course Gallery */}
       <div className='mt-8'>
         <CourseGallery courses={courses} />
       </div>

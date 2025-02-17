@@ -49,14 +49,17 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
         {constraints.length > 0 ? (
           <ul className='list-disc pl-5 space-y-1'>
             {constraints.map((constraint, index) => (
-              <li key={index} className='flex items-center text-sm text-white'>
+              <li
+                key={index}
+                className='flex items-center text-sm text-gray-900 dark:text-white'
+              >
                 <span className='mr-2'>•</span>
                 {constraint}
               </li>
             ))}
           </ul>
         ) : (
-          <p className='block text-sm font-normal text-gray-900 dark:text-white'>
+          <p className='text-sm text-gray-900 dark:text-white'>
             No constraints added yet.
           </p>
         )}
