@@ -30,15 +30,7 @@ jobs:
             --env MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGODB_INITDB_ROOT_PASSWORD }} \
             mongodb
 
-      # Step 5: Wait for MongoDB to be ready
-      - name: Wait for MongoDB to Start
-        run: |
-          until docker exec mongodb-container mongo --eval "db.adminCommand('ping')"; do
-            echo "Waiting for MongoDB to start..."
-            sleep 5
-          done
-
-      # Step 6: Get IP Address of MongoDB and store as env variable
+      # Step 5: Get IP Address of MongoDB and store as env variable
       - name: Get IP Address of MongoDB
         id: get-mongodb-ip
         run: |
@@ -46,11 +38,11 @@ jobs:
             -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mongodb-container)
           echo "MONGODB_IP=$MONGODB_IP" >> $GITHUB_ENV
 
-      # Step 7: Build the server image
+      # Step 6: Build the server image
       - name: Build Server Image
         run: docker build -t server -f ./packages/server/Dockerfile.development .
 
-      # Step 8: Run the server container and set MongoDB IP Address
+      # Step 7: Run the server container and set MongoDB IP Address
       - name: Run Server Container
         run: |
           docker run -d \
@@ -59,9 +51,11 @@ jobs:
             -p 5000:5000 \
             --env NODE_ENV=development \
             --env MONGODB_HOST=${{ env.MONGODB_IP }} \
+            --env MONGODB_USERNAME=${{ secrets.MONGODB_INITDB_ROOT_USERNAME }} \
+            --env MONGODB_PASSWORD=${{ secrets.MONGODB_INITDB_ROOT_PASSWORD }} \
             server
 
-      # Step 9: Get IP Address of server and store as env variable
+      # Step 8: Get IP Address of server and store as env variable
       - name: Get IP Address of Server
         id: get-server-ip
         run: |
@@ -69,11 +63,11 @@ jobs:
             -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' server-container)
           echo "SERVER_IP=$SERVER_IP" >> $GITHUB_ENV
 
-      # Step 10: Build the client image
+      # Step 9: Build the client image
       - name: Build Client Image
         run: docker build -t client -f ./packages/client/Dockerfile.development .
 
-      # Step 11: Run the client container and set Server IP Address
+      # Step 10: Run the client container and set Server IP Address
       - name: Run Client Container
         run: |
           docker run -d \
@@ -84,7 +78,7 @@ jobs:
             --env SERVER_HOST=${{ env.SERVER_IP }} \
             client
 
-      # Step 12: Cleanup Containers and Network
+      # Step 11: Cleanup Containers and Network
       - name: Cleanup Containers and Network
         if: always()
         run: |
