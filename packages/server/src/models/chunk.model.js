@@ -18,7 +18,7 @@ const chunkSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 /**

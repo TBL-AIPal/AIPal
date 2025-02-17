@@ -25,19 +25,28 @@ const callOpenAI = async (messages, apiKey) => {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
     if (error.response) {
       // If the error is from the API (e.g., invalid API key, rate limit)
-      throw new ApiError(httpStatus.BAD_REQUEST, `OpenAI API Error: ${error.response.data.error.message}`);
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `OpenAI API Error: ${error.response.data.error.message}`,
+      );
     } else if (error.request) {
       // If no response was received (e.g., network issue)
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'No response received from OpenAI API');
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        'No response received from OpenAI API',
+      );
     } else {
       // Other errors
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Error calling OpenAI API: ${error.message}`);
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        `Error calling OpenAI API: ${error.message}`,
+      );
     }
   }
 };
@@ -45,7 +54,7 @@ const callOpenAI = async (messages, apiKey) => {
 // Helper function to segment text into chunks
 const segmentText = (text, chunkSize) => {
   return Array.from({ length: Math.ceil(text.length / chunkSize) }, (_, i) =>
-    text.slice(i * chunkSize, i * chunkSize + chunkSize)
+    text.slice(i * chunkSize, i * chunkSize + chunkSize),
   ); // Use Array.from to create chunks
 };
 
@@ -67,7 +76,10 @@ const processChunksSequentially = async (chunks, conversation, apiKey) => {
     // Append the current chunk to the system message
     systemMessageContent += ` Current source text: "${chunk}"`;
 
-    const conversationWithChunk = [{ role: 'system', content: systemMessageContent }, ...conversation];
+    const conversationWithChunk = [
+      { role: 'system', content: systemMessageContent },
+      ...conversation,
+    ];
 
     // Call the OpenAI API with the constructed conversation
     const primaryResponse = await callOpenAI(conversationWithChunk, apiKey);
@@ -108,7 +120,10 @@ const createDirectReply = async (courseId, messageBody) => {
 
   // Return the updated conversation history
   return {
-    responses: [...conversation, { role: 'assistant', content: assistantResponse }],
+    responses: [
+      ...conversation,
+      { role: 'assistant', content: assistantResponse },
+    ],
   };
 };
 
@@ -139,7 +154,11 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
 
   const documentIds = template.documents;
 
-  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey, documentIds);
+  const contextualizedQuery = await generateContextualizedQuery(
+    currentQuery,
+    apiKey,
+    documentIds,
+  );
 
   logger.info(contextualizedQuery);
 
@@ -158,7 +177,10 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
 
   // Return the updated conversation history
   return {
-    responses: [...conversation, { role: 'assistant', content: assistantResponse }],
+    responses: [
+      ...conversation,
+      { role: 'assistant', content: assistantResponse },
+    ],
   };
 };
 
@@ -194,7 +216,10 @@ const createMultiAgentReply = async (courseId, messageBody) => {
   const assistantResponse = response.choices[0].message.content;
 
   return {
-    responses: [...conversation, { role: 'assistant', content: assistantResponse }],
+    responses: [
+      ...conversation,
+      { role: 'assistant', content: assistantResponse },
+    ],
   };
 };
 
@@ -205,7 +230,11 @@ const createMultiAgentReply = async (courseId, messageBody) => {
  * @param {Object} messageBody
  * @returns {Promise<Object>}
  */
-const createContextualizedAndMultiAgentReply = async (courseId, templateId, messageBody) => {
+const createContextualizedAndMultiAgentReply = async (
+  courseId,
+  templateId,
+  messageBody,
+) => {
   const { conversation, documents, constraints } = messageBody;
 
   const { apiKey } = await getApiKeyById(courseId);
@@ -213,7 +242,11 @@ const createContextualizedAndMultiAgentReply = async (courseId, templateId, mess
   // Generate a contextualized query
   const currentQuery = conversation[conversation.length - 1].content;
   const documentIds = getTemplateById(templateId).documents;
-  const contextualizedQuery = await generateContextualizedQuery(currentQuery, apiKey, documentIds);
+  const contextualizedQuery = await generateContextualizedQuery(
+    currentQuery,
+    apiKey,
+    documentIds,
+  );
   logger.info(contextualizedQuery);
 
   // Process documents into summaries
@@ -237,7 +270,10 @@ const createContextualizedAndMultiAgentReply = async (courseId, templateId, mess
   const assistantResponse = response.choices[0].message.content;
 
   return {
-    responses: [...conversation, { role: 'assistant', content: assistantResponse }],
+    responses: [
+      ...conversation,
+      { role: 'assistant', content: assistantResponse },
+    ],
   };
 };
 
