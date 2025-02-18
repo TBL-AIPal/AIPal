@@ -1,87 +1,55 @@
-name: Build and Deploy Dev
+name: Build and Push Docker Images to GitHub Container Registry
+
 on:
   push:
     branches:
       - deployment
+  # Allow manual triggering
+  workflow_dispatch:
+
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the code
+      # Check out the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Create a custom Docker network
-      - name: Create Docker Network
-        run: docker network create my-network || true
+      # Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 3: Build the database image
-      - name: Build Database Image
-        run: docker build -t mongodb -f ./packages/mongodb/Dockerfile.development .
+      # Build and push MongoDB image
+      - name: Build and push MongoDB image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./packages/mongodb
+          file: ./packages/mongodb/Dockerfile.development
+          push: true
+          tags: ghcr.io/${{ github.repository }}/mongo:latest
 
-      # Step 4: Run the database container
-      - name: Run Database Container
-        run: |
-          docker run -d \
-            --name mongodb-container \
-            --network my-network \
-            --env NODE_ENV=development \
-            --env MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGODB_INITDB_ROOT_USERNAME }} \
-            --env MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGODB_INITDB_ROOT_PASSWORD }} \
-            mongodb
+      # Build and push Server image
+      - name: Build and push Server image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./packages/server
+          file: ./packages/server/Dockerfile.development
+          push: true
+          tags: ghcr.io/${{ github.repository }}/server:latest
 
-      # Step 5: Get IP Address of MongoDB and store as env variable
-      - name: Get IP Address of MongoDB
-        id: get-mongodb-ip
-        run: |
-          MONGODB_IP=$(docker inspect \
-            -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mongodb-container)
-          echo "MONGODB_IP=$MONGODB_IP" >> $GITHUB_ENV
+      # Build and push Client image
+      - name: Build and push Client image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./packages/client
+          file: ./packages/client/Dockerfile.development
+          push: true
+          tags: ghcr.io/${{ github.repository }}/client:latest
 
-      # Step 6: Build the server image
-      - name: Build Server Image
-        run: docker build -t server -f ./packages/server/Dockerfile.development .
-
-      # Step 7: Run the server container and set MongoDB IP Address
-      - name: Run Server Container
-        run: |
-          docker run -d \
-            --name server-container \
-            --network my-network \
-            -p 5000:5000 \
-            --env NODE_ENV=development \
-            --env MONGODB_HOST=${{ env.MONGODB_IP }} \
-            --env MONGODB_USERNAME=${{ secrets.MONGODB_INITDB_ROOT_USERNAME }} \
-            --env MONGODB_PASSWORD=${{ secrets.MONGODB_INITDB_ROOT_PASSWORD }} \
-            server
-
-      # Step 8: Get IP Address of server and store as env variable
-      - name: Get IP Address of Server
-        id: get-server-ip
-        run: |
-          SERVER_IP=$(docker inspect \
-            -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' server-container)
-          echo "SERVER_IP=$SERVER_IP" >> $GITHUB_ENV
-
-      # Step 9: Build the client image
-      - name: Build Client Image
-        run: docker build -t client -f ./packages/client/Dockerfile.development .
-
-      # Step 10: Run the client container and set Server IP Address
-      - name: Run Client Container
-        run: |
-          docker run -d \
-            --name client-container \
-            --network my-network \
-            -p 3000:3000 \
-            --env NODE_ENV=development \
-            --env SERVER_HOST=${{ env.SERVER_IP }} \
-            client
-
-      # Step 11: Cleanup Containers and Network
-      - name: Cleanup Containers and Network
-        if: always()
-        run: |
-          docker stop mongodb-container server-container client-container || true
-          docker rm mongodb-container server-container client-container || true
-          docker network rm my-network || true
+      # Optional: Print success message
+      - name: Print success message
+        run: echo "All Docker images have been built and pushed to GitHub Container Registry!"
