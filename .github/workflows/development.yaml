@@ -30,7 +30,7 @@ jobs:
           context: ./packages/mongodb
           file: ./packages/mongodb/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ github.repository }}/mongo:latest
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowercase }}/mongo:latest
 
       # Build and push Server image
       - name: Build and push Server image
@@ -39,7 +39,7 @@ jobs:
           context: ./packages/server
           file: ./packages/server/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ github.repository }}/server:latest
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowercase }}/server:latest
 
       # Build and push Client image
       - name: Build and push Client image
@@ -48,7 +48,7 @@ jobs:
           context: ./packages/client
           file: ./packages/client/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ github.repository }}/client:latest
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowercase }}/client:latest
 
       # Optional: Print success message
       - name: Print success message
