@@ -4,6 +4,8 @@ const catchAsync = require('../utils/catchAsync');
 const { courseService } = require('../services');
 const config = require('../config/config');
 const { encrypt } = require('../utils/cryptoUtils');
+const Course = require('../models/course.model');
+const User = require('../models/user.model'); // Assuming you have a User model
 
 const createCourse = catchAsync(async (req, res) => {
   const courseData = {
@@ -11,7 +13,14 @@ const createCourse = catchAsync(async (req, res) => {
     owner: req.user.id,
   };
 
-  courseData.apiKey = encrypt(courseData.apiKey, config.encryption.key);
+  // Encrypt API keys if provided
+  if (courseData.apiKeys) {
+    courseData.apiKeys = {
+      gemini: courseData.apiKeys.gemini ? encrypt(courseData.apiKeys.gemini, config.encryption.key) : '',
+      llama: courseData.apiKeys.llama ? encrypt(courseData.apiKeys.llama, config.encryption.key) : '',
+      chatgpt: courseData.apiKeys.chatgpt ? encrypt(courseData.apiKeys.chatgpt, config.encryption.key) : '',
+    };
+  }
 
   const course = await courseService.createCourse(courseData);
   res.status(httpStatus.CREATED).send(course);
@@ -19,20 +28,41 @@ const createCourse = catchAsync(async (req, res) => {
 
 const getCourses = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const filter = {
-    $or: [{ owner: userId }, { students: userId }, { staff: userId }],
-  };
+  const isAdmin = req.user.role === 'admin'; // Check if the user is an admin
+
+  let filter = {};
+  if (!isAdmin) {
+    filter = {
+      $or: [
+        { owner: userId },
+        { students: userId },
+        { staff: userId },
+      ],
+    };
+  }
 
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
+
   const result = await courseService.queryCourses(filter, options);
-  const courses = result.results.map((course) => ({
-    id: course._id,
-    name: course.name,
-    description: course.description,
-    owner: course.owner,
+
+  // ✅ Ensure result is valid
+  if (!result || !result.results) {
+    return res.status(404).json({ message: 'No courses found' });
+  }
+
+  // ✅ Ensure courses array is valid
+  const coursesArray = Array.isArray(result.results) ? result.results : [];
+
+  // ✅ Include apiKey safely (decrypt if necessary)
+  const courses = coursesArray.map((course) => ({
+    id: course._id || '',
+    name: course.name || 'Unnamed Course',
+    description: course.description || '',
+    owner: course.owner || null,
+    apiKey: course.apiKey ? decrypt(course.apiKey, config.encryption.key) : '', // Ensure apiKey is decrypted properly
   }));
 
-  res.send({ results: courses, ...result });
+  res.send({ results: courses, totalResults: result.totalResults || 0 });
 });
 
 const getCourse = catchAsync(async (req, res) => {
@@ -44,9 +74,13 @@ const updateCourse = catchAsync(async (req, res) => {
   const { courseId } = req.params;
   const updateData = { ...req.body };
 
-  // Encrypt the API key if it exists in the request body
-  if (updateData.apiKey) {
-    updateData.apiKey = encrypt(updateData.apiKey, config.encryption.key);
+  // Encrypt API keys if provided in the request body
+  if (updateData.apiKeys) {
+    updateData.apiKeys = {
+      gemini: updateData.apiKeys.gemini ? encrypt(updateData.apiKeys.gemini, config.encryption.key) : '',
+      llama: updateData.apiKeys.llama ? encrypt(updateData.apiKeys.llama, config.encryption.key) : '',
+      chatgpt: updateData.apiKeys.chatgpt ? encrypt(updateData.apiKeys.chatgpt, config.encryption.key) : '',
+    };
   }
 
   const course = await courseService.updateCourseById(courseId, updateData);
@@ -58,10 +92,43 @@ const deleteCourse = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+// Add a user to the course
+const addUserToCourse = catchAsync(async (req, res) => {
+  const { courseId } = req.params;
+  const { userId } = req.body; // The ID of the user to add
+
+  // Find the course by courseId
+  const course = await Course.findById(courseId);
+  if (!course) {
+    return res.status(404).json({ message: 'Course not found' });
+  }
+
+  // Ensure the user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  // Add user to the course's students array
+  if (!course.students.includes(userId) && user.role === "student") {
+    course.students.push(userId); // Add user to students
+  } else if (!course.staff.includes(userId) && user.role === "teacher") {
+    course.staff.push(userId); // Add user to staff
+  } else {
+    return res.status(400).json({ message: 'User is already part of the course' });
+  }
+
+  await course.save(); // Save the updated course
+
+  // Respond with the updated course
+  res.status(200).json(course);
+});
+
 module.exports = {
   createCourse,
   getCourses,
   getCourse,
   updateCourse,
   deleteCourse,
+  addUserToCourse,
 };

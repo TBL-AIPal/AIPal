@@ -24,9 +24,15 @@ const createUser = async (userBody) => {
  * @returns {Promise<QueryResult>}
  */
 const queryUsers = async (filter, options) => {
-  const users = await User.paginate(filter, options);
-  return users;
+  const query = { ...filter };
+
+  if (filter.course) {
+    query.courses = filter.course; // Assuming 'courses' is an array of course IDs in the User model
+  }
+
+  return User.paginate(query, options);
 };
+
 
 /**
  * Get user by id

@@ -41,16 +41,33 @@ const getCourseById = async (id) => {
 };
 
 /**
- * Get API key by course id
- * @param {ObjectId} id
- * @returns {Promise<Course>}
+ * Get API key by course id and model
+ * @param {ObjectId} courseId - The ID of the course
+ * @param {string} model - The model being used (e.g., "openai", "gemini", "llama3")
+ * @returns {Promise<{ course: Course, apiKey: string }>}
  */
-const getApiKeyById = async (courseId) => {
+const getApiKeyById = async (courseId, model) => {
   const course = await Course.findById(courseId);
   if (!course) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
-  const apiKey = decrypt(course.apiKey, config.encryption.key);
+
+  // Ensure API keys are stored in an object format, e.g.,
+  // { openai: "encrypted-key", gemini: "encrypted-key", llama3: "encrypted-key" }
+  if (!course.apiKeys || typeof course.apiKeys !== 'object') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid API key structure');
+  }
+
+  // Retrieve the encrypted API key for the requested model
+  const encryptedApiKey = course.apiKeys[model];
+
+  if (!encryptedApiKey) {
+    throw new ApiError(httpStatus.NOT_FOUND, `No API key found for model: ${model}`);
+  }
+
+  // Decrypt the API key
+  const apiKey = decrypt(encryptedApiKey, config.encryption.key);
+
   return { course, apiKey };
 };
 

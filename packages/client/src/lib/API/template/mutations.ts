@@ -1,12 +1,10 @@
-import axios, { AxiosError } from 'axios';
+import api from '@/lib/API/auth/interceptor';
 
 import {
   TemplateCreateInput,
   TemplateFormValues,
   TemplateUpdateInput,
 } from '@/lib/types/template';
-
-import { jwtToken, proxyUrl } from '@/constant/env';
 
 interface CreateTemplatePropsI extends TemplateFormValues {
   courseId: string;
@@ -35,13 +33,10 @@ export const CreateTemplate = async ({
   };
 
   try {
-    await axios.post(`${proxyUrl}/courses/${courseId}/templates`, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    });
+    await api.post(`/courses/${courseId}/templates`, data);
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error creating template in course ${courseId}:`, err);
+    throw err;
   }
 };
 
@@ -59,34 +54,18 @@ export const UpdateTemplate = async ({
   };
 
   try {
-    await axios.patch(
-      `${proxyUrl}/courses/${courseId}/templates/${templateId}`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      }
-    );
+    await api.patch(`/courses/${courseId}/templates/${templateId}`, data);
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error updating template ${templateId} in course ${courseId}:`, err);
+    throw err;
   }
 };
 
-export const DeleteTemplate = async ({
-  courseId,
-  templateId,
-}: DeleteTemplatePropsI) => {
+export const DeleteTemplate = async ({ courseId, templateId }: DeleteTemplatePropsI) => {
   try {
-    await axios.delete(
-      `${proxyUrl}/courses/${courseId}/templates/${templateId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      }
-    );
+    await api.delete(`/courses/${courseId}/templates/${templateId}`);
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error(`Error deleting template ${templateId} in course ${courseId}:`, err);
+    throw err;
   }
 };
