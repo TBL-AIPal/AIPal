@@ -36,7 +36,7 @@ jobs:
           context: ./packages/mongodb
           file: ./packages/mongodb/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ REPO_NAME }}/mongo:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/mongo:latest
 
       # Step 5: Build and push Server image
       - name: Build and push Server image
@@ -45,7 +45,7 @@ jobs:
           context: ./packages/server
           file: ./packages/server/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ REPO_NAME }}/server:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/server:latest
 
       # Step 6: Build and push Client image
       - name: Build and push Client image
@@ -54,7 +54,7 @@ jobs:
           context: ./packages/client
           file: ./packages/client/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ REPO_NAME }}/client:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/client:latest
 
       # Optional: Print success message
       - name: Print success message
