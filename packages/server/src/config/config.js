@@ -23,7 +23,13 @@ dotenv.config({ path: envPath });
 const envVarsSchema = Joi.object()
   .keys({
     PORT: Joi.number().default(3000),
-    MONGODB_URL: Joi.string().required().description('Mongo DB url'),
+    MONGODB_USERNAME: Joi.string().required().description('MongoDB username'),
+    MONGODB_PASSWORD: Joi.string().required().description('MongoDB password'),
+    MONGODB_HOST: Joi.string().required().description('MongoDB host'),
+    MONGODB_PORT: Joi.string().required().description('MongoDB port'),
+    MONGODB_DATABASE: Joi.string()
+      .required()
+      .description('MongoDB database name'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number()
       .default(30)
@@ -63,7 +69,8 @@ module.exports = {
   env: process.env.NODE_ENV,
   port: envVars.PORT,
   mongoose: {
-    url: envVars.MONGODB_URL + envVars.DATABASE_NAME + databaseSuffix,
+    // TODO: Add auth
+    url: `mongodb://${envVars.MONGODB_HOST}:${envVars.MONGODB_PORT}/${envVars.MONGODB_DATABASE}${databaseSuffix}?directConnection=true`,
     options: {
       useCreateIndex: true,
       useNewUrlParser: true,
@@ -71,7 +78,8 @@ module.exports = {
     },
   },
   mongodb: {
-    url: `${envVars.MONGODB_URL}?directConnection=true`,
+    // TODO: Add auth
+    url: `mongodb://${envVars.MONGODB_HOST}:${envVars.MONGODB_PORT}/?directConnection=true`,
     db: envVars.DATABASE_NAME + databaseSuffix,
   },
   jwt: {
