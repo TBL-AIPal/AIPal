@@ -56,6 +56,34 @@ const callGemini = async (messages, apiKey) => {
   );
 };
 
+// Function to process chunks sequentially
+const processChunksSequentially = async (chunks, conversation) => {
+  let finalSummary = ''; // Initialize the final summary
+
+  // Process each chunk sequentially using reduce
+  await chunks.reduce(async (previousPromise, chunk) => {
+    await previousPromise; // Wait for the previous promise to resolve
+
+    // Create the system message
+    let systemMessageContent = `You need to read the current source text and summary of previous source text (if any) and generate a summary to include them both.`;
+    // Include the previous summary if it exists
+    if (finalSummary) {
+      systemMessageContent += ` Summary of previous source text: "${finalSummary}".`;
+    }
+
+    // Append the current chunk to the system message
+    systemMessageContent += ` Current source text: "${chunk}"`;
+
+    const conversationWithChunk = [{ role: 'system', content: systemMessageContent }, ...conversation];
+
+    // Call the OpenAI API with the constructed conversation
+    const primaryResponse = await callOpenAI(conversationWithChunk);
+    finalSummary = primaryResponse.data.choices[0].message.content; // Update the final summary with the latest response
+  }, Promise.resolve()); // Start with a resolved promise
+
+  return finalSummary; // Return the final summary after processing all chunks
+};
+
 // **🔹 Function to process document summaries for multi-agent RAG**
 const processDocuments = async (documents, conversation, apiKey) => {
   const summaryPromises = documents.map(async (doc) => {
@@ -213,6 +241,7 @@ const createLlama3Reply = async (courseId, templateId, messageBody) => {
 module.exports = {
   createDirectReply,
   createMultiAgentReply,
+  createContextualizedReply,
   createContextualizedAndMultiAgentReply,
   createGeminiReply,
   createLlama3Reply,
