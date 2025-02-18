@@ -4,6 +4,7 @@ export interface ChatMessage {
     sender: string; // ✅ Add sender (who sent the message)
     role: 'user' | 'assistant' | 'system'; // Defines who sent the message
     content: string; // The actual message content
+    modelUsed?: string; // ✅ Track which AI model was used (optional)
     timestamp?: string; // Optional timestamp
   }
   

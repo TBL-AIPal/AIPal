@@ -13,6 +13,7 @@ import { createDirectMessage, createMultiAgentMessage, createRAGMessage, createC
 import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
 import { Document } from '@/lib/types/document';
+import { Message } from '@/lib/types/message';
 import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
@@ -78,7 +79,17 @@ const RoomChatPage: React.FC = () => {
     const fetchChatHistory = async () => {
       try {
         const chatMessages = await GetMessagesByRoomId(courseId, roomId);
-        setMessages(chatMessages);
+        // ✅ Sanitize messages to only keep `role`, `sender`, `content`
+        // ✅ Ensure role exists for each message
+        const sanitizedMessages = chatMessages.map(({ sender, content, modelUsed, role }) => ({
+            role: role || (sender === 'assistant' ? 'assistant' : 'user'), // ✅ Assign role based on sender if missing
+            sender,
+            content,
+            modelUsed: modelUsed || 'unknown', // ✅ Default model if missing
+          }));
+  
+          setMessages(sanitizedMessages);
+          
       } catch (error) {
         logger(error, 'Error loading chat history');
       }
@@ -101,8 +112,11 @@ const RoomChatPage: React.FC = () => {
       return;
     }
 
-    const userMessage = { role: 'user' as const, sender: userId, content: newMessage };
-    const updatedMessages = [...messages, userMessage];
+    // ✅ User message only includes role and content before sending
+    const userMessage = { role: 'user' as const, content: newMessage };
+    
+    // ✅ Updated messages include sender and modelUsed for UI state
+    const updatedMessages = [...messages, { ...userMessage, sender: userId, modelUsed: selectedModel }];
     setMessages(updatedMessages);
     setNewMessage('');
 
@@ -111,42 +125,94 @@ const RoomChatPage: React.FC = () => {
       const constraints = template?.constraints || [];
       const templateId = template?.id ?? '';
 
+      // ✅ Sending only role and content to the backend
+      const sanitizedMessages = updatedMessages.map(({ role, content }) => ({ role, content }));
+
       switch (selectedModel) {
         case 'multi-agent':
-          response = await createMultiAgentMessage({ courseId, templateId: templateId, conversation: updatedMessages, constraints });
+          response = await createMultiAgentMessage({
+            courseId,
+            templateId,
+            roomId,
+            userId,
+            conversation: sanitizedMessages,
+            documents,
+            constraints,
+          });
           break;
         case 'rag':
-          response = await createRAGMessage({ courseId, templateId: templateId, conversation: updatedMessages });
+          response = await createRAGMessage({
+            courseId,
+            templateId,
+            roomId,
+            userId,
+            conversation: sanitizedMessages,
+            documents,
+          });
           break;
         case 'rag+multi-agent':
-          response = await createCombinedMessage({ courseId, templateId: templateId, conversation: updatedMessages, constraints });
+          response = await createCombinedMessage({
+            courseId,
+            templateId,
+            roomId,
+            userId,
+            conversation: sanitizedMessages,
+            documents,
+            constraints,
+          });
           break;
         case 'gemini':
-          response = await createGeminiMessage({ courseId, templateId: templateId, conversation: updatedMessages });
+          response = await createGeminiMessage({
+            courseId,
+            templateId,
+            roomId,
+            userId,
+            conversation: sanitizedMessages,
+            documents,
+          });
           break;
         case 'llama3':
-          response = await createLlama3Message({ courseId, templateId: templateId, conversation: updatedMessages });
+          response = await createLlama3Message({
+            courseId,
+            templateId,
+            roomId,
+            userId,
+            conversation: sanitizedMessages,
+            documents,
+          });
           break;
         default:
-          response = await createDirectMessage({ courseId, templateId: templateId, conversation: updatedMessages });
+          response = await createDirectMessage({
+            courseId,
+            templateId,
+            roomId,
+            userId,
+            conversation: sanitizedMessages,
+            documents,
+            constraints,
+          });
       }
 
-    //   const response = await axios.post(endpoint, {
-    //     conversation: updatedMessages,
-    //     roomId,
-    //     userId,
-    //     documents: documents,
-    //     constraints: constraints,
-    //   });
+      console.log('API Response:', response);
 
-      setMessages(response.data.responses);
+      setMessages(
+        response.responses.map((msg: Message) => ({
+          role: msg.role,
+          sender: msg.role === 'user' ? userId ?? 'unknown-user' : 'assistant', // ✅ Infer sender
+          content: msg.content,
+          modelUsed: msg.modelUsed || selectedModel, // ✅ Fallback to selectedModel if missing
+        }))
+      );
+
     } catch (error) {
+        console.log('Caught error in handleSendMessage:', error);
       logger(error, 'Error sending message');
-      setMessages((prev) => [...prev, { role: 'assistant' as const, sender: 'assistant', content: 'An error occurred. Please try again.' }]);
+      setMessages((prev) => [...prev, { role: 'assistant' as const, sender: 'assistant', content: 'An error occurred. Please try again.', modelUsed: selectedModel }]);
     } finally {
       setLoadingMessage(false);
     }
-  };
+};
+
 
   return (
     <div className="flex flex-col h-screen p-4">
