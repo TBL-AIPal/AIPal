@@ -1,28 +1,16 @@
-const dotenv = require('dotenv');
-const path = require('path');
 const Joi = require('joi');
-
-const envFile =
-  process.env.NODE_ENV === 'production'
-    ? '.env.production'
-    : '.env.development';
-const envPath = path.join(__dirname, '../../', envFile);
 
 let databaseSuffix = '';
 
-if (process.env.NODE_ENV === 'test') {
-  databaseSuffix = '-test';
-} else if (process.env.NODE_ENV === 'development') {
-  databaseSuffix = '-dev';
-} else {
+if (process.env.NODE_ENV === 'production') {
   databaseSuffix = '-prod';
+} else {
+  databaseSuffix = '-dev';
 }
-
-dotenv.config({ path: envPath });
 
 const envVarsSchema = Joi.object()
   .keys({
-    PORT: Joi.number().default(3000),
+    SERVER_PORT: Joi.number().default(3000),
     MONGODB_USERNAME: Joi.string().required().description('MongoDB username'),
     MONGODB_PASSWORD: Joi.string().required().description('MongoDB password'),
     MONGODB_HOST: Joi.string().required().description('MongoDB host'),
@@ -67,7 +55,7 @@ if (error) {
 
 module.exports = {
   env: process.env.NODE_ENV,
-  port: envVars.PORT,
+  port: envVars.SERVER_PORT,
   mongoose: {
     // TODO: Add auth
     url: `mongodb://${envVars.MONGODB_HOST}:${envVars.MONGODB_PORT}/${envVars.MONGODB_DATABASE}${databaseSuffix}?directConnection=true`,
