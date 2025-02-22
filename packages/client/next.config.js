@@ -15,7 +15,7 @@ const nextConfig = {
     return [
       {
         source: '/api/proxy/:path*',
-        destination: ` http://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/v1/:path*`,
+        destination: `http://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/v1/:path*`,
       },
     ];
   },
