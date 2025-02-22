@@ -1,10 +1,9 @@
 name: Build and Push Docker Images to GitHub Container Registry
 
 on:
-  # Trigger the workflow on push to the deployment branch
   push:
     branches:
-      - deployment
+      - main
   # Allow manual triggering
   workflow_dispatch:
 
