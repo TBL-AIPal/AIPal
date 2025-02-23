@@ -98,5 +98,5 @@ module.exports = {
   updateRoom,
   deleteRoom,
   getMessagesByRoom,
-  sendMessage
+  sendMessage,
 };

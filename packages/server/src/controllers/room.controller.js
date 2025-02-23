@@ -21,7 +21,7 @@ const getRoomsByCourse = catchAsync(async (req, res) => {
 
   // Fetch all rooms linked to any template in the course
   const rooms = await roomService.getRoomsByCourse(courseId);
-  
+
   res.send(rooms);
 });
 

@@ -18,7 +18,11 @@ const createMessage = catchAsync(async (req, res) => {
   } else if (method === 'multi-agent') {
     result = await messageService.createMultiAgentReply(courseId, body);
   } else if (method === 'combined') {
-    result = await messageService.createContextualizedAndMultiAgentReply(courseId, templateId, body);
+    result = await messageService.createContextualizedAndMultiAgentReply(
+      courseId,
+      templateId,
+      body,
+    );
   } else if (method === 'direct') {
     result = await messageService.createDirectReply(courseId, body);
   } else if (method === 'gemini') {

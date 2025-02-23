@@ -9,8 +9,8 @@ const crypto = require('crypto');
  */
 const encrypt = (text, encryptionKey) => {
   console.log('Encryption Key:', encryptionKey);
-console.log('Key Length:', encryptionKey.length);
-console.log('Is Valid Hex:', /^[0-9A-Fa-f]+$/.test(encryptionKey)); // Should return true
+  console.log('Key Length:', encryptionKey.length);
+  console.log('Is Valid Hex:', /^[0-9A-Fa-f]+$/.test(encryptionKey)); // Should return true
 
   const iv = crypto.randomBytes(16); // Generate a random initialization vector
   const cipher = crypto.createCipheriv(

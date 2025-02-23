@@ -62,7 +62,10 @@ const getApiKeyById = async (courseId, model) => {
   const encryptedApiKey = course.apiKeys[model];
 
   if (!encryptedApiKey) {
-    throw new ApiError(httpStatus.NOT_FOUND, `No API key found for model: ${model}`);
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `No API key found for model: ${model}`,
+    );
   }
 
   // Decrypt the API key

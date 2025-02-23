@@ -24,7 +24,8 @@ const createCourse = {
           }),
         })
         .messages({
-          'object.base': 'API keys must be a valid object with Gemini, Llama, and ChatGPT keys',
+          'object.base':
+            'API keys must be a valid object with Gemini, Llama, and ChatGPT keys',
         }),
     })
     .strict(),
@@ -70,7 +71,8 @@ const updateCourse = {
           }),
         })
         .messages({
-          'object.base': 'API keys must be a valid object with Gemini, Llama, and ChatGPT keys',
+          'object.base':
+            'API keys must be a valid object with Gemini, Llama, and ChatGPT keys',
         }),
       llmConstraints: Joi.array().items(Joi.string()),
       owner: Joi.string().custom(objectId),

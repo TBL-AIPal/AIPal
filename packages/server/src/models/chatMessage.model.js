@@ -26,7 +26,7 @@ const chatMessageSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 chatMessageSchema.set('toJSON', { virtuals: true });

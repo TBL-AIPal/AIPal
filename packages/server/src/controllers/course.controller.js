@@ -16,9 +16,15 @@ const createCourse = catchAsync(async (req, res) => {
   // Encrypt API keys if provided
   if (courseData.apiKeys) {
     courseData.apiKeys = {
-      gemini: courseData.apiKeys.gemini ? encrypt(courseData.apiKeys.gemini, config.encryption.key) : '',
-      llama: courseData.apiKeys.llama ? encrypt(courseData.apiKeys.llama, config.encryption.key) : '',
-      chatgpt: courseData.apiKeys.chatgpt ? encrypt(courseData.apiKeys.chatgpt, config.encryption.key) : '',
+      gemini: courseData.apiKeys.gemini
+        ? encrypt(courseData.apiKeys.gemini, config.encryption.key)
+        : '',
+      llama: courseData.apiKeys.llama
+        ? encrypt(courseData.apiKeys.llama, config.encryption.key)
+        : '',
+      chatgpt: courseData.apiKeys.chatgpt
+        ? encrypt(courseData.apiKeys.chatgpt, config.encryption.key)
+        : '',
     };
   }
 
@@ -33,11 +39,7 @@ const getCourses = catchAsync(async (req, res) => {
   let filter = {};
   if (!isAdmin) {
     filter = {
-      $or: [
-        { owner: userId },
-        { students: userId },
-        { staff: userId },
-      ],
+      $or: [{ owner: userId }, { students: userId }, { staff: userId }],
     };
   }
 
@@ -77,9 +79,15 @@ const updateCourse = catchAsync(async (req, res) => {
   // Encrypt API keys if provided in the request body
   if (updateData.apiKeys) {
     updateData.apiKeys = {
-      gemini: updateData.apiKeys.gemini ? encrypt(updateData.apiKeys.gemini, config.encryption.key) : '',
-      llama: updateData.apiKeys.llama ? encrypt(updateData.apiKeys.llama, config.encryption.key) : '',
-      chatgpt: updateData.apiKeys.chatgpt ? encrypt(updateData.apiKeys.chatgpt, config.encryption.key) : '',
+      gemini: updateData.apiKeys.gemini
+        ? encrypt(updateData.apiKeys.gemini, config.encryption.key)
+        : '',
+      llama: updateData.apiKeys.llama
+        ? encrypt(updateData.apiKeys.llama, config.encryption.key)
+        : '',
+      chatgpt: updateData.apiKeys.chatgpt
+        ? encrypt(updateData.apiKeys.chatgpt, config.encryption.key)
+        : '',
     };
   }
 
@@ -110,12 +118,14 @@ const addUserToCourse = catchAsync(async (req, res) => {
   }
 
   // Add user to the course's students array
-  if (!course.students.includes(userId) && user.role === "student") {
+  if (!course.students.includes(userId) && user.role === 'student') {
     course.students.push(userId); // Add user to students
-  } else if (!course.staff.includes(userId) && user.role === "teacher") {
+  } else if (!course.staff.includes(userId) && user.role === 'teacher') {
     course.staff.push(userId); // Add user to staff
   } else {
-    return res.status(400).json({ message: 'User is already part of the course' });
+    return res
+      .status(400)
+      .json({ message: 'User is already part of the course' });
   }
 
   await course.save(); // Save the updated course

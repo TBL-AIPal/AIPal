@@ -14,8 +14,8 @@ const allRoles = {
     'getRooms',
     'manageRooms',
     'createMessage',
-    'getMessages',  // Admins can read messages
-    'sendMessage',  // Admins can send messages
+    'getMessages', // Admins can read messages
+    'sendMessage', // Admins can send messages
   ],
 
   teacher: [
@@ -30,15 +30,15 @@ const allRoles = {
     'manageTemplates',
     'getRooms',
     'manageRooms',
-    'getMessages',  // Teachers can view messages
-    'sendMessage',  // Teachers can send messages
+    'getMessages', // Teachers can view messages
+    'sendMessage', // Teachers can send messages
   ],
 
   student: [
     'getCourses',
     'getRooms',
-    'getMessages',  // Students can view messages
-    'sendMessage',  // Students can send messages
+    'getMessages', // Students can view messages
+    'sendMessage', // Students can send messages
   ],
 };
 

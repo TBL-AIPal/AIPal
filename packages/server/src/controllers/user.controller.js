@@ -3,7 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
-const Course = require('../models/course.model'); 
+const Course = require('../models/course.model');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -29,10 +29,13 @@ const getUsers = catchAsync(async (req, res) => {
     const userIds = [...course.students, ...course.staff];
 
     // Filter users by student and staff IDs in the course
-    result = await userService.queryUsers({
-      ...filter,
-      _id: { $in: userIds },
-    }, options);
+    result = await userService.queryUsers(
+      {
+        ...filter,
+        _id: { $in: userIds },
+      },
+      options,
+    );
   } else {
     // If no courseId is provided, return all users based on filter and options
     result = await userService.queryUsers(filter, options);
@@ -40,7 +43,6 @@ const getUsers = catchAsync(async (req, res) => {
 
   res.send(result);
 });
-
 
 const getUser = catchAsync(async (req, res) => {
   const user = await userService.getUserById(req.params.userId);
