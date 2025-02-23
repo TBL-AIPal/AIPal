@@ -10,10 +10,10 @@ const courseSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    apiKey: {
-      type: String,
-      required: true,
-      private: true, // used by the toJSON plugin
+    apiKeys: {
+      gemini: { type: String, required: false, private: true }, // ✅ Updated to support multiple API keys
+      llama: { type: String, required: false, private: true },
+      chatgpt: { type: String, required: false, private: true },
     },
     llmConstraints: {
       type: [String],
@@ -28,12 +28,9 @@ const courseSchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] },
     ],
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
-    documents: [
-      { type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] },
-    ],
-    templates: [
-      { type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] },
-    ],
+    whitelist: [{ type: String, default: [] }], // New field for storing whitelisted emails
+    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document', default: [] }],
+    templates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] }],
   },
   {
     timestamps: true,

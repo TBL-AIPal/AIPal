@@ -42,6 +42,11 @@ const userSchema = mongoose.Schema(
       enum: roles,
       default: 'user',
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'], // Allowed statuses
+      default: 'pending', // Default to pending approval
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,

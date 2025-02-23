@@ -1,39 +1,25 @@
-import axios, { AxiosError } from 'axios';
+import api from '@/lib/API/auth/interceptor';
 import { cache } from 'react';
-
 import { Document } from '@/lib/types/document';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
-
-export const GetDocumentsByCourseId = cache(
-  async (id: string): Promise<Document[]> => {
-    try {
-      const documents = await axios.get(`${proxyUrl}/courses/${id}/documents`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      return documents.data;
-    } catch (err) {
-      throw new AxiosError((err as Error).message);
-    }
+// Get all documents for a course
+export const GetDocumentsByCourseId = cache(async (courseId: string): Promise<Document[]> => {
+  try {
+    const response = await api.get(`/courses/${courseId}/documents`);
+    return response.data;
+  } catch (err) {
+    console.error(`Error fetching documents for course ${courseId}:`, err);
+    throw err;
   }
-);
+});
 
-export const GetDocumentById = cache(
-  async (courseId: string, documentId: string): Promise<Document> => {
-    try {
-      const document = await axios.get(
-        `${proxyUrl}/courses/${courseId}/documents/${documentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwtToken}`,
-          },
-        }
-      );
-      return document.data;
-    } catch (err) {
-      throw new AxiosError((err as Error).message);
-    }
+// Get a single document by its ID
+export const GetDocumentById = cache(async (courseId: string, documentId: string): Promise<Document> => {
+  try {
+    const response = await api.get(`/courses/${courseId}/documents/${documentId}`);
+    return response.data;
+  } catch (err) {
+    console.error(`Error fetching document ${documentId} from course ${courseId}:`, err);
+    throw err;
   }
-);
+});

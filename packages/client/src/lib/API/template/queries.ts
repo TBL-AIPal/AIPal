@@ -1,21 +1,16 @@
-import axios, { AxiosError } from 'axios';
+import api from '@/lib/API/auth/interceptor';
 import { cache } from 'react';
 
 import { Template } from '@/lib/types/template';
 
-import { jwtToken, proxyUrl } from '@/constant/env';
-
 export const GetTemplatesByCourseId = cache(
-  async (id: string): Promise<Template[]> => {
+  async (courseId: string): Promise<Template[]> => {
     try {
-      const templates = await axios.get(`${proxyUrl}/courses/${id}/templates`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      return templates.data;
+      const response = await api.get(`/courses/${courseId}/templates`);
+      return response.data;
     } catch (err) {
-      throw new AxiosError((err as Error).message);
+      console.error(`Error fetching templates for course ${courseId}:`, err);
+      throw err;
     }
   }
 );
@@ -23,17 +18,11 @@ export const GetTemplatesByCourseId = cache(
 export const GetTemplateById = cache(
   async (courseId: string, templateId: string): Promise<Template> => {
     try {
-      const template = await axios.get(
-        `${proxyUrl}/courses/${courseId}/templates/${templateId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwtToken}`,
-          },
-        }
-      );
-      return template.data;
+      const response = await api.get(`/courses/${courseId}/templates/${templateId}`);
+      return response.data;
     } catch (err) {
-      throw new AxiosError((err as Error).message);
+      console.error(`Error fetching template ${templateId} in course ${courseId}:`, err);
+      throw err;
     }
   }
 );

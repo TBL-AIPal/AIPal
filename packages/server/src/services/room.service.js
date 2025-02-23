@@ -55,6 +55,19 @@ const getRoomById = async (roomId) => {
   return room;
 };
 
+const getRoomsByCourse = async (courseId) => {
+  const course = await Course.findById(courseId);
+
+  if (!course) {
+    throw new Error('Course not found');
+  }
+
+  // Find all rooms linked to templates in this course
+  const rooms = await Room.find({ template: { $in: course.templates } }).populate('template');
+
+  return rooms;
+};
+
 /**
  * Update room by ID
  * @param {ObjectId} roomId
@@ -94,6 +107,7 @@ module.exports = {
   createRoom,
   getRoomsByCourseId,
   getRoomsByTemplateId,
+  getRoomsByCourse,
   getRoomById,
   updateRoomById,
   deleteRoomById,

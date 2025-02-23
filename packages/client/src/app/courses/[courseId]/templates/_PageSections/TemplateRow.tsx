@@ -54,7 +54,10 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   };
 
   const handleUpdate = () => {
-    const updatedConstraints = editConstraints.split(',').map((c) => c.trim());
+    const updatedConstraints = editConstraints
+      .split(',')
+      .map((c) => c.trim())
+      .filter((c) => c !== '');
     const updatedData: TemplateUpdateInput = {
       name: editName !== template.name ? editName : undefined,
       constraints:
@@ -202,13 +205,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           <td colSpan={2} className='border-b py-2 px-4'>
             {isEditing ? (
               <div className='mb-2'>
-                <label className='font-semibold'>Name:</label>
-                <input
-                  type='text'
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className='border p-1 w-full'
-                />
                 <label className='font-semibold mt-2 block'>Constraints:</label>
                 <textarea
                   value={editConstraints}
@@ -226,13 +222,23 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
               </div>
             ) : (
               <>
-                <ul className='list-disc pl-5'>
-                  {template.constraints.map((constraint, index) => (
-                    <li key={index}>{constraint}</li>
-                  ))}
-                </ul>
+                {/* Display the constraints when expanded */}
+                <div className='mt-4'>
+                  {/* Header for Constraints */}
+                  <h3 className='font-semibold'>Constraints</h3>
+                  {template.constraints.length === 0 ? (
+                    <p>No constraints available for this template.</p>
+                  ) : (
+                    <ul className='list-disc pl-5'>
+                      {template.constraints.map((constraint, index) => (
+                        <li key={index}>{constraint}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 {/* Display the rooms when expanded */}
                 <div className='mt-4'>
+                  {/* Header for Rooms */}
                   <h3 className='font-semibold'>Rooms</h3>
                   {rooms.length === 0 ? (
                     <p>No rooms available for this template.</p>
@@ -252,6 +258,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                 </div>
                 {/* Display the documents when expanded */}
                 <div className='mt-4'>
+                  {/* Header for Documents */}
                   <h3 className='font-semibold'>Documents</h3>
                   {template.documents.length === 0 ? (
                     <p>No documents available for this template.</p>
