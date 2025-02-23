@@ -1,99 +1,140 @@
-import axios from 'axios';
-
+import api from '@/lib/API/auth/interceptor';
 import { SendMessageInput } from '@/lib/types/message';
-
-import { jwtToken, proxyUrl } from '@/constant/env';
 
 export const createDirectMessage = async ({
   courseId,
   templateId,
+  roomId,
+  userId,
   conversation,
+  documents = [],
+  constraints = [],
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/direct/${courseId}/${templateId}`;
-
-  const data = { conversation };
-
   try {
-    const response = await axios.post(endpoint, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.post(`/messages/direct/${courseId}/${templateId}`, {
+      roomId,
+      userId,
+      conversation,
+      documents,
+      constraints,
     });
-
     return response.data;
   } catch (err) {
-    throw new Error((err as Error).message);
+    console.error(`Error creating direct message for room ${roomId}:`, err);
+    throw err;
   }
 };
 
 export const createRAGMessage = async ({
   courseId,
   templateId,
+  roomId,
+  userId,
   conversation,
+  documents = [],
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/rag/${courseId}/${templateId}`;
-
-  const data = { conversation };
-
   try {
-    const response = await axios.post(endpoint, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.post(`/messages/rag/${courseId}/${templateId}`, {
+      roomId,
+      userId,
+      conversation,
+      documents,
     });
-
     return response.data;
   } catch (err) {
-    throw new Error((err as Error).message);
+    console.error(`Error creating RAG message for room ${roomId}:`, err);
+    throw err;
   }
 };
 
 export const createMultiAgentMessage = async ({
   courseId,
   templateId,
+  roomId,
+  userId,
   conversation,
+  documents = [],
   constraints = [],
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/multi-agent/${courseId}/${templateId}`;
-
-  const data = { conversation, constraints };
-
   try {
-    const response = await axios.post(endpoint, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.post(`/messages/multi-agent/${courseId}/${templateId}`, {
+      roomId,
+      userId,
+      conversation,
+      documents,
+      constraints,
     });
-
     return response.data;
   } catch (err) {
-    throw new Error((err as Error).message);
+    console.error(`Error creating multi-agent message for room ${roomId}:`, err);
+    throw err;
   }
 };
 
 export const createCombinedMessage = async ({
   courseId,
   templateId,
+  roomId,
+  userId,
   conversation,
+  documents = [],
   constraints = [],
 }: SendMessageInput) => {
-  const endpoint = `${proxyUrl}/messages/combined/${courseId}/${templateId}`;
-
-  const data = { conversation, constraints };
-
   try {
-    const response = await axios.post(endpoint, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.post(`/messages/combined/${courseId}/${templateId}`, {
+      roomId,
+      userId,
+      conversation,
+      documents,
+      constraints,
     });
-
     return response.data;
   } catch (err) {
-    throw new Error((err as Error).message);
+    console.error(`Error creating combined message for room ${roomId}:`, err);
+    throw err;
+  }
+};
+
+export const createGeminiMessage = async ({
+  courseId,
+  templateId,
+  roomId,
+  userId,
+  conversation,
+  documents = [],
+}: SendMessageInput) => {
+  try {
+    const response = await api.post(`/messages/gemini/${courseId}/${templateId}`, {
+      roomId,
+      userId,
+      conversation,
+      documents,
+    });
+    return response.data;
+  } catch (err) {
+    console.error(`Error creating Gemini message for room ${roomId}:`, err);
+    throw err;
+  }
+};
+
+export const createLlama3Message = async ({
+  courseId,
+  templateId,
+  roomId,
+  userId,
+  conversation,
+  documents = [],
+}: SendMessageInput) => {
+  try {
+    const response = await api.post(`/messages/llama3/${courseId}/${templateId}`, {
+      roomId,
+      userId,
+      conversation,
+      documents,
+    });
+    return response.data;
+  } catch (err) {
+    console.error(`Error creating LLaMA 3 message for room ${roomId}:`, err);
+    throw err;
   }
 };

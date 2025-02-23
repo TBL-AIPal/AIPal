@@ -51,8 +51,11 @@ router
   .get(auth('getDocuments'), validate(documentValidation.getDocument), documentController.getDocument)
   .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
 
-// Routes for course rooms
-router.route('/:courseId/rooms').post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
+// ✅ Update the route to fetch ALL rooms for a course
+router
+  .route('/:courseId/rooms')
+  .get(auth('getRooms'), validate(roomValidation.getRoomsByCourse), roomController.getRoomsByCourse) // ⬅ New Route
+  .post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
 
 router
   .route('/:courseId/templates/:templateId/rooms')
@@ -63,6 +66,19 @@ router
   .get(auth('getRooms'), validate(roomValidation.getRoom), roomController.getRoom)
   .patch(auth('manageRooms'), validate(roomValidation.updateRoom), roomController.updateRoom)
   .delete(auth('manageRooms'), validate(roomValidation.deleteRoom), roomController.deleteRoom);
+
+  router
+  .route('/:courseId/users')
+  .post(
+    auth('manageCourses'), // Only allow users with permission to manage courses
+    validate(courseValidation.addUserToCourse), // Optional: Validation for the userId (can be added in `courseValidation` file)
+    courseController.addUserToCourse // Controller function to handle adding the user
+  );
+
+  router
+  .route('/:courseId/rooms/:roomId/messages')
+  .get(auth('getMessages'), validate(roomValidation.getMessagesByRoom), roomController.getMessagesByRoom)
+  .post(auth('sendMessage'), validate(roomValidation.sendMessage), roomController.sendMessage);
 
 module.exports = router;
 

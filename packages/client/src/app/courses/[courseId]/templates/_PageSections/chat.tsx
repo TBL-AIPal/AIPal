@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import {
   createCombinedMessage,
@@ -30,17 +29,16 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
   >([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [multiAgent, setMultiAgent] = useState(false); // State for multi-agent toggle
-  const [retrievalAugmentedGeneration, setRetrievalAugmentedGeneration] =
-    useState(false); // State for RAG toggle
+  const [selectedModel, setSelectedModel] = useState('chatgpt-direct');
+  const [multiAgent, setMultiAgent] = useState(false);
+  const [retrievalAugmentedGeneration, setRetrievalAugmentedGeneration] = useState(false);
+
 
   useEffect(() => {
-    // Fetch documents when component mounts
     const fetchDocuments = async () => {
       const response = await GetDocumentsByCourseId(courseId);
       setDocuments(response);
     };
-
     fetchDocuments();
   }, [courseId]);
 
@@ -49,7 +47,6 @@ const ChatRoomPage: React.FC<ChatRoomPageProps> = ({
 
     // Ensure there is a prompt before proceeding
     if (!prompt) return;
-
     setLoading(true);
 
     // Add the user's message to the conversation

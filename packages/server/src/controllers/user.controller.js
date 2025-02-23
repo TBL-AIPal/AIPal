@@ -3,6 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
+const Course = require('../models/course.model'); 
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -12,9 +13,34 @@ const createUser = catchAsync(async (req, res) => {
 const getUsers = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name', 'role']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await userService.queryUsers(filter, options);
+  const courseId = req.query.courseId;
+
+  let result;
+
+  if (courseId) {
+    // Find the course by courseId and get the list of students and staff
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
+    }
+
+    // Combine students and staff IDs
+    const userIds = [...course.students, ...course.staff];
+
+    // Filter users by student and staff IDs in the course
+    result = await userService.queryUsers({
+      ...filter,
+      _id: { $in: userIds },
+    }, options);
+  } else {
+    // If no courseId is provided, return all users based on filter and options
+    result = await userService.queryUsers(filter, options);
+  }
+
   res.send(result);
 });
+
 
 const getUser = catchAsync(async (req, res) => {
   const user = await userService.getUserById(req.params.userId);

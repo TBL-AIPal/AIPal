@@ -1,12 +1,10 @@
-import axios, { AxiosError } from 'axios';
+import api from '@/lib/API/auth/interceptor';
 
 import {
   CourseCreateInput,
   CourseFormValues,
   CourseUpdateInput,
 } from '@/lib/types/course';
-
-import { jwtToken, proxyUrl } from '@/constant/env';
 
 interface UpdateCoursePropsI extends CourseFormValues {
   id: string;
@@ -16,67 +14,63 @@ interface DeleteCoursePropsI {
   id: string;
 }
 
+// Create a new course
 export const CreateCourse = async ({
   name,
   description,
-  apiKey,
+  apiKeys,
 }: CourseFormValues) => {
   const data: CourseCreateInput = {
     name,
     description,
-    apiKey,
+    apiKeys, // ✅ Now supports multiple API keys
   };
 
   try {
-    await axios.post(`${proxyUrl}/courses`, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    });
+    await api.post('/courses', data); // Token auto-attached ✅
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error('Error creating course:', err);
+    throw err;
   }
 };
 
+// Update an existing course
 export const UpdateCourse = async ({
   id,
   name,
   description,
-  apiKey,
+  apiKeys,
   llmConstraints,
   owner,
   students,
   staff,
+  whitelist, // Keep whitelist support
 }: UpdateCoursePropsI) => {
   const data: CourseUpdateInput = {
     name,
     description,
-    apiKey,
+    apiKeys, // ✅ Now supports updating multiple API keys
     llmConstraints,
     owner,
     students,
     staff,
+    whitelist, // Include whitelist when updating the course
   };
 
   try {
-    await axios.patch(`${proxyUrl}/courses/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    });
+    await api.patch(`/courses/${id}`, data); // Token auto-attached ✅
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error('Error updating course:', err);
+    throw err;
   }
 };
 
+// Delete a course
 export const DeleteCourse = async ({ id }: DeleteCoursePropsI) => {
   try {
-    await axios.delete(`${proxyUrl}/courses/${id}`, {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    });
+    await api.delete(`/courses/${id}`); // Token auto-attached ✅
   } catch (err) {
-    throw new AxiosError((err as Error).message);
+    console.error('Error deleting course:', err);
+    throw err;
   }
 };
