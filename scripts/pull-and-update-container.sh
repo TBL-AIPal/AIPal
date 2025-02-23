@@ -43,6 +43,7 @@ REQUIRED_VARS=(
     "MONGODB_USERNAME"
     "MONGODB_PASSWORD"
     "MONGODB_DATABASE"
+    "MONGODB_VOLUME"
     "ENCRYPTION_KEY"
     "JWT_SECRET"
     "SMTP_HOST"
@@ -88,6 +89,22 @@ ensure_network_exists() {
 }
 
 # ===============================
+# Function: Ensure Volume Exists
+# ===============================
+ensure_volume_exists() {
+    local VOLUME_NAME=$1
+    if ! docker volume inspect "$VOLUME_NAME" > /dev/null 2>&1; then
+        echo "Volume $VOLUME_NAME does not exist. Creating it..."
+        docker volume create "$VOLUME_NAME" || {
+            echo "Failed to create volume $VOLUME_NAME"
+            exit 1
+        }
+    else
+        echo "Volume $VOLUME_NAME already exists."
+    fi
+}
+
+# ===============================
 # Function: Check for Newer Image
 # ===============================
 is_newer_image() {
@@ -126,6 +143,7 @@ pull_and_run_if_newer() {
     local PORT_MAPPING=$3
     local ENV_VARS=$4
     local NETWORK=$5
+    local VOLUME=$6
     if is_newer_image "$IMAGE" "$CONTAINER_NAME"; then
         echo "Stopping and removing existing container: $CONTAINER_NAME"
         docker stop "$CONTAINER_NAME" || true
@@ -136,6 +154,7 @@ pull_and_run_if_newer() {
             $PORT_MAPPING \
             $ENV_VARS \
             $NETWORK \
+            $VOLUME \
             "$IMAGE"
     fi
 }
@@ -144,7 +163,10 @@ pull_and_run_if_newer() {
 # Ensure Network Exists
 # ===============================
 ensure_network_exists "$NETWORK"
-
+# ===============================
+# Ensure Volume Exists
+# ===============================
+ensure_volume_exists "$MONGODB_VOLUME"
 # ===============================
 # Pull and Run Containers
 # ===============================
@@ -153,7 +175,8 @@ pull_and_run_if_newer \
     "$MONGO_IMAGE" \
     "${MONGODB_HOST}" \
     "-p ${MONGODB_PORT}:${MONGODB_PORT}" \
-    "--network ${NETWORK}"
+    "--network ${NETWORK}" \
+    "-v ${MONGODB_VOLUME}:/data/db"
 
 # Server Container
 pull_and_run_if_newer \

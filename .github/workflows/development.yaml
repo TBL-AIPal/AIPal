@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - deployment
   # Allow manual triggering
   workflow_dispatch:
 
