@@ -3,7 +3,7 @@ import { User } from '@/lib/types/user';
 
 export const CreateUser = async (userData: Partial<User>): Promise<User> => {
   try {
-    const response = await api.post('/v1/auth/register', userData, {
+    const response = await api.post('auth/register', userData, {
       headers: {
         'Content-Type': 'application/json',
       },
