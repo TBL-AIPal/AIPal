@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const envVarsSchema = Joi.object()
   .keys({
-    SERVER_PORT: Joi.number().default(3000),
+    SERVER_PORT: Joi.number().default(5000),
     MONGODB_USERNAME: Joi.string().required().description('MongoDB username'),
     MONGODB_PASSWORD: Joi.string().required().description('MongoDB password'),
     MONGODB_HOST: Joi.string().required().description('MongoDB host'),

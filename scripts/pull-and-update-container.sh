@@ -189,6 +189,7 @@ pull_and_run_if_newer \
     --env MONGODB_HOST=${MONGODB_HOST} \
     --env MONGODB_PORT=${MONGODB_PORT} \
     --env MONGODB_DATABASE=${MONGODB_DATABASE} \
+    --env SERVER_PORT=${SERVER_PORT} \
     --env ENCRYPTION_KEY=${ENCRYPTION_KEY} \
     --env JWT_SECRET=${JWT_SECRET} \
     --env SMTP_HOST=${SMTP_HOST} \
