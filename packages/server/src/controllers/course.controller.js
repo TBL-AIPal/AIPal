@@ -36,6 +36,11 @@ const getCourses = catchAsync(async (req, res) => {
   const userId = req.user._id;
   const isAdmin = req.user.role === 'admin'; // Check if the user is an admin
 
+  // ✅ Block users if their status is not approved
+  if (!isAdmin && req.user.status !== 'approved') {
+    return res.status(403).json({ message: 'Your account is not approved to access courses.' });
+  }
+
   let filter = {};
   if (!isAdmin) {
     filter = {
