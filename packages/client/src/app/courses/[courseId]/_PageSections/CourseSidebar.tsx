@@ -1,8 +1,15 @@
+'use client'; // ✅ Ensure this runs only on the client
+
 import React, { useEffect, useState } from 'react';
 
 import Sidebar from '@/components/sidebar/Sidebar';
-
 import { sidebarConfig } from '@/constant/config/course';
+
+interface SidebarItem {
+  name: string;
+  icon: React.ElementType;
+  link: string;
+}
 
 interface CourseSidebarProps {
   courseId: string;
@@ -15,13 +22,15 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   courseId,
   headerText,
   className,
-  userRole, // Accept the user role as a prop
+  userRole,
 }) => {
-  const items = sidebarConfig.getItems(courseId, userRole); // Pass user role to getItems
+  const [items, setItems] = useState<SidebarItem[]>([]);
 
-  return (
-    <Sidebar items={items} headerText={headerText} className={className} />
-  );
+  useEffect(() => {
+    setItems(sidebarConfig.getItems(courseId, userRole));
+  }, [courseId, userRole]); // ✅ Only runs on the client when `courseId` or `userRole` changes
+
+  return <Sidebar items={items} headerText={headerText} className={className} />;
 };
 
 export default CourseSidebar;
