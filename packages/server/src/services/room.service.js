@@ -63,7 +63,9 @@ const getRoomsByCourse = async (courseId) => {
   }
 
   // Find all rooms linked to templates in this course
-  const rooms = await Room.find({ template: { $in: course.templates } }).populate('template');
+  const rooms = await Room.find({
+    template: { $in: course.templates },
+  }).populate('template');
 
   return rooms;
 };

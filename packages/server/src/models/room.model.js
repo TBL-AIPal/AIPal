@@ -24,7 +24,7 @@ const roomSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Automatically manage createdAt and updatedAt fields
-  }
+  },
 );
 
 // Add plugin that converts mongoose to json

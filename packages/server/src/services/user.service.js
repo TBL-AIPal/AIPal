@@ -33,7 +33,6 @@ const queryUsers = async (filter, options) => {
   return User.paginate(query, options);
 };
 
-
 /**
  * Get user by id
  * @param {ObjectId} id

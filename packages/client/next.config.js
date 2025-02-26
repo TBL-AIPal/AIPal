@@ -6,18 +6,16 @@ const nextConfig = {
   },
 
   reactStrictMode: true,
-  swcMinify: true,
 
   images: {
-    domains: ['flowbite.s3.amazonaws.com'],
+    domains: [],
   },
 
   async rewrites() {
     return [
       {
         source: '/api/proxy/:path*',
-        // TODO: User variable instead
-        destination: `http://localhost:5000/v1/:path*`,
+        destination: `http://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/v1/:path*`,
       },
     ];
   },
@@ -25,7 +23,7 @@ const nextConfig = {
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.('.svg')
+      rule.test?.test?.('.svg'),
     );
 
     config.module.rules.push(
@@ -45,7 +43,7 @@ const nextConfig = {
           dimensions: false,
           titleProp: true,
         },
-      }
+      },
     );
 
     // Modify the file loader rule to ignore *.svg, since we have it handled now.

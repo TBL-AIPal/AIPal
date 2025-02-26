@@ -26,7 +26,9 @@ describe('Document model', () => {
     });
 
     test('should correctly validate a valid document', async () => {
-      await expect(new Document(newDocument).validate()).resolves.toBeUndefined();
+      await expect(
+        new Document(newDocument).validate(),
+      ).resolves.toBeUndefined();
     });
 
     test('should throw a validation error if contentType is invalid', async () => {
@@ -36,7 +38,9 @@ describe('Document model', () => {
 
     test('should throw a validation error if size exceeds 10 MB', async () => {
       newDocument.size = 11 * 1024 * 1024;
-      await expect(new Document(newDocument).validate()).rejects.toThrow('File size cannot exceed 10 MB');
+      await expect(new Document(newDocument).validate()).rejects.toThrow(
+        'File size cannot exceed 10 MB',
+      );
     });
   });
 

@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-
 const paginate = (schema) => {
   /**
    * @typedef {Object} QueryResult
@@ -32,8 +30,14 @@ const paginate = (schema) => {
       sort = 'createdAt';
     }
 
-    const limit = options.limit && parseInt(options.limit, 10) > 0 ? parseInt(options.limit, 10) : 10;
-    const page = options.page && parseInt(options.page, 10) > 0 ? parseInt(options.page, 10) : 1;
+    const limit =
+      options.limit && parseInt(options.limit, 10) > 0
+        ? parseInt(options.limit, 10)
+        : 10;
+    const page =
+      options.page && parseInt(options.page, 10) > 0
+        ? parseInt(options.page, 10)
+        : 1;
     const skip = (page - 1) * limit;
 
     const countPromise = this.countDocuments(filter).exec();
@@ -45,7 +49,7 @@ const paginate = (schema) => {
           populateOption
             .split('.')
             .reverse()
-            .reduce((a, b) => ({ path: b, populate: a }))
+            .reduce((a, b) => ({ path: b, populate: a })),
         );
       });
     }

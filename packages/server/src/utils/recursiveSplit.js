@@ -27,7 +27,9 @@ function recursiveSplit(text, maxLength, overlap = 0) {
   const nextChunkStart = Math.max(0, splitIndex - overlap);
 
   // Create a new remaining text by taking the overlap into account
-  const newRemainingText = remainingText.slice(Math.max(0, nextChunkStart - splitIndex)).trim();
+  const newRemainingText = remainingText
+    .slice(Math.max(0, nextChunkStart - splitIndex))
+    .trim();
 
   // Recursively split the remaining text and combine the results
   return [chunk, ...recursiveSplit(newRemainingText, maxLength, overlap)];
