@@ -1,13 +1,22 @@
 #!/bin/bash
+
+# ===============================
+# Logging Function
+# ===============================
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /home/sadm/AIPal/logs/script_log.log
+}
+
+
 # ===============================
 # Load Environment Variables
 # ===============================
-ENV_FILE=".env.development"
+ENV_FILE="/home/sadm/AIPal/.env.development"
 if [ -f "$ENV_FILE" ]; then
-    echo "Loading environment variables from $ENV_FILE..."
+    log "Loading environment variables from $ENV_FILE..."
     source "$ENV_FILE"
 else
-    echo "$ENV_FILE not found. Exiting."
+    log "$ENV_FILE not found. Exiting."
     exit 1
 fi
 
@@ -18,12 +27,12 @@ validate_variables() {
     local missing_vars=0
     for var in "$@"; do
         if [ -z "${!var}" ]; then
-            echo "Error: Required variable '$var' is not set in $ENV_FILE."
+            log "Error: Required variable '$var' is not set in $ENV_FILE."
             missing_vars=1
         fi
     done
     if [ $missing_vars -ne 0 ]; then
-        echo "Please ensure all required variables are set in $ENV_FILE."
+        log "Please ensure all required variables are set in $ENV_FILE."
         exit 1
     fi
 }
@@ -66,9 +75,9 @@ validate_variables "${REQUIRED_VARS[@]}"
 # ===============================
 # Log in to GitHub Container Registry
 # ===============================
-echo "Logging in to GitHub Container Registry..."
+log "Logging in to GitHub Container Registry..."
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u tbl-aipal --password-stdin || {
-    echo "Login failed"
+    log "Login failed"
     exit 1
 }
 
@@ -78,13 +87,13 @@ echo "$GITHUB_TOKEN" | docker login ghcr.io -u tbl-aipal --password-stdin || {
 ensure_network_exists() {
     local NETWORK_NAME=$1
     if ! docker network inspect "$NETWORK_NAME" > /dev/null 2>&1; then
-        echo "Network $NETWORK_NAME does not exist. Creating it..."
+        log "Network $NETWORK_NAME does not exist. Creating it..."
         docker network create "$NETWORK_NAME" || {
-            echo "Failed to create network $NETWORK_NAME"
+            log "Failed to create network $NETWORK_NAME"
             exit 1
         }
     else
-        echo "Network $NETWORK_NAME already exists."
+        log "Network $NETWORK_NAME already exists."
     fi
 }
 
@@ -94,13 +103,13 @@ ensure_network_exists() {
 ensure_volume_exists() {
     local VOLUME_NAME=$1
     if ! docker volume inspect "$VOLUME_NAME" > /dev/null 2>&1; then
-        echo "Volume $VOLUME_NAME does not exist. Creating it..."
+        log "Volume $VOLUME_NAME does not exist. Creating it..."
         docker volume create "$VOLUME_NAME" || {
-            echo "Failed to create volume $VOLUME_NAME"
+            log "Failed to create volume $VOLUME_NAME"
             exit 1
         }
     else
-        echo "Volume $VOLUME_NAME already exists."
+        log "Volume $VOLUME_NAME already exists."
     fi
 }
 
@@ -111,7 +120,7 @@ is_newer_image() {
     local IMAGE=$1
     local CONTAINER_NAME=$2
     # Pull the latest image
-    echo "Pulling latest image: $IMAGE"
+    log "Pulling latest image: $IMAGE"
     docker pull "$IMAGE" > /dev/null
     # Get the digest of the pulled image
     NEW_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")
@@ -122,14 +131,14 @@ is_newer_image() {
         CURRENT_DIGEST_FULL=$(docker inspect --format='{{index .RepoDigests 0}}' "$(docker inspect --format='{{.Image}}' "$CONTAINER_NAME")")
         # Compare digests
         if [ "$NEW_DIGEST" == "$CURRENT_DIGEST_FULL" ]; then
-            echo "No new version available for $CONTAINER_NAME."
+            log "No new version available for $CONTAINER_NAME."
             return 1
         else
-            echo "New version detected for $CONTAINER_NAME."
+            log "New version detected for $CONTAINER_NAME."
             return 0
         fi
     else
-        echo "Container $CONTAINER_NAME does not exist. Creating a new one."
+        log "Container $CONTAINER_NAME does not exist. Creating a new one."
         return 0
     fi
 }
@@ -145,10 +154,10 @@ pull_and_run_if_newer() {
     local NETWORK=$5
     local VOLUME=$6
     if is_newer_image "$IMAGE" "$CONTAINER_NAME"; then
-        echo "Stopping and removing existing container: $CONTAINER_NAME"
+        log "Stopping and removing existing container: $CONTAINER_NAME"
         docker stop "$CONTAINER_NAME" || true
         docker rm "$CONTAINER_NAME" || true
-        echo "Starting new container: $CONTAINER_NAME"
+        log "Starting new container: $CONTAINER_NAME"
         docker run -d \
             --name "$CONTAINER_NAME" \
             $PORT_MAPPING \
@@ -214,4 +223,4 @@ pull_and_run_if_newer \
 # ===============================
 # Completion Message
 # ===============================
-echo "All containers checked and updated (if necessary)!"
+log "All containers checked and updated (if necessary)!"
