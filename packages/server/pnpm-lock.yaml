@@ -39,8 +39,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       http-status:
-        specifier: ^2.1.0
-        version: 2.1.0
+        specifier: 1.7.4
+        version: 1.7.4
       joi:
         specifier: ^17.13.3
         version: 17.13.3
@@ -2069,8 +2069,8 @@ packages:
     resolution: {integrity: sha512-CAbnr6Rz4CYQkLYUtSNXxQPUH2gK8f3iWexVlsnMeD+GjlsQ0Xsy1cOX+mN3dtxYomRy21CiOzU8Uhw6OwncEQ==}
     engines: {node: '>=0.8', npm: '>=1.3.7'}
 
-  http-status@2.1.0:
-    resolution: {integrity: sha512-O5kPr7AW7wYd/BBiOezTwnVAnmSNFY+J7hlZD2X5IOxVBetjcHAiTXhzj0gMrnojQlwy+UT1/Y3H3vJ3UlmvLA==}
+  http-status@1.7.4:
+    resolution: {integrity: sha512-c2qSwNtTlHVYAhMj9JpGdyo0No/+DiKXCJ9pHtZ2Yf3QmPnBIytKSRT7BuyIiQ7icXLynavGmxUqkOjSrAuMuA==}
     engines: {node: '>= 0.4.0'}
 
   https-proxy-agent@7.0.6:
@@ -6508,7 +6508,7 @@ snapshots:
       jsprim: 1.4.2
       sshpk: 1.18.0
 
-  http-status@2.1.0: {}
+  http-status@1.7.4: {}
 
   https-proxy-agent@7.0.6:
     dependencies:
