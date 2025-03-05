@@ -5,7 +5,7 @@ import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { CreateCourse } from '@/lib/API/course/mutations';
-import { CourseCreateInput, CourseFormValues } from '@/lib/types/course';
+import { APIKeys, CourseCreateInput, CourseFormValues } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 
 import { Form } from '@/components/ui/Form';
@@ -40,8 +40,19 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
   const onSubmit = async (values: CourseFormValues) => {
     const { name, description, apiKeys } = values;
 
+    // ✅ Ensure filteredApiKeys has the correct type
+    const filteredApiKeys: Partial<APIKeys> = Object.fromEntries(
+      Object.entries(apiKeys).filter(([_, value]) => value.trim() !== '')
+    );
+
+    // Ensure at least one key is provided
+    if (Object.keys(filteredApiKeys).length === 0) {
+      alert('Please provide at least one API key.');
+      return;
+    }
+    
     try {
-      await CreateCourse({ name, description, apiKeys });
+      await CreateCourse({ name, description, apiKeys: filteredApiKeys });
       reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
       router.refresh();
       onCourseCreated();
