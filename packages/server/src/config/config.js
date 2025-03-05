@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const envVarsSchema = Joi.object()
   .keys({
-    SERVER_PORT: Joi.number().default(5000),
+    SERVER_PORT: Joi.number(),
     MONGODB_USERNAME: Joi.string().required().description('MongoDB username'),
     MONGODB_PASSWORD: Joi.string().required().description('MongoDB password'),
     MONGODB_HOST: Joi.string().required().description('MongoDB host'),
@@ -59,11 +59,6 @@ module.exports = {
   mongoose: {
     // TODO: Add auth
     url: `mongodb://${envVars.MONGODB_HOST}:${envVars.MONGODB_PORT}/${envVars.MONGODB_DATABASE}${databaseSuffix}?directConnection=true`,
-    options: {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
   },
   mongodb: {
     // TODO: Add auth
