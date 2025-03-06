@@ -1,4 +1,4 @@
-FROM mongodb/mongodb-atlas-local:7.0.17
+FROM mongodb/mongodb-atlas-local:7.0
 
 EXPOSE 27017
 
