@@ -14,8 +14,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install Python dependencies inside the virtual environment
 RUN pip install --no-cache-dir contractions nltk
 
-# Download NLTK data (stopwords, punkt, wordnet) during image build
-RUN python3 -c "import nltk; nltk.download('stopwords', quiet=True); nltk.download('punkt', quiet=True); nltk.download('wordnet', quiet=True)"
+# Download NLTK data (stopwords, punkt, punkt_tab, wordnet) during image build
+RUN python3 -c "import nltk; nltk.download('stopwords', quiet=True); nltk.download('punkt', quiet=True); nltk.download('punkt_tab', quiet=True); nltk.download('wordnet', quiet=True)"
 
 WORKDIR /app
 
