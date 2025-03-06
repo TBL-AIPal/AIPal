@@ -43,7 +43,8 @@ const createDocument = async (courseId, file) => {
     throw new Error('Course not found');
   }
 
-  const apiKey = decrypt(course.apiKey, config.encryption.key);
+  //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
+  const apiKey = decrypt(course.apiKeys.chatgpt, config.encryption.key);
 
   if (documentData.text) {
     const chunksText = recursiveSplit(documentData.text, 1000, 200);
