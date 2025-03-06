@@ -3,8 +3,8 @@ FROM node:22-alpine
 # Install Python and pip
 RUN apk add --no-cache python3 py3-pip
 
-# Create a link for 'python' to point to 'python3'
-RUN ln -s /usr/bin/python3 /usr/bin/python
+# Create a link for 'python' to point to 'python3', but only if it doesn't exist
+RUN [ -f /usr/bin/python ] || ln -s /usr/bin/python3 /usr/bin/python
 
 WORKDIR /app
 
