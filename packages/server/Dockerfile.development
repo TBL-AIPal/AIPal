@@ -6,6 +6,12 @@ RUN apk add --no-cache python3 py3-pip
 # Create a link for 'python' to point to 'python3', but only if it doesn't exist
 RUN [ -f /usr/bin/python ] || ln -s /usr/bin/python3 /usr/bin/python
 
+# Install Python dependencies directly using pip
+RUN pip3 install --no-cache-dir contractions nltk
+
+# Download NLTK data (stopwords, punkt, wordnet) during image build
+RUN python3 -c "import nltk; nltk.download('stopwords', quiet=True); nltk.download('punkt', quiet=True); nltk.download('wordnet', quiet=True)"
+
 WORKDIR /app
 
 COPY package.json  pnpm-lock.yaml ./
