@@ -22,8 +22,6 @@ const createMessage = {
         )
         .min(1)
         .required(), // ✅ At least one message is required
-      documents: Joi.array().items(Joi.string().custom(objectId)).optional(), // ✅ Optional document IDs
-      constraints: Joi.array().items(Joi.string()).optional(), // ✅ Optional constraints
     })
     .strict(false), // ✅ Allow extra fields like sender and method
 };

@@ -9,6 +9,7 @@ const { generateContextualizedQuery } = require('./RAG/vector.search.service');
 
 const { getApiKeyById } = require('./course.service');
 const { getTemplateById } = require('./template.service');
+const { getDocumentById } = require('./document.service');
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -231,9 +232,18 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
 };
 
 // **🔹 Multi-Agent Reply**
-const createMultiAgentReply = async (courseId, messageBody) => {
-  const { conversation, documents, constraints, roomId, userId } = messageBody;
+const createMultiAgentReply = async (courseId, templateId, messageBody) => {
+  const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  const template = await getTemplateById(templateId);
+  if (!template) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
+  }
+
+  const documentIds = template.documents;
+  const documents = documentIds.map((id) => getDocumentById(id));
+  const constraints = template.constraints;
 
   const summaries = await processDocuments(documents, conversation, apiKey);
   const finalSummary = summaries.join(' ');
@@ -281,8 +291,17 @@ const createContextualizedAndMultiAgentReply = async (
   templateId,
   messageBody,
 ) => {
-  const { conversation, documents, constraints, roomId, userId } = messageBody;
+  const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  const template = await getTemplateById(templateId);
+  if (!template) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
+  }
+
+  const documentIds = template.documents;
+  const documents = documentIds.map((id) => getDocumentById(id));
+  const constraints = template.constraints;
 
   const currentQuery = conversation[conversation.length - 1].content;
   const contextualizedQuery = await generateContextualizedQuery(
