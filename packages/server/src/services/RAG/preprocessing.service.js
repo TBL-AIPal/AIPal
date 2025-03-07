@@ -54,6 +54,7 @@ const processText = async (text) => {
     pythonProcess.on('close', onClose);
     pythonProcess.on('error', onError);
 
+    logger.info('Sending input to Python process:', { text });
     // Send the single text as a batch input to Python's stdin
     pythonProcess.stdin.write(JSON.stringify({ texts: [text] }) + '\n');
     pythonProcess.stdin.end();
@@ -96,6 +97,9 @@ const processTextBatch = async (texts) => {
     pythonProcess.on('close', onClose);
     pythonProcess.on('error', onError);
 
+    logger.info('Sending input to Python process:', { texts });
+    pythonProcess.stdin.write(JSON.stringify({ texts }) + '\n');
+    pythonProcess.stdin.end();
     // Send the batch of texts as JSON to Python's stdin
     pythonProcess.stdin.write(JSON.stringify({ texts }) + '\n');
     pythonProcess.stdin.end();

@@ -35,6 +35,7 @@ if __name__ == "__main__":
     try:
         # Read JSON input from stdin
         input_data = sys.stdin.read()
+        print(f"Received input: {input_data}", file=sys.stderr)
         data = json.loads(input_data)
 
         # Validate input
@@ -47,6 +48,6 @@ if __name__ == "__main__":
             results.extend(batch_results)
 
         # Output the results as JSON
-        print(json.dumps(results))
+        print(json.dumps(results) + "\n")
     except Exception as e:
         print(json.dumps({"error": str(e)}))
