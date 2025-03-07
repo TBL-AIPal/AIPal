@@ -17,6 +17,7 @@ const Materials: React.FC = () => {
   const courseIdString = Array.isArray(courseId) ? courseId[0] : courseId;
 
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fetchDocuments = useCallback(async () => {
     if (!courseIdString) return;
@@ -30,6 +31,7 @@ const Materials: React.FC = () => {
   }, [courseIdString]);
 
   const handleUpload = async (files: FileList) => {
+    setIsUploading(true); // Start loading state
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append('file', file));
     try {
@@ -41,6 +43,8 @@ const Materials: React.FC = () => {
       await fetchDocuments();
     } catch (error) {
       logger(error, 'File upload failed.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -65,7 +69,10 @@ const Materials: React.FC = () => {
     <div className='p-4'>
       {/* Upload section */}
       <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Upload</h1>
-      <FileUpload onUpload={handleUpload} />
+      <FileUpload
+        onUpload={handleUpload}
+        isUploading={isUploading}
+      />
 
       {/* Divider */}
       <div className='mt-4'></div>
