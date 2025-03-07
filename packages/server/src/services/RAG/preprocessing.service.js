@@ -40,7 +40,7 @@ const processText = async (text) => {
     const onClose = () => {
       try {
         const result = JSON.parse(output.trim());
-        resolve(result.texts[0]); // Extract the first result from the batch
+        resolve(result[0]); // Extract the first result from the array
       } catch (err) {
         reject(new Error(`Failed to parse Python output: ${output}`));
       }
@@ -55,8 +55,8 @@ const processText = async (text) => {
     pythonProcess.on('error', onError);
 
     logger.info('Sending input to Python process:', { text });
-    // Send the single text as a batch input to Python's stdin
-    pythonProcess.stdin.write(JSON.stringify({ texts: [text] }) + '\n');
+    // Send the single text as a JSON array
+    pythonProcess.stdin.write(JSON.stringify([text]) + '\n');
     pythonProcess.stdin.end();
 
     // Cleanup listeners after processing
@@ -83,7 +83,7 @@ const processTextBatch = async (texts) => {
     const onClose = () => {
       try {
         const results = JSON.parse(output.trim());
-        resolve(results.texts);
+        resolve(results);
       } catch (err) {
         reject(new Error(`Failed to parse Python output: ${output}`));
       }
@@ -98,10 +98,8 @@ const processTextBatch = async (texts) => {
     pythonProcess.on('error', onError);
 
     logger.info('Sending input to Python process:', { texts });
-    pythonProcess.stdin.write(JSON.stringify({ texts }) + '\n');
-    pythonProcess.stdin.end();
-    // Send the batch of texts as JSON to Python's stdin
-    pythonProcess.stdin.write(JSON.stringify({ texts }) + '\n');
+    // Send the batch of texts as a JSON array
+    pythonProcess.stdin.write(JSON.stringify(texts) + '\n');
     pythonProcess.stdin.end();
 
     // Cleanup listeners after processing
