@@ -43,8 +43,10 @@ async function getContextualData(queryVector, documentIds) {
       },
     ];
 
-    const resultsMongoose = await Chunk.aggregate(aggregate).toArray();
-    logger.info('Search using Mongoose result:', resultsMongoose);
+    const resultsMongoose = await Chunk.aggregate(aggregate);
+
+    logger.info('Search using Mongoose result:');
+    resultsMongoose.forEach((doc) => logger.info(JSON.stringify(doc)));
 
     const results = await collection.aggregate(aggregate).toArray();
     logger.info('Search using MongoDB result:', results);
