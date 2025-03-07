@@ -43,15 +43,18 @@ async function getContextualData(queryVector, documentIds) {
       },
     ];
 
-    const resultsMongoose = await Chunk.aggregate(aggregate);
+    const resultsMongoose = await Chunk.aggregate(aggregate).toArray();
     logger.info('Search using Mongoose result:', resultsMongoose);
 
-    const results = await collection.aggregate(aggregate);
+    const results = await collection.aggregate(aggregate).toArray();
     logger.info('Search using MongoDB result:', results);
 
-    return results.toArray();
+    return results;
   } catch (error) {
-    throw new Error('Failed to query subset of documents');
+    logger.error('getContextualDataError:', error);
+    throw new Error(
+      'Failed to query subset of documents for RAG. Check logs for details.',
+    );
   } finally {
     await client.close();
   }
@@ -86,7 +89,10 @@ const generateContextualizedQuery = async (query, apiKey, documentIds) => {
       ${query}`;
     return prompt;
   } catch (error) {
-    throw new Error('Failed to generate text');
+    logger.error('generateContextualizedQueryError:', error);
+    throw new Error(
+      'Failed to generate text for context. Check logs for details.',
+    );
   }
 };
 
