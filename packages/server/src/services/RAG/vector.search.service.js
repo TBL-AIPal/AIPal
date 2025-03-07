@@ -2,7 +2,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { generateEmbedding } = require('./embedding.service');
 const config = require('../../config/config');
 const { processText } = require('./preprocessing.service');
-const { Chunk } = require('../models');
+const { Chunk } = require('../../models');
 const logger = require('../../config/logger');
 
 async function getContextualData(queryVector, documentIds) {
