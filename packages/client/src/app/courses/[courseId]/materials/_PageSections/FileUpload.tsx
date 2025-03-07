@@ -46,39 +46,43 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isUploading }) => {
         {/* Upload Button */}
         <button
           type='button'
-          className={`ml-4 px-4 py-2 rounded-lg ${
-            isUploading
-              ? 'bg-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white focus:outline-none`}
+          className='ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none'
+          style={{ minWidth: '100px' }}
           onClick={handleUpload}
           disabled={!selectedFiles || isUploading} // Disable button if no files are selected or upload is in progress
         >
-          {isUploading ? (
-            // Spinning Animation
-            <svg
-              className="animate-spin h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              ></path>
-            </svg>
-          ) : (
-            'Upload'
-          )}
+          <div
+            className={`flex items-center justify-center space-x-2 ${
+              isUploading ? 'cursor-not-allowed' : ''
+            }`}
+            style={{ width: '80px', height: '20px' }}
+          >
+            {isUploading ? (
+              // Spinning Animation
+              <svg
+                className='animate-spin h-5 w-5 text-white'
+                xmlns='http://www.w3.org/2000/svg'
+                fill='none'
+                viewBox='0 0 24 24'
+              >
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
+                  strokeWidth='4'
+                ></circle>
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
+                  d='M4 12a8 8 0 018-8v8H4z'
+                ></path>
+              </svg>
+            ) : (
+              <span>Upload</span>
+            )}
+          </div>
         </button>
       </div>
       {/* Help Text */}
