@@ -1,50 +1,52 @@
 import sys
-import re
+import json
 import contractions
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
+import spacy
 
-# Download NLTK resources (quietly)
-nltk.download('stopwords', quiet=True)
-nltk.download('punkt', quiet=True)
-nltk.download('wordnet', quiet=True)
-
-# Initialize NLTK tools
-stop_words = set(stopwords.words("english"))
-lemmatizer = WordNetLemmatizer()
+# Load SpaCy model with only necessary components
+nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
 def process_text(text):
     """Cleans, normalizes, and pre-processes text for consistency."""
-    # Remove non-ASCII characters
-    text = text.encode("ascii", "ignore").decode("ascii")
-    
     # Lowercase all text
     text = text.lower()
     
     # Expand contractions
     text = contractions.fix(text)
     
-    # Normalize punctuation
-    text = text.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
-    text = text.replace("–", "-").replace("—", "-")
-    
-    # Tokenize the text
-    words = word_tokenize(text)
-    
-    # Remove stopwords and apply lemmatization
-    processed_words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words]
+    # Process text with SpaCy
+    doc = nlp(text)
+    processed_words = [
+        token.lemma_ for token in doc
+        if not token.is_stop and token.is_alpha and not token.is_punct
+    ]
     
     # Join words back to a single string
     return " ".join(processed_words)
 
+def process_batch(texts, batch_size=100):
+    """Processes texts in smaller batches to reduce memory usage."""
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        print(f"Processing batch {i // batch_size + 1}...", file=sys.stderr)
+        yield [process_text(text) for text in batch]
+
 if __name__ == "__main__":
-    # Read the text data from stdin
-    text_data = sys.stdin.read()
+    try:
+        # Read JSON input from stdin
+        input_data = sys.stdin.read()
+        data = json.loads(input_data)
 
-    # Process the text to extract, clean, and preprocess
-    processed_text = process_text(text_data)
+        # Validate input
+        if not isinstance(data, list):
+            raise ValueError("Input must be a JSON array of texts.")
 
-    # Output the preprocessed result to stdout
-    print(processed_text)
+        # Process texts in batches
+        results = []
+        for batch_results in process_batch(data, batch_size=100):
+            results.extend(batch_results)
+
+        # Output the results as JSON
+        print(json.dumps(results))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))

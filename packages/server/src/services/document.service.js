@@ -3,7 +3,7 @@ const pdfParse = require('pdf-parse');
 const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { generateEmbedding } = require('./RAG/embedding.service');
-const { processText } = require('./RAG/preprocessing.service');
+const { processTextBatch } = require('./RAG/preprocessing.service');
 const recursiveSplit = require('../utils/recursiveSplit');
 const { decrypt } = require('../utils/cryptoUtils');
 const logger = require('../config/logger');
@@ -49,20 +49,24 @@ const createDocument = async (courseId, file) => {
   const apiKey = decrypt(course.apiKeys.chatgpt, config.encryption.key);
   logger.info('API Key retrieved for embeddings');
 
-  if (documentData.text) {
-    const chunksText = recursiveSplit(documentData.text, 1000, 200);
-    const chunks = await Promise.all(
-      chunksText.map(async (text) => {
-        const normalizedData = await processText(text);
-        const embedding = await generateEmbedding(normalizedData, apiKey);
-        return { text, embedding };
-      }),
-    );
-    logger.info('Attempt to insert document chunks');
-    await Chunk.insertMany(
-      chunks.map((chunk) => ({ ...chunk, document: document._id })),
-    ).then('Document chunks inserted successfully');
-  }
+  logger.info('Splitting text into chunks...');
+  const chunksText = recursiveSplit(documentData.text, 1000, 200);
+  logger.info(`Generated ${chunksText.length} chunks`);
+
+  logger.info('Processing chunks...');
+  const normalizedChunks = await processTextBatch(chunksText);
+  const embeddedChunks = await Promise.all(
+    normalizedChunks.map(async (text, index) => {
+      logger.info(`Processing chunk ${index + 1}/${normalizedChunks.length}`);
+      const embedding = await generateEmbedding(text, apiKey);
+      return { text, embedding, document: document._id };
+    }),
+  );
+  logger.info('All chunks processed successfully');
+
+  logger.info('Inserting document chunks into the database...');
+  await Chunk.insertMany(embeddedChunks);
+  logger.info('Document chunks inserted successfully');
 
   return document;
 };

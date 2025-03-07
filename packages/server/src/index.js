@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
+const {
+  initializePythonProcess,
+} = require('./services/RAG/preprocessing.service');
 
 let server;
 logger.info(`Trying to connect to MongoDB using ${config.mongoose.url}`);
@@ -11,6 +14,9 @@ mongoose.connect(config.mongoose.url).then(() => {
     logger.info(`Listening to port ${config.port}`);
   });
 });
+
+// Initialize the Python process for embeddings
+initializePythonProcess();
 
 const exitHandler = () => {
   if (server) {
