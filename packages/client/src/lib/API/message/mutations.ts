@@ -15,8 +15,6 @@ export const createDirectMessage = async ({
       roomId,
       userId,
       conversation,
-      documents,
-      constraints,
     });
     return response.data;
   } catch (err) {
@@ -38,7 +36,6 @@ export const createRAGMessage = async ({
       roomId,
       userId,
       conversation,
-      documents,
     });
     return response.data;
   } catch (err) {
@@ -61,8 +58,6 @@ export const createMultiAgentMessage = async ({
       roomId,
       userId,
       conversation,
-      documents,
-      constraints,
     });
     return response.data;
   } catch (err) {
@@ -85,8 +80,6 @@ export const createCombinedMessage = async ({
       roomId,
       userId,
       conversation,
-      documents,
-      constraints,
     });
     return response.data;
   } catch (err) {
@@ -108,7 +101,6 @@ export const createGeminiMessage = async ({
       roomId,
       userId,
       conversation,
-      documents,
     });
     return response.data;
   } catch (err) {
@@ -130,7 +122,6 @@ export const createLlama3Message = async ({
       roomId,
       userId,
       conversation,
-      documents,
     });
     return response.data;
   } catch (err) {

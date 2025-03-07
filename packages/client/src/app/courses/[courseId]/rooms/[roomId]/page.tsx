@@ -1,19 +1,17 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import React, { useEffect, useRef,useState } from 'react';
 
-import { GetRoomById } from '@/lib/API/room/queries';
-import { GetTemplateById } from '@/lib/API/template/queries';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
+import { createCombinedMessage, createDirectMessage, createGeminiMessage, createLlama3Message,createMultiAgentMessage, createRAGMessage } from '@/lib/API/message/mutations';
+import { GetRoomById } from '@/lib/API/room/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
-import { createDirectMessage, createMultiAgentMessage, createRAGMessage, createCombinedMessage, createGeminiMessage, createLlama3Message } from '@/lib/API/message/mutations';
-
-import { Room } from '@/lib/types/room';
-import { Template } from '@/lib/types/template';
+import { GetTemplateById } from '@/lib/API/template/queries';
 import { Document } from '@/lib/types/document';
 import { Message } from '@/lib/types/message';
+import { Room } from '@/lib/types/room';
+import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
@@ -122,9 +120,7 @@ const RoomChatPage: React.FC = () => {
 
     try {
       let response;
-      const constraints = template?.constraints || [];
       const templateId = template?.id ?? '';
-
       // ✅ Sending only role and content to the backend
       const sanitizedMessages = updatedMessages.map(({ role, content }) => ({ role, content }));
 
@@ -136,8 +132,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
-            constraints,
           });
           break;
         case 'rag':
@@ -147,7 +141,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
           });
           break;
         case 'rag+multi-agent':
@@ -157,8 +150,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
-            constraints,
           });
           break;
         case 'gemini':
@@ -168,7 +159,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
           });
           break;
         case 'llama3':
@@ -178,7 +168,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
           });
           break;
         default:
@@ -188,8 +177,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
-            constraints,
           });
       }
 
