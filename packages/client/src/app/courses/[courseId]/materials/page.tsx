@@ -31,18 +31,29 @@ const Materials: React.FC = () => {
   }, [courseIdString]);
 
   const handleUpload = async (files: FileList) => {
-    setIsUploading(true); // Start loading state
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append('file', file));
+    setIsUploading(true);
+  
     try {
-      await CreateDocument({
-        courseId: courseIdString,
-        formData,
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+  
+        try {
+          await CreateDocument({
+            courseId: courseIdString,
+            formData,
+          });
+          logger(`File "${file.name}" uploaded successfully!`);
+        } catch (error) {
+          logger(error, `File "${file.name}" upload failed.`);
+          throw error;
+        }
       });
-      logger('Files uploaded successfully!');
+
+      await Promise.all(uploadPromises);
       await fetchDocuments();
     } catch (error) {
-      logger(error, 'File upload failed.');
+      logger(error, 'One or more files failed to upload.');
     } finally {
       setIsUploading(false);
     }
