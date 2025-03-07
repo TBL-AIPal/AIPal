@@ -37,21 +37,21 @@ const Materials: React.FC = () => {
       // Upload of documents is done sequentially rather than concurrently 
       // due to resource limitations
       for (const file of Array.from(files)) {
+        logger(`Attempting to upload file "${file.name}"`);
         const formData = new FormData();
         formData.append('file', file);
-  
         try {
           await CreateDocument({
             courseId: courseIdString,
             formData,
           });
           logger(`File "${file.name}" uploaded successfully!`);
+          await fetchDocuments();
         } catch (error) {
           logger(error, `File "${file.name}" upload failed.`);
           throw error;
         }
       }
-      await fetchDocuments();
     } catch (error) {
       logger(error, 'One or more files failed to upload.');
     } finally {
