@@ -56,7 +56,7 @@ const processText = async (text) => {
 
     // Send the single text as a batch input to Python's stdin
     pythonProcess.stdin.write(JSON.stringify({ texts: [text] }) + '\n');
-    pythonProcess.stdin.flush();
+    pythonProcess.stdin.end();
 
     // Cleanup listeners after processing
     pythonProcess.stdout.off('data', onData);
@@ -98,7 +98,7 @@ const processTextBatch = async (texts) => {
 
     // Send the batch of texts as JSON to Python's stdin
     pythonProcess.stdin.write(JSON.stringify({ texts }) + '\n');
-    pythonProcess.stdin.flush();
+    pythonProcess.stdin.end();
 
     // Cleanup listeners after processing
     pythonProcess.stdout.off('data', onData);
