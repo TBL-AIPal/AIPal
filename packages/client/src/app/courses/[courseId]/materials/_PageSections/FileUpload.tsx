@@ -55,7 +55,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isUploading }) => {
             className={`flex items-center justify-center space-x-2 ${
               isUploading ? 'cursor-not-allowed' : ''
             }`}
-            style={{ width: '80px', height: '20px' }}
+            style={{ width: '100%', height: '100%' }}
           >
             {isUploading ? (
               // Spinning Animation

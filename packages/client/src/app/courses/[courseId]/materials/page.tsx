@@ -34,7 +34,9 @@ const Materials: React.FC = () => {
     setIsUploading(true);
   
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
+      // Upload of documents is done sequentially rather than concurrently 
+      // due to resource limitations
+      for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append('file', file);
   
@@ -48,9 +50,7 @@ const Materials: React.FC = () => {
           logger(error, `File "${file.name}" upload failed.`);
           throw error;
         }
-      });
-
-      await Promise.all(uploadPromises);
+      }
       await fetchDocuments();
     } catch (error) {
       logger(error, 'One or more files failed to upload.');
