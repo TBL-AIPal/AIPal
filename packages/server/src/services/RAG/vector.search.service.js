@@ -2,6 +2,8 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { generateEmbedding } = require('./embedding.service');
 const config = require('../../config/config');
 const { processText } = require('./preprocessing.service');
+const { Chunk } = require('../models');
+const logger = require('../../config/logger');
 
 async function getContextualData(queryVector, documentIds) {
   // Mongoose does not have support for do vector search in Atlas, thus we are using MongoDB
@@ -14,35 +16,40 @@ async function getContextualData(queryVector, documentIds) {
 
     const objectIdList = documentIds.map((id) => new ObjectId(id));
 
+    // prettier-ignore
     const aggregate = [
       {
-        $vectorSearch: {
-          index: 'default',
-          path: 'embedding',
-          filter: {
-            // eslint-disable-next-line prettier/prettier
+        '$vectorSearch': {
+          'index': 'default',
+          'path': 'embedding',
+          'filter': {
             'document': {
-              $in: objectIdList,
+              '$in': objectIdList,
             },
           },
-          queryVector,
-          numCandidates: 20,
-          limit: 3,
+          'queryVector': queryVector,
+          'numCandidates': 20,
+          'limit': 3,
         },
       },
       {
-        $project: {
-          _id: 0,
-          text: 1,
-          score: {
-            $meta: 'vectorSearchScore',
+        '$project': {
+          '_id': 0,
+          'text': 1,
+          'score': {
+            '$meta': 'vectorSearchScore',
           },
         },
       },
     ];
 
-    const results = await collection.aggregate(aggregate).toArray();
-    return results;
+    const resultsMongoose = await Chunk.aggregate(aggregate);
+    logger.info('Search using Mongoose result:', resultsMongoose);
+
+    const results = await collection.aggregate(aggregate);
+    logger.info('Search using MongoDB result:', results);
+
+    return results.toArray();
   } catch (error) {
     throw new Error('Failed to query subset of documents');
   } finally {
