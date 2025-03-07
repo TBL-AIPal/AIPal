@@ -1,20 +1,14 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 const { generateEmbedding } = require('./embedding.service');
-const config = require('../../config/config');
 const { processText } = require('./preprocessing.service');
 const { Chunk } = require('../../models');
 const logger = require('../../config/logger');
 
 async function getContextualData(queryVector, documentIds) {
-  // Mongoose does not have support for do vector search in Atlas, thus we are using MongoDB
-  const client = new MongoClient(config.mongodb.url);
   try {
-    await client.connect();
-
-    const db = client.db(config.mongodb.db);
-    const collection = db.collection('chunks');
-
-    const objectIdList = documentIds.map((id) => new ObjectId(id));
+    const objectIdList = documentIds.map(
+      (id) => new mongoose.Types.ObjectId(id),
+    );
 
     // prettier-ignore
     const aggregate = [
@@ -43,13 +37,10 @@ async function getContextualData(queryVector, documentIds) {
       },
     ];
 
-    const resultsMongoose = await Chunk.aggregate(aggregate);
+    const results = await Chunk.aggregate(aggregate);
 
     logger.info('Search using Mongoose result:');
-    resultsMongoose.forEach((doc) => logger.info(JSON.stringify(doc)));
-
-    const results = await collection.aggregate(aggregate).toArray();
-    logger.info('Search using MongoDB result:', results);
+    results.forEach((doc) => logger.info(JSON.stringify(doc)));
 
     return results;
   } catch (error) {
@@ -57,8 +48,6 @@ async function getContextualData(queryVector, documentIds) {
     throw new Error(
       'Failed to query subset of documents for RAG. Check logs for details.',
     );
-  } finally {
-    await client.close();
   }
 }
 
