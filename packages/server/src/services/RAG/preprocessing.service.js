@@ -3,6 +3,7 @@ const path = require('path');
 const logger = require('../../config/logger');
 
 let pythonProcess;
+let responseQueue = [];
 
 // Initialize the Python process once
 const initializePythonProcess = () => {
@@ -18,8 +19,39 @@ const initializePythonProcess = () => {
     logger.error(`Failed to start Python process: ${err.message}`);
   });
 
-  pythonProcess.on('close', (code) => {
-    logger.error(`Python process closed with code ${code}`);
+  // Read stdout line-by-line
+  let buffer = '';
+  pythonProcess.stdout.on('data', (data) => {
+    buffer += data.toString();
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // Keep incomplete lines in buffer
+    lines.forEach((line) => {
+      if (line.trim()) {
+        // Resolve the oldest Promise
+        responseQueue.shift()(JSON.parse(line));
+      }
+    });
+  });
+};
+
+/**
+ * Processes a batch of texts using the Python script.
+ * @param {string[]} texts - An array of text chunks to process.
+ * @returns {Promise<string[]>} - A promise that resolves to an array of processed texts.
+ */
+const processTextBatch = (texts) => {
+  return new Promise((resolve, reject) => {
+    // Add resolver to the queue
+    responseQueue.push((result) => {
+      if (result.error) {
+        reject(new Error(result.error));
+      } else {
+        resolve(result);
+      }
+    });
+
+    // Send input as a JSON line
+    pythonProcess.stdin.write(`${JSON.stringify(texts)}\n`);
   });
 };
 
@@ -29,84 +61,8 @@ const initializePythonProcess = () => {
  * @returns {Promise<string>} - A promise that resolves to the processed text.
  */
 const processText = async (text) => {
-  return new Promise((resolve, reject) => {
-    let output = '';
-
-    // Handle stdout data
-    const onData = (data) => {
-      output += data.toString();
-    };
-
-    const onClose = () => {
-      try {
-        const result = JSON.parse(output.trim());
-        resolve(result[0]); // Extract the first result from the array
-      } catch (err) {
-        reject(new Error(`Failed to parse Python output: ${output}`));
-      }
-    };
-
-    const onError = (err) => {
-      reject(err);
-    };
-
-    pythonProcess.stdout.on('data', onData);
-    pythonProcess.on('close', onClose);
-    pythonProcess.on('error', onError);
-
-    logger.info('Sending input to Python process:', { text });
-    // Send the single text as a JSON array
-    pythonProcess.stdin.write(JSON.stringify([text]) + '\n');
-    pythonProcess.stdin.end();
-
-    // Cleanup listeners after processing
-    pythonProcess.stdout.off('data', onData);
-    pythonProcess.off('close', onClose);
-    pythonProcess.off('error', onError);
-  });
-};
-
-/**
- * Processes a batch of texts using the Python script.
- * @param {string[]} texts - An array of text chunks to process.
- * @returns {Promise<string[]>} - A promise that resolves to an array of processed texts.
- */
-const processTextBatch = async (texts) => {
-  return new Promise((resolve, reject) => {
-    let output = '';
-
-    // Handle stdout data
-    const onData = (data) => {
-      output += data.toString();
-    };
-
-    const onClose = () => {
-      try {
-        const results = JSON.parse(output.trim());
-        resolve(results);
-      } catch (err) {
-        reject(new Error(`Failed to parse Python output: ${output}`));
-      }
-    };
-
-    const onError = (err) => {
-      reject(err);
-    };
-
-    pythonProcess.stdout.on('data', onData);
-    pythonProcess.on('close', onClose);
-    pythonProcess.on('error', onError);
-
-    logger.info('Sending input to Python process:', { texts });
-    // Send the batch of texts as a JSON array
-    pythonProcess.stdin.write(JSON.stringify(texts) + '\n');
-    pythonProcess.stdin.end();
-
-    // Cleanup listeners after processing
-    pythonProcess.stdout.off('data', onData);
-    pythonProcess.off('close', onClose);
-    pythonProcess.off('error', onError);
-  });
+  const results = await processTextBatch([text]);
+  return results[0];
 };
 
 module.exports = {

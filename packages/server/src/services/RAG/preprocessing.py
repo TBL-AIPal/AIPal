@@ -28,28 +28,29 @@ def process_batch(texts, batch_size=100):
     """Processes texts in smaller batches to reduce memory usage."""
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
-        print(f"Processing batch {i // batch_size + 1}...", file=sys.stderr)
         yield [process_text(text) for text in batch]
 
 if __name__ == "__main__":
-    try:
-        # Read JSON input from stdin
-        input_data = sys.stdin.read().strip()
-        print(f"Received input: {input_data}", file=sys.stderr)
-        data = json.loads(input_data)
+    while True:
+        try:
+            # Read one line (JSON array) from stdin
+            line = sys.stdin.readline().strip()
 
-        # Validate input
-        if not isinstance(data, list):
-            raise ValueError("Input must be a JSON array of texts.")
-
-        # Process texts in batches
-        results = []
-        for batch_results in process_batch(data, batch_size=100):
-            results.extend(batch_results)
-
-        # Output the results as JSON and flush
-        print(json.dumps(results))
-        sys.stdout.flush()
-    except Exception as e:
-        print(json.dumps({"error": str(e)}))
-        sys.stdout.flush()
+            # Handle empty input
+            if not line:  
+                continue
+            
+            data = json.loads(line)
+            if not isinstance(data, list):
+                raise ValueError("Input must be a JSON array of texts.")
+            
+            results = []
+            for batch in process_batch(data):
+                results.extend(batch)
+            
+            print(json.dumps(results))
+            sys.stdout.flush()
+            
+        except Exception as e:
+            print(json.dumps({"error": str(e)}))
+            sys.stdout.flush()
