@@ -79,7 +79,7 @@ const callGemini = async (messages, apiKey) => {
 };
 
 // Function to process chunks sequentially
-const processChunksSequentially = async (chunks, conversation) => {
+const processChunksSequentially = async (chunks, conversation, apiKey) => {
   let finalSummary = ''; // Initialize the final summary
 
   // Process each chunk sequentially using reduce
@@ -102,7 +102,7 @@ const processChunksSequentially = async (chunks, conversation) => {
     ];
 
     // Call the OpenAI API with the constructed conversation
-    const primaryResponse = await callOpenAI(conversationWithChunk);
+    const primaryResponse = await callOpenAI(conversationWithChunk, apiKey);
     finalSummary = primaryResponse.data.choices[0].message.content; // Update the final summary with the latest response
   }, Promise.resolve()); // Start with a resolved promise
 
