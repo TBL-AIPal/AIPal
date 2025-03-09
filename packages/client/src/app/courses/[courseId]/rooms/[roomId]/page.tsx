@@ -3,12 +3,10 @@
 import { useParams } from 'next/navigation';
 import React, { useEffect, useRef,useState } from 'react';
 
-import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { createCombinedMessage, createDirectMessage, createGeminiMessage, createLlama3Message,createMultiAgentMessage, createRAGMessage } from '@/lib/API/message/mutations';
 import { GetRoomById } from '@/lib/API/room/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
 import { GetTemplateById } from '@/lib/API/template/queries';
-import { Document } from '@/lib/types/document';
 import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
@@ -20,7 +18,6 @@ const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{ courseId: string; roomId: string }>();
   const [room, setRoom] = useState<Room | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [messages, setMessages] = useState<{ 
     role: 'user' | 'assistant' | 'system';
     sender: string;
@@ -58,19 +55,7 @@ const RoomChatPage: React.FC = () => {
         setError('Failed to load room details.');
       }
     };
-
-    const fetchDocuments = async () => {
-      if (!courseId) return;
-      try {
-        const response = await GetDocumentsByCourseId(courseId);
-        setDocuments(response);
-      } catch (err) {
-        logger(err, 'Error fetching documents');
-      }
-    };
-
     fetchRoom();
-    fetchDocuments();
   }, [courseId, roomId]);
 
   useEffect(() => {

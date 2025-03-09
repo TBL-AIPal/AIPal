@@ -307,7 +307,7 @@ const createContextualizedAndMultiAgentReply = async (
   const documentIds = template.documents;
 
   const currentQuery = conversation[conversation.length - 1].content;
-  const contextualizedQuery = documents.length
+  const contextualizedQuery = documentIds.length
     ? await generateContextualizedQuery(currentQuery, apiKey, documentIds)
     : 'No relevant context was found in the database';
 
