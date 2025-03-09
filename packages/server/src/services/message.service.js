@@ -205,7 +205,7 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
   await saveMessage({
     roomId,
     sender: userId,
-    content: contextualizedQuery,
+    content: conversation[conversation.length - 1].content,
     modelUsed: 'rag',
   });
   await saveMessage({
@@ -305,6 +305,12 @@ const createContextualizedAndMultiAgentReply = async (
   const constraints = template.constraints;
 
   const documentIds = template.documents;
+
+  const currentQuery = conversation[conversation.length - 1].content;
+  const contextualizedQuery = documents.length
+    ? await generateContextualizedQuery(currentQuery, apiKey, documentIds)
+    : 'No relevant context was found in the database';
+
   const documents = await Promise.all(
     documentIds.map((id) => getDocumentById(id)),
   );
@@ -313,11 +319,6 @@ const createContextualizedAndMultiAgentReply = async (
     ? await processDocuments(documents, conversation, apiKey)
     : ['No relevant content was found in the database'];
   const finalSummary = summaries.join(' ');
-
-  const currentQuery = conversation[conversation.length - 1].content;
-  const contextualizedQuery = documents.length
-    ? await generateContextualizedQuery(currentQuery, apiKey, documentIds)
-    : 'No relevant context was found in the database';
 
   const managerConversation = [
     {
@@ -333,7 +334,7 @@ const createContextualizedAndMultiAgentReply = async (
   await saveMessage({
     roomId,
     sender: userId,
-    content: contextualizedQuery,
+    content: conversation[conversation.length - 1].content,
     modelUsed: 'rag+multi-agent',
   });
   await saveMessage({
