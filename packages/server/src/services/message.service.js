@@ -103,7 +103,7 @@ const processChunksSequentially = async (chunks, conversation, apiKey) => {
 
     // Call the OpenAI API with the constructed conversation
     const primaryResponse = await callOpenAI(conversationWithChunk, apiKey);
-    finalSummary = primaryResponse.data.choices[0].message.content; // Update the final summary with the latest response
+    finalSummary = primaryResponse.choices[0].message.content; // Update the final summary with the latest response
   }, Promise.resolve()); // Start with a resolved promise
 
   return finalSummary; // Return the final summary after processing all chunks
