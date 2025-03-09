@@ -180,26 +180,24 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
   }
 
-  const documentIds = template.documents;
+  const constraints = template.constraints;
 
-  const contextualizedQuery = await generateContextualizedQuery(
-    currentQuery,
-    apiKey,
-    documentIds,
-  );
+  const documentIds = template.documents;
+  const contextualizedQuery = documentIds.length
+    ? await generateContextualizedQuery(currentQuery, apiKey, documentIds)
+    : 'No relevant context was found in the database';
 
   logger.info(contextualizedQuery);
 
-  // Updated conversation with context
-  const contextualizedConversation = [
-    ...conversation.slice(0, conversation.length - 1),
+  const managerConversation = [
     {
-      role: 'user',
-      content: contextualizedQuery,
+      role: 'system',
+      content: `Context: "${contextualizedQuery}". Constraints: ${constraints.join(', ')}`,
     },
+    { role: 'user', content: conversation[conversation.length - 1].content },
   ];
 
-  const response = await callOpenAI(contextualizedConversation, apiKey);
+  const response = await callOpenAI(managerConversation, apiKey);
 
   const assistantResponse = response.choices[0].message.content;
 
@@ -241,11 +239,16 @@ const createMultiAgentReply = async (courseId, templateId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
   }
 
-  const documentIds = template.documents;
-  const documents = documentIds.map((id) => getDocumentById(id));
   const constraints = template.constraints;
 
-  const summaries = await processDocuments(documents, conversation, apiKey);
+  const documentIds = template.documents;
+  const documents = await Promise.all(
+    documentIds.map((id) => getDocumentById(id)),
+  );
+
+  const summaries = documents.length
+    ? await processDocuments(documents, conversation, apiKey)
+    : 'No relevant content was found in the database';
   const finalSummary = summaries.join(' ');
 
   const managerConversation = [
@@ -299,25 +302,29 @@ const createContextualizedAndMultiAgentReply = async (
     throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
   }
 
-  const documentIds = template.documents;
-  const documents = documentIds.map((id) => getDocumentById(id));
   const constraints = template.constraints;
 
-  const currentQuery = conversation[conversation.length - 1].content;
-  const contextualizedQuery = await generateContextualizedQuery(
-    currentQuery,
-    apiKey,
+  const documentIds = template.documents;
+  const documents = await Promise.all(
+    documentIds.map((id) => getDocumentById(id)),
   );
 
-  const summaries = await processDocuments(documents, conversation, apiKey);
+  const summaries = documents.length
+    ? await processDocuments(documents, conversation, apiKey)
+    : 'No relevant content was found in the database';
   const finalSummary = summaries.join(' ');
+
+  const currentQuery = conversation[conversation.length - 1].content;
+  const contextualizedQuery = documents.length
+    ? await generateContextualizedQuery(currentQuery, apiKey)
+    : 'No relevant context was found in the database';
 
   const managerConversation = [
     {
       role: 'system',
       content: `Summarized content: "${finalSummary}". Context: "${contextualizedQuery}". Constraints: ${constraints.join(', ')}`,
     },
-    { role: 'user', content: contextualizedQuery },
+    { role: 'user', content: conversation[conversation.length - 1].content },
   ];
 
   const response = await callOpenAI(managerConversation, apiKey);
