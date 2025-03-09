@@ -1,19 +1,15 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import React, { useEffect, useRef,useState } from 'react';
 
+import { createCombinedMessage, createDirectMessage, createGeminiMessage, createLlama3Message,createMultiAgentMessage, createRAGMessage } from '@/lib/API/message/mutations';
 import { GetRoomById } from '@/lib/API/room/queries';
-import { GetTemplateById } from '@/lib/API/template/queries';
-import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
-import { createDirectMessage, createMultiAgentMessage, createRAGMessage, createCombinedMessage, createGeminiMessage, createLlama3Message } from '@/lib/API/message/mutations';
-
+import { GetTemplateById } from '@/lib/API/template/queries';
+import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
-import { Document } from '@/lib/types/document';
-import { Message } from '@/lib/types/message';
 import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
@@ -22,7 +18,6 @@ const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{ courseId: string; roomId: string }>();
   const [room, setRoom] = useState<Room | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [messages, setMessages] = useState<{ 
     role: 'user' | 'assistant' | 'system';
     sender: string;
@@ -60,19 +55,7 @@ const RoomChatPage: React.FC = () => {
         setError('Failed to load room details.');
       }
     };
-
-    const fetchDocuments = async () => {
-      if (!courseId) return;
-      try {
-        const response = await GetDocumentsByCourseId(courseId);
-        setDocuments(response);
-      } catch (err) {
-        logger(err, 'Error fetching documents');
-      }
-    };
-
     fetchRoom();
-    fetchDocuments();
   }, [courseId, roomId]);
 
   useEffect(() => {
@@ -122,9 +105,7 @@ const RoomChatPage: React.FC = () => {
 
     try {
       let response;
-      const constraints = template?.constraints || [];
       const templateId = template?.id ?? '';
-
       // ✅ Sending only role and content to the backend
       const sanitizedMessages = updatedMessages.map(({ role, content }) => ({ role, content }));
 
@@ -136,8 +117,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
-            constraints,
           });
           break;
         case 'rag':
@@ -147,7 +126,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
           });
           break;
         case 'rag+multi-agent':
@@ -157,8 +135,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
-            constraints,
           });
           break;
         case 'gemini':
@@ -168,7 +144,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
           });
           break;
         case 'llama3':
@@ -178,7 +153,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
           });
           break;
         default:
@@ -188,8 +162,6 @@ const RoomChatPage: React.FC = () => {
             roomId,
             userId,
             conversation: sanitizedMessages,
-            documents,
-            constraints,
           });
       }
 

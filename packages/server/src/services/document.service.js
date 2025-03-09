@@ -6,6 +6,7 @@ const { generateEmbedding } = require('./RAG/embedding.service');
 const { processText } = require('./RAG/preprocessing.service');
 const recursiveSplit = require('../utils/recursiveSplit');
 const { decrypt } = require('../utils/cryptoUtils');
+const logger = require('../config/logger');
 const config = require('../config/config');
 
 /**
@@ -44,7 +45,9 @@ const createDocument = async (courseId, file) => {
   }
 
   //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
+  logger.info('Attempt to retrieve API Key for embeddings');
   const apiKey = decrypt(course.apiKeys.chatgpt, config.encryption.key);
+  logger.info('API Key retrieved for embeddings');
 
   if (documentData.text) {
     const chunksText = recursiveSplit(documentData.text, 1000, 200);
@@ -55,9 +58,10 @@ const createDocument = async (courseId, file) => {
         return { text, embedding };
       }),
     );
+    logger.info('Attempt to insert document chunks');
     await Chunk.insertMany(
       chunks.map((chunk) => ({ ...chunk, document: document._id })),
-    );
+    ).then('Document chunks inserted successfully');
   }
 
   return document;

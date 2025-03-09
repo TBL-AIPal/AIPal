@@ -9,6 +9,7 @@ const { generateContextualizedQuery } = require('./RAG/vector.search.service');
 
 const { getApiKeyById } = require('./course.service');
 const { getTemplateById } = require('./template.service');
+const { getDocumentById } = require('./document.service');
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -78,7 +79,7 @@ const callGemini = async (messages, apiKey) => {
 };
 
 // Function to process chunks sequentially
-const processChunksSequentially = async (chunks, conversation) => {
+const processChunksSequentially = async (chunks, conversation, apiKey) => {
   let finalSummary = ''; // Initialize the final summary
 
   // Process each chunk sequentially using reduce
@@ -101,8 +102,8 @@ const processChunksSequentially = async (chunks, conversation) => {
     ];
 
     // Call the OpenAI API with the constructed conversation
-    const primaryResponse = await callOpenAI(conversationWithChunk);
-    finalSummary = primaryResponse.data.choices[0].message.content; // Update the final summary with the latest response
+    const primaryResponse = await callOpenAI(conversationWithChunk, apiKey);
+    finalSummary = primaryResponse.choices[0].message.content; // Update the final summary with the latest response
   }, Promise.resolve()); // Start with a resolved promise
 
   return finalSummary; // Return the final summary after processing all chunks
@@ -179,26 +180,24 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
   }
 
-  const documentIds = template.documents;
+  const constraints = template.constraints;
 
-  const contextualizedQuery = await generateContextualizedQuery(
-    currentQuery,
-    apiKey,
-    documentIds,
-  );
+  const documentIds = template.documents;
+  const contextualizedQuery = documentIds.length
+    ? await generateContextualizedQuery(currentQuery, apiKey, documentIds)
+    : 'No relevant context was found in the database';
 
   logger.info(contextualizedQuery);
 
-  // Updated conversation with context
-  const contextualizedConversation = [
-    ...conversation.slice(0, conversation.length - 1),
+  const managerConversation = [
     {
-      role: 'user',
-      content: contextualizedQuery,
+      role: 'system',
+      content: `Context: "${contextualizedQuery}". Constraints: ${constraints.join(', ')}`,
     },
+    { role: 'user', content: conversation[conversation.length - 1].content },
   ];
 
-  const response = await callOpenAI(contextualizedConversation, apiKey);
+  const response = await callOpenAI(managerConversation, apiKey);
 
   const assistantResponse = response.choices[0].message.content;
 
@@ -206,7 +205,7 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
   await saveMessage({
     roomId,
     sender: userId,
-    content: contextualizedQuery,
+    content: conversation[conversation.length - 1].content,
     modelUsed: 'rag',
   });
   await saveMessage({
@@ -231,11 +230,25 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
 };
 
 // **🔹 Multi-Agent Reply**
-const createMultiAgentReply = async (courseId, messageBody) => {
-  const { conversation, documents, constraints, roomId, userId } = messageBody;
+const createMultiAgentReply = async (courseId, templateId, messageBody) => {
+  const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
 
-  const summaries = await processDocuments(documents, conversation, apiKey);
+  const template = await getTemplateById(templateId);
+  if (!template) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
+  }
+
+  const constraints = template.constraints;
+
+  const documentIds = template.documents;
+  const documents = await Promise.all(
+    documentIds.map((id) => getDocumentById(id)),
+  );
+
+  const summaries = documents.length
+    ? await processDocuments(documents, conversation, apiKey)
+    : ['No relevant content was found in the database'];
   const finalSummary = summaries.join(' ');
 
   const managerConversation = [
@@ -281,16 +294,30 @@ const createContextualizedAndMultiAgentReply = async (
   templateId,
   messageBody,
 ) => {
-  const { conversation, documents, constraints, roomId, userId } = messageBody;
+  const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
 
+  const template = await getTemplateById(templateId);
+  if (!template) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
+  }
+
+  const constraints = template.constraints;
+
+  const documentIds = template.documents;
+
   const currentQuery = conversation[conversation.length - 1].content;
-  const contextualizedQuery = await generateContextualizedQuery(
-    currentQuery,
-    apiKey,
+  const contextualizedQuery = documentIds.length
+    ? await generateContextualizedQuery(currentQuery, apiKey, documentIds)
+    : 'No relevant context was found in the database';
+
+  const documents = await Promise.all(
+    documentIds.map((id) => getDocumentById(id)),
   );
 
-  const summaries = await processDocuments(documents, conversation, apiKey);
+  const summaries = documents.length
+    ? await processDocuments(documents, conversation, apiKey)
+    : ['No relevant content was found in the database'];
   const finalSummary = summaries.join(' ');
 
   const managerConversation = [
@@ -298,7 +325,7 @@ const createContextualizedAndMultiAgentReply = async (
       role: 'system',
       content: `Summarized content: "${finalSummary}". Context: "${contextualizedQuery}". Constraints: ${constraints.join(', ')}`,
     },
-    { role: 'user', content: contextualizedQuery },
+    { role: 'user', content: conversation[conversation.length - 1].content },
   ];
 
   const response = await callOpenAI(managerConversation, apiKey);
@@ -307,7 +334,7 @@ const createContextualizedAndMultiAgentReply = async (
   await saveMessage({
     roomId,
     sender: userId,
-    content: contextualizedQuery,
+    content: conversation[conversation.length - 1].content,
     modelUsed: 'rag+multi-agent',
   });
   await saveMessage({

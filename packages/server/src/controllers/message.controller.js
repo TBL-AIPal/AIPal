@@ -16,7 +16,11 @@ const createMessage = catchAsync(async (req, res) => {
       body,
     );
   } else if (method === 'multi-agent') {
-    result = await messageService.createMultiAgentReply(courseId, body);
+    result = await messageService.createMultiAgentReply(
+      courseId,
+      templateId,
+      body,
+    );
   } else if (method === 'combined') {
     result = await messageService.createContextualizedAndMultiAgentReply(
       courseId,
