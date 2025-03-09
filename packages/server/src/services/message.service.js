@@ -248,7 +248,7 @@ const createMultiAgentReply = async (courseId, templateId, messageBody) => {
 
   const summaries = documents.length
     ? await processDocuments(documents, conversation, apiKey)
-    : 'No relevant content was found in the database';
+    : ['No relevant content was found in the database'];
   const finalSummary = summaries.join(' ');
 
   const managerConversation = [
@@ -311,7 +311,7 @@ const createContextualizedAndMultiAgentReply = async (
 
   const summaries = documents.length
     ? await processDocuments(documents, conversation, apiKey)
-    : 'No relevant content was found in the database';
+    : ['No relevant content was found in the database'];
   const finalSummary = summaries.join(' ');
 
   const currentQuery = conversation[conversation.length - 1].content;
