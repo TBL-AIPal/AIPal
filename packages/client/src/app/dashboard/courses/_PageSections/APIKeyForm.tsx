@@ -1,19 +1,34 @@
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { FormItem, FormLabel } from '@/components/ui/Form';
 
 export const APIKeyForm = () => {
-  const { register } = useFormContext();
+  const { register, watch } = useFormContext();
+
+  const apiKeys = watch('apiKeys', { gemini: '', llama: '', chatgpt: '' });
+
+  const [isRequired, setIsRequired] = useState(true);
+
+  useEffect(() => {
+    setIsRequired(!(apiKeys.gemini || apiKeys.llama || apiKeys.chatgpt));
+  }, [apiKeys]);
 
   return (
     <>
+      <p className="text-sm text-gray-600 mb-2">
+        At least one API key is required.
+      </p>
+
       <FormItem>
         <FormLabel htmlFor="apiKeys.gemini">Gemini API Key</FormLabel>
         <input
           id="apiKeys.gemini"
           {...register('apiKeys.gemini')}
           placeholder="Enter Gemini API key"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white ${
+            isRequired ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
       </FormItem>
 
@@ -23,7 +38,9 @@ export const APIKeyForm = () => {
           id="apiKeys.llama"
           {...register('apiKeys.llama')}
           placeholder="Enter Llama API key"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white ${
+            isRequired ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
       </FormItem>
 
@@ -33,7 +50,9 @@ export const APIKeyForm = () => {
           id="apiKeys.chatgpt"
           {...register('apiKeys.chatgpt')}
           placeholder="Enter ChatGPT API key"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white ${
+            isRequired ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
       </FormItem>
     </>
