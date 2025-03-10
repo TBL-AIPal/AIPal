@@ -237,25 +237,19 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   )}
                 </div>
                 {/* Display the rooms when expanded */}
+                {/* Display the rooms when expanded */}
                 <div className='mt-4'>
-                  {/* Header for Rooms */}
                   <h3 className='font-semibold'>Rooms</h3>
                   {rooms.length === 0 ? (
                     <p>No rooms available for this template.</p>
                   ) : (
                     <ul className='list-disc pl-5'>
                       {rooms.map((room) => (
-                        <li
-                          key={room.id}
-                          className='cursor-pointer text-blue-600 hover:underline'
-                          onClick={() => handleRoomClick(room)} // Pass the entire room object when clicked
-                        >
-                          {room.name} - {room.description}
-                        </li>
+                        <RoomItem key={room.id} room={room} onRoomClick={handleRoomClick} />
                       ))}
                     </ul>
                   )}
-                </div>
+                </div>;
                 {/* Display the documents when expanded */}
                 <div className='mt-4'>
                   {/* Header for Documents */}
@@ -301,6 +295,41 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
         </Modal>
       )}
     </>
+  );
+};
+
+// Separate RoomItem component to fix useState issue
+const RoomItem: React.FC<{ room: Room; onRoomClick: (room: Room) => void }> = ({ room, onRoomClick }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset after 2 sec
+  };
+
+  return (
+    <li key={room.id} className='cursor-pointer text-blue-600 hover:underline' onClick={() => onRoomClick(room)}>
+      <span className='font-semibold'>{room.name}</span> - {room.description}
+      <br />
+      <div className='flex items-center space-x-2'>
+        <span className='text-sm text-gray-600'>Room Code: <strong>{room.code}</strong></span>
+
+        {/* Copy Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCopy(room.code);
+          }}
+          className='ml-2 p-1 rounded bg-gray-200 hover:bg-gray-300 transition'
+        >
+          📋
+        </button>
+
+        {/* Show "Copied" confirmation message */}
+        {copied && <span className='text-green-600 text-xs'>Copied!</span>}
+      </div>
+    </li>
   );
 };
 

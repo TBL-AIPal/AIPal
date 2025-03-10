@@ -23,12 +23,22 @@ const Overview: React.FC = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [emailList, setEmailList] = useState<string>('');
   const [userRole, setUserRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
+  const [courseOwner, setCourseOwner] = useState<User | null>(null); // ✅ Store course owner
 
   const fetchUsers = useCallback(async () => {
     if (!courseIdString) return;
     try {
       const users = await GetUsersByCourseId(courseIdString);
       logger(users, 'Fetched users successfully');
+
+      // ✅ Determine current user's role
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUser = users.find((user) => user.email === storedUser?.email);
+
+      if (currentUser) {
+        setUserRole(currentUser.role as 'admin' | 'teacher' | 'student');
+      }
+
       setAccounts(users || []);
     } catch (error) {
       logger(error, 'Error fetching users');
@@ -48,7 +58,16 @@ const Overview: React.FC = () => {
     if (!courseIdString) return;
     try {
       const course = await GetCourseById(courseIdString);
+      console.log(course);
       setCourseDetails(course);
+
+      // ✅ Fetch owner details if available
+      if (course.owner) {
+        const ownerUser = await GetUsers().then(users => users.find(user => user.id === course.owner));
+        if (ownerUser) {
+          setCourseOwner(ownerUser);
+        }
+      }
     } catch (error) {
       logger(error, 'Error fetching course details');
     }
@@ -97,10 +116,20 @@ const Overview: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-2 text-blue-600">Description</h1>
+      <h1 className="text-2xl font-semibold mb-2 text-blue-600">Course Overview</h1>
       <p className="mb-4 text-gray-700">{courseDetails?.description || 'No description available for this course.'}</p>
-      <div className="mt-4"></div>
       
+      {/* Course Owner Section */}
+      {courseOwner && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-700">Course Owner</h2>
+          <div className="p-4 border rounded bg-gray-100">
+            <p className="text-gray-800 font-medium">{courseOwner.name} ({courseOwner.email})</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Staff and Students */}
       <h1 className="text-2xl font-semibold mb-2 text-blue-600">Staff and Students</h1>
       <AccountTable>
         {accounts.map((account) => (

@@ -116,6 +116,15 @@ const deleteCourseById = async (courseId) => {
   return course;
 };
 
+/**
+ * Get course by whitelisted email
+ * @param {string} email
+ * @returns {Promise<Course>}
+ */
+const getCourseByEmail = async (email) => {
+  return await Course.findOne({ whitelist: email });
+};
+
 module.exports = {
   createCourse,
   queryCourses,
@@ -123,4 +132,5 @@ module.exports = {
   getApiKeyById,
   updateCourseById,
   deleteCourseById,
+  getCourseByEmail
 };
