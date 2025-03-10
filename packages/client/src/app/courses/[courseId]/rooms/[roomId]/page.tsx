@@ -249,14 +249,18 @@ const RoomChatPage: React.FC = () => {
         content: msg.content,
         modelUsed: msg.modelUsed || selectedModel,
       }));
+
+       // ✅ Send the new AI response to WebSocket
+       const lastMessage = formattedMessages.at(-1); // `at(-1)` gets the last element safely
       
-      // ✅ Update React state
-      setMessages(formattedMessages);
+       if (lastMessage) {
+        // ✅ Append only the last AI response to the existing state
+        setMessages((prevMessages) => [...prevMessages, lastMessage]);
       
-      // ✅ Send the new AI response to WebSocket
-      const lastMessage = formattedMessages.at(-1); // `at(-1)` gets the last element safely
-      if (lastMessage && socketRef.current) {
-        socketRef.current.send(JSON.stringify(lastMessage));
+        // ✅ Send the new AI response to WebSocket
+        if (socketRef.current) {
+          socketRef.current.send(JSON.stringify(lastMessage));
+        }
       }
 
     } catch (error) {
