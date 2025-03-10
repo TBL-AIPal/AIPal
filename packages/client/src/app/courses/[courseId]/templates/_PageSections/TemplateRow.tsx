@@ -283,7 +283,7 @@ const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
   };
 
   return (
-    <li key={room.id} className='cursor-pointer text-blue-600'>
+    <li key={room.id} className='text-blue-600'>
       <span className='font-semibold'>{room.name}</span> - {room.description}
       <br />
       <div className='flex items-center space-x-2'>
