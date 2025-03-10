@@ -1,10 +1,9 @@
-name: Build and Push Docker Images to GitHub Container Registry
+name: Build and Push Development Images to GitHub Container Registry
 
 on:
   push:
     branches:
       - main
-      - deployment
   # Allow manual triggering
   workflow_dispatch:
 
@@ -33,33 +32,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 4: Build and push MongoDB image
-      - name: Build and push MongoDB image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./packages/mongodb
-          file: ./packages/mongodb/Dockerfile.development
-          push: true
-          tags: ghcr.io/${{ env.REPO_NAME }}/mongo:latest
 
-      # Step 5: Build and push Server image
+      # Step 4: Build and push Server image
       - name: Build and push Server image
         uses: docker/build-push-action@v4
         with:
           context: ./packages/server
           file: ./packages/server/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ env.REPO_NAME }}/server:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/server-development:latest
 
-      # Step 6: Build and push Client image
+      # Step 5: Build and push Client image
       - name: Build and push Client image
         uses: docker/build-push-action@v4
         with:
           context: ./packages/client
           file: ./packages/client/Dockerfile.development
           push: true
-          tags: ghcr.io/${{ env.REPO_NAME }}/client:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/client-development:latest
 
-      # Optional: Print success message
       - name: Print success message
-        run: echo "All Docker images have been built and pushed to GitHub Container Registry!"
+        run: echo "Server and client images have been built and pushed to registry!"
