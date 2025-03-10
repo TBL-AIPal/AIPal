@@ -10,7 +10,6 @@ import { Template, TemplateUpdateInput } from '@/lib/types/template';
 
 import { Modal } from '@/components/ui/Modal';
 
-import ChatRoomPage from './chat';
 import DocumentSelectionForm from './DocumentSelectionForm';
 import RoomCreateForm from './RoomCreateForm';
 
@@ -39,8 +38,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   );
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [filenames, setFilenames] = useState<string[]>([]);
 
   const toggleExpand = () => {
@@ -134,12 +131,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
     fetchRooms,
     fetchFilenames,
   ]);
-
-  // Handler for clicking on a room, which opens the chat modal
-  const handleRoomClick = (room: Room) => {
-    setSelectedRoom(room);
-    setIsChatModalOpen(true); // Open chat modal when a room is clicked
-  };
 
   return (
     <>
@@ -237,7 +228,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   )}
                 </div>
                 {/* Display the rooms when expanded */}
-                {/* Display the rooms when expanded */}
                 <div className='mt-4'>
                   <h3 className='font-semibold'>Rooms</h3>
                   {rooms.length === 0 ? (
@@ -245,11 +235,11 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   ) : (
                     <ul className='list-disc pl-5'>
                       {rooms.map((room) => (
-                        <RoomItem key={room.id} room={room} onRoomClick={handleRoomClick} />
+                        <RoomItem key={room.id} room={room}/>
                       ))}
                     </ul>
                   )}
-                </div>;
+                </div>
                 {/* Display the documents when expanded */}
                 <div className='mt-4'>
                   {/* Header for Documents */}
@@ -278,28 +268,12 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           <RoomCreateForm onCreateRoom={handleCreateRoom} />
         </Modal>
       )}
-      {/* Chat room modal */}
-      {isChatModalOpen && selectedRoom && (
-        <Modal
-          title={`Chat Room - ${selectedRoom.name}`} // Display room name in the modal title
-          onClose={() => setIsChatModalOpen(false)} // Close the modal on user action
-          size='xl'
-        >
-          <ChatRoomPage
-            roomName={selectedRoom.name}
-            roomDescription={selectedRoom.description}
-            courseId={courseId}
-            templateId={selectedRoom.template}
-            constraints={template.constraints}
-          />
-        </Modal>
-      )}
     </>
   );
 };
 
 // Separate RoomItem component to fix useState issue
-const RoomItem: React.FC<{ room: Room; onRoomClick: (room: Room) => void }> = ({ room, onRoomClick }) => {
+const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = (code: string) => {
@@ -309,7 +283,7 @@ const RoomItem: React.FC<{ room: Room; onRoomClick: (room: Room) => void }> = ({
   };
 
   return (
-    <li key={room.id} className='cursor-pointer text-blue-600 hover:underline' onClick={() => onRoomClick(room)}>
+    <li key={room.id} className='text-blue-600'>
       <span className='font-semibold'>{room.name}</span> - {room.description}
       <br />
       <div className='flex items-center space-x-2'>
