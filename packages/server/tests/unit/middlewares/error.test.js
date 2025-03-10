@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const httpMocks = require('node-mocks-http');
-const { errorConverter, errorHandler } = require('../../../src/middlewares/error');
+const {
+  errorConverter,
+  errorHandler,
+} = require('../../../src/middlewares/error');
 const ApiError = require('../../../src/utils/ApiError');
 const config = require('../../../src/config/config');
 const logger = require('../../../src/config/logger');
@@ -12,7 +15,12 @@ describe('Error middlewares', () => {
       const error = new ApiError(httpStatus.BAD_REQUEST, 'Any error');
       const next = jest.fn();
 
-      errorConverter(error, httpMocks.createRequest(), httpMocks.createResponse(), next);
+      errorConverter(
+        error,
+        httpMocks.createRequest(),
+        httpMocks.createResponse(),
+        next,
+      );
 
       expect(next).toHaveBeenCalledWith(error);
     });
@@ -22,7 +30,12 @@ describe('Error middlewares', () => {
       error.statusCode = httpStatus.BAD_REQUEST;
       const next = jest.fn();
 
-      errorConverter(error, httpMocks.createRequest(), httpMocks.createResponse(), next);
+      errorConverter(
+        error,
+        httpMocks.createRequest(),
+        httpMocks.createResponse(),
+        next,
+      );
 
       expect(next).toHaveBeenCalledWith(expect.any(ApiError));
       expect(next).toHaveBeenCalledWith(
@@ -30,7 +43,7 @@ describe('Error middlewares', () => {
           statusCode: error.statusCode,
           message: error.message,
           isOperational: false,
-        })
+        }),
       );
     });
 
@@ -38,7 +51,12 @@ describe('Error middlewares', () => {
       const error = new Error('Any error');
       const next = jest.fn();
 
-      errorConverter(error, httpMocks.createRequest(), httpMocks.createResponse(), next);
+      errorConverter(
+        error,
+        httpMocks.createRequest(),
+        httpMocks.createResponse(),
+        next,
+      );
 
       expect(next).toHaveBeenCalledWith(expect.any(ApiError));
       expect(next).toHaveBeenCalledWith(
@@ -46,7 +64,7 @@ describe('Error middlewares', () => {
           statusCode: httpStatus.INTERNAL_SERVER_ERROR,
           message: error.message,
           isOperational: false,
-        })
+        }),
       );
     });
 
@@ -55,7 +73,12 @@ describe('Error middlewares', () => {
       error.statusCode = httpStatus.BAD_REQUEST;
       const next = jest.fn();
 
-      errorConverter(error, httpMocks.createRequest(), httpMocks.createResponse(), next);
+      errorConverter(
+        error,
+        httpMocks.createRequest(),
+        httpMocks.createResponse(),
+        next,
+      );
 
       expect(next).toHaveBeenCalledWith(expect.any(ApiError));
       expect(next).toHaveBeenCalledWith(
@@ -63,7 +86,7 @@ describe('Error middlewares', () => {
           statusCode: error.statusCode,
           message: httpStatus[error.statusCode],
           isOperational: false,
-        })
+        }),
       );
     });
 
@@ -71,7 +94,12 @@ describe('Error middlewares', () => {
       const error = new mongoose.Error('Any mongoose error');
       const next = jest.fn();
 
-      errorConverter(error, httpMocks.createRequest(), httpMocks.createResponse(), next);
+      errorConverter(
+        error,
+        httpMocks.createRequest(),
+        httpMocks.createResponse(),
+        next,
+      );
 
       expect(next).toHaveBeenCalledWith(expect.any(ApiError));
       expect(next).toHaveBeenCalledWith(
@@ -79,7 +107,7 @@ describe('Error middlewares', () => {
           statusCode: httpStatus.BAD_REQUEST,
           message: error.message,
           isOperational: false,
-        })
+        }),
       );
     });
 
@@ -87,7 +115,12 @@ describe('Error middlewares', () => {
       const error = {};
       const next = jest.fn();
 
-      errorConverter(error, httpMocks.createRequest(), httpMocks.createResponse(), next);
+      errorConverter(
+        error,
+        httpMocks.createRequest(),
+        httpMocks.createResponse(),
+        next,
+      );
 
       expect(next).toHaveBeenCalledWith(expect.any(ApiError));
       expect(next).toHaveBeenCalledWith(
@@ -95,7 +128,7 @@ describe('Error middlewares', () => {
           statusCode: httpStatus.INTERNAL_SERVER_ERROR,
           message: httpStatus[httpStatus.INTERNAL_SERVER_ERROR],
           isOperational: false,
-        })
+        }),
       );
     });
   });
@@ -112,7 +145,12 @@ describe('Error middlewares', () => {
 
       errorHandler(error, httpMocks.createRequest(), res);
 
-      expect(sendSpy).toHaveBeenCalledWith(expect.objectContaining({ code: error.statusCode, message: error.message }));
+      expect(sendSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: error.statusCode,
+          message: error.message,
+        }),
+      );
       expect(res.locals.errorMessage).toBe(error.message);
     });
 
@@ -125,7 +163,11 @@ describe('Error middlewares', () => {
       errorHandler(error, httpMocks.createRequest(), res);
 
       expect(sendSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ code: error.statusCode, message: error.message, stack: error.stack })
+        expect.objectContaining({
+          code: error.statusCode,
+          message: error.message,
+          stack: error.stack,
+        }),
       );
       config.env = process.env.NODE_ENV;
     });
@@ -142,7 +184,7 @@ describe('Error middlewares', () => {
         expect.objectContaining({
           code: httpStatus.INTERNAL_SERVER_ERROR,
           message: httpStatus[httpStatus.INTERNAL_SERVER_ERROR],
-        })
+        }),
       );
       expect(res.locals.errorMessage).toBe(error.message);
       config.env = process.env.NODE_ENV;
@@ -160,7 +202,7 @@ describe('Error middlewares', () => {
         expect.objectContaining({
           code: error.statusCode,
           message: error.message,
-        })
+        }),
       );
       config.env = process.env.NODE_ENV;
     });

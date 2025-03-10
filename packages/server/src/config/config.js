@@ -1,17 +1,30 @@
-const dotenv = require('dotenv');
-const path = require('path');
 const Joi = require('joi');
 
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+let databaseSuffix = '';
+
+if (process.env.NODE_ENV === 'production') {
+  databaseSuffix = '-prod';
+} else {
+  databaseSuffix = '-dev';
+}
 
 const envVarsSchema = Joi.object()
   .keys({
-    NODE_ENV: Joi.string().valid('production', 'development', 'test').required(),
-    PORT: Joi.number().default(3000),
-    MONGODB_URL: Joi.string().required().description('Mongo DB url'),
+    SERVER_PORT: Joi.number().required(),
+    MONGODB_USERNAME: Joi.string().required().description('MongoDB username'),
+    MONGODB_PASSWORD: Joi.string().required().description('MongoDB password'),
+    MONGODB_HOST: Joi.string().required().description('MongoDB host'),
+    MONGODB_PORT: Joi.string().required().description('MongoDB port'),
+    MONGODB_DATABASE: Joi.string()
+      .required()
+      .description('MongoDB database name'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
-    JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
-    JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
+    JWT_ACCESS_EXPIRATION_MINUTES: Joi.number()
+      .default(30)
+      .description('minutes after which access tokens expire'),
+    JWT_REFRESH_EXPIRATION_DAYS: Joi.number()
+      .default(30)
+      .description('days after which refresh tokens expire'),
     JWT_RESET_PASSWORD_EXPIRATION_MINUTES: Joi.number()
       .default(10)
       .description('minutes after which reset password token expires'),
@@ -22,37 +35,42 @@ const envVarsSchema = Joi.object()
     SMTP_PORT: Joi.number().description('port to connect to the email server'),
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
-    EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
-    ENCRYPTION_KEY: Joi.string().required().min(64).description('Encryption key for API keys'),
+    ENCRYPTION_KEY: Joi.string()
+      .required()
+      .min(64)
+      .description('Encryption key for API keys'),
+    EMAIL_FROM: Joi.string().description(
+      'the from field in the emails sent by the app',
+    ),
   })
   .unknown();
 
-const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
+const { value: envVars, error } = envVarsSchema
+  .prefs({ errors: { label: 'key' } })
+  .validate(process.env);
 
 if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
 module.exports = {
-  env: envVars.NODE_ENV,
-  port: envVars.PORT,
+  env: process.env.NODE_ENV,
+  port: envVars.SERVER_PORT,
   mongoose: {
-    url: envVars.MONGODB_URL + envVars.DATABASE_NAME + (envVars.NODE_ENV === 'test' ? '-test' : '-dev'),
-    options: {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
+    // TODO: Add auth
+    url: `mongodb://${envVars.MONGODB_HOST}:${envVars.MONGODB_PORT}/${envVars.MONGODB_DATABASE}${databaseSuffix}?directConnection=true`,
   },
   mongodb: {
-    url: `${envVars.MONGODB_URL}?directConnection=true`,
-    db: envVars.DATABASE_NAME + (envVars.NODE_ENV === 'test' ? '-test' : '-dev'),
+    // TODO: Add auth
+    url: `mongodb://${envVars.MONGODB_HOST}:${envVars.MONGODB_PORT}/?directConnection=true`,
+    db: envVars.DATABASE_NAME + databaseSuffix,
   },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
-    resetPasswordExpirationMinutes: envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
+    resetPasswordExpirationMinutes:
+      envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
   },
   email: {

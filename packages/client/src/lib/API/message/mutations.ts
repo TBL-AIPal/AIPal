@@ -7,16 +7,12 @@ export const createDirectMessage = async ({
   roomId,
   userId,
   conversation,
-  documents = [],
-  constraints = [],
 }: SendMessageInput) => {
   try {
     const response = await api.post(`/messages/direct/${courseId}/${templateId}`, {
       roomId,
       userId,
       conversation,
-      documents,
-      constraints,
     });
     return response.data;
   } catch (err) {
@@ -31,14 +27,12 @@ export const createRAGMessage = async ({
   roomId,
   userId,
   conversation,
-  documents = [],
 }: SendMessageInput) => {
   try {
     const response = await api.post(`/messages/rag/${courseId}/${templateId}`, {
       roomId,
       userId,
       conversation,
-      documents,
     });
     return response.data;
   } catch (err) {
@@ -53,16 +47,12 @@ export const createMultiAgentMessage = async ({
   roomId,
   userId,
   conversation,
-  documents = [],
-  constraints = [],
 }: SendMessageInput) => {
   try {
     const response = await api.post(`/messages/multi-agent/${courseId}/${templateId}`, {
       roomId,
       userId,
       conversation,
-      documents,
-      constraints,
     });
     return response.data;
   } catch (err) {
@@ -77,16 +67,12 @@ export const createCombinedMessage = async ({
   roomId,
   userId,
   conversation,
-  documents = [],
-  constraints = [],
 }: SendMessageInput) => {
   try {
     const response = await api.post(`/messages/combined/${courseId}/${templateId}`, {
       roomId,
       userId,
       conversation,
-      documents,
-      constraints,
     });
     return response.data;
   } catch (err) {
@@ -101,14 +87,12 @@ export const createGeminiMessage = async ({
   roomId,
   userId,
   conversation,
-  documents = [],
 }: SendMessageInput) => {
   try {
     const response = await api.post(`/messages/gemini/${courseId}/${templateId}`, {
       roomId,
       userId,
       conversation,
-      documents,
     });
     return response.data;
   } catch (err) {
@@ -123,14 +107,12 @@ export const createLlama3Message = async ({
   roomId,
   userId,
   conversation,
-  documents = [],
 }: SendMessageInput) => {
   try {
     const response = await api.post(`/messages/llama3/${courseId}/${templateId}`, {
       roomId,
       userId,
       conversation,
-      documents,
     });
     return response.data;
   } catch (err) {

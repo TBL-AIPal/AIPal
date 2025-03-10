@@ -15,7 +15,10 @@ const createTemplate = async (courseId, templateBody) => {
   });
 
   // Update the course to add the template ID to the templates array
-  await Course.updateOne({ _id: courseId }, { $push: { templates: template._id } });
+  await Course.updateOne(
+    { _id: courseId },
+    { $push: { templates: template._id } },
+  );
 
   return template;
 };
@@ -78,7 +81,10 @@ const deleteTemplateById = async (courseId, templateId) => {
   }
 
   // Delete the course to remove the template ID from the templates array
-  await Course.updateOne({ _id: courseId }, { $pull: { templates: template._id } });
+  await Course.updateOne(
+    { _id: courseId },
+    { $pull: { templates: template._id } },
+  );
 
   await template.remove();
   return template;

@@ -38,7 +38,7 @@ const documentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Add plugin that converts mongoose to json

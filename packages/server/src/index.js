@@ -3,10 +3,14 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
+const {
+  initializePythonProcess,
+} = require('./services/RAG/preprocessing.service');
 const setupWebSocket = require('./websockets/setupWebSocket');
 
 let server;
-mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
+logger.info(`Trying to connect to MongoDB using ${config.mongoose.url}`);
+mongoose.connect(config.mongoose.url).then(() => {
   logger.info('Connected to MongoDB');
   server = http.createServer(app);
   setupWebSocket(server);
@@ -14,6 +18,9 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
     logger.info(`Listening to port ${config.port}`);
   });
 });
+
+// Initialize the Python process for embeddings
+initializePythonProcess();
 
 const exitHandler = () => {
   if (server) {

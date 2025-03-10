@@ -16,25 +16,65 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageCourses'), validate(courseValidation.createCourse), courseController.createCourse)
-  .get(auth('getCourses'), validate(courseValidation.getCourses), courseController.getCourses);
+  .post(
+    auth('manageCourses'),
+    validate(courseValidation.createCourse),
+    courseController.createCourse,
+  )
+  .get(
+    auth('getCourses'),
+    validate(courseValidation.getCourses),
+    courseController.getCourses,
+  );
 
 router
   .route('/:courseId')
-  .get(auth('getCourses'), validate(courseValidation.getCourse), courseController.getCourse)
-  .patch(auth('manageCourses'), validate(courseValidation.updateCourse), courseController.updateCourse)
-  .delete(auth('manageCourses'), validate(courseValidation.deleteCourse), courseController.deleteCourse);
+  .get(
+    auth('getCourses'),
+    validate(courseValidation.getCourse),
+    courseController.getCourse,
+  )
+  .patch(
+    auth('manageCourses'),
+    validate(courseValidation.updateCourse),
+    courseController.updateCourse,
+  )
+  .delete(
+    auth('manageCourses'),
+    validate(courseValidation.deleteCourse),
+    courseController.deleteCourse,
+  );
 
 router
   .route('/:courseId/templates')
-  .post(auth('manageTemplates'), validate(templateValidation.createTemplate), templateController.createTemplate)
-  .get(auth('getTemplates'), validate(templateValidation.getTemplates), templateController.getTemplates);
+  .post(
+    auth('manageTemplates'),
+    validate(templateValidation.createTemplate),
+    templateController.createTemplate,
+  )
+  .get(
+    auth('getTemplates'),
+    validate(templateValidation.getTemplates),
+    templateController.getTemplates,
+  );
 
 router
   .route('/:courseId/templates/:templateId')
-  .get(auth('getTemplates'), validate(templateValidation.getTemplate), templateController.getTemplate)
-  .patch(auth('manageTemplates'), validate(templateValidation.updateTemplate), templateController.updateTemplate)
-  .delete(auth('manageTemplates'), validate(templateValidation.deleteTemplate), templateController.deleteTemplate);
+  .get(
+    auth('getTemplates'),
+    validate(templateValidation.getTemplate),
+    templateController.getTemplate,
+  )
+  .patch(
+    auth('manageTemplates'),
+    validate(templateValidation.updateTemplate),
+    templateController.updateTemplate,
+  )
+  .delete(
+    auth('manageTemplates'),
+    validate(templateValidation.deleteTemplate),
+    templateController.deleteTemplate,
+  );
 
 router
   .route('/:courseId/documents')
@@ -42,43 +82,85 @@ router
     auth('manageDocuments'),
     upload.single('file'),
     validate(documentValidation.createDocument),
-    documentController.createDocument
+    documentController.createDocument,
   )
-  .get(auth('getDocuments'), validate(documentValidation.getDocuments), documentController.getDocuments);
+  .get(
+    auth('getDocuments'),
+    validate(documentValidation.getDocuments),
+    documentController.getDocuments,
+  );
 
 router
   .route('/:courseId/documents/:documentId')
-  .get(auth('getDocuments'), validate(documentValidation.getDocument), documentController.getDocument)
-  .delete(auth('manageDocuments'), validate(documentValidation.getDocument), documentController.deleteDocument);
+  .get(
+    auth('getDocuments'),
+    validate(documentValidation.getDocument),
+    documentController.getDocument,
+  )
+  .delete(
+    auth('manageDocuments'),
+    validate(documentValidation.getDocument),
+    documentController.deleteDocument,
+  );
 
 // ✅ Update the route to fetch ALL rooms for a course
 router
   .route('/:courseId/rooms')
-  .get(auth('getRooms'), validate(roomValidation.getRoomsByCourse), roomController.getRoomsByCourse) // ⬅ New Route
-  .post(auth('manageRooms'), validate(roomValidation.createRoom), roomController.createRoom);
+  .get(
+    auth('getRooms'),
+    validate(roomValidation.getRoomsByCourse),
+    roomController.getRoomsByCourse,
+  ) // ⬅ New Route
+  .post(
+    auth('manageRooms'),
+    validate(roomValidation.createRoom),
+    roomController.createRoom,
+  );
 
 router
   .route('/:courseId/templates/:templateId/rooms')
-  .get(auth('getRooms'), validate(roomValidation.getRoomsByTemplate), roomController.getRoomsByTemplate);
+  .get(
+    auth('getRooms'),
+    validate(roomValidation.getRoomsByTemplate),
+    roomController.getRoomsByTemplate,
+  );
 
 router
   .route('/:courseId/rooms/:roomId')
-  .get(auth('getRooms'), validate(roomValidation.getRoom), roomController.getRoom)
-  .patch(auth('manageRooms'), validate(roomValidation.updateRoom), roomController.updateRoom)
-  .delete(auth('manageRooms'), validate(roomValidation.deleteRoom), roomController.deleteRoom);
-
-  router
-  .route('/:courseId/users')
-  .post(
-    auth('manageCourses'), // Only allow users with permission to manage courses
-    validate(courseValidation.addUserToCourse), // Optional: Validation for the userId (can be added in `courseValidation` file)
-    courseController.addUserToCourse // Controller function to handle adding the user
+  .get(
+    auth('getRooms'),
+    validate(roomValidation.getRoom),
+    roomController.getRoom,
+  )
+  .patch(
+    auth('manageRooms'),
+    validate(roomValidation.updateRoom),
+    roomController.updateRoom,
+  )
+  .delete(
+    auth('manageRooms'),
+    validate(roomValidation.deleteRoom),
+    roomController.deleteRoom,
   );
 
-  router
+router.route('/:courseId/users').post(
+  auth('manageCourses'), // Only allow users with permission to manage courses
+  validate(courseValidation.addUserToCourse), // Optional: Validation for the userId (can be added in `courseValidation` file)
+  courseController.addUserToCourse, // Controller function to handle adding the user
+);
+
+router
   .route('/:courseId/rooms/:roomId/messages')
-  .get(auth('getMessages'), validate(roomValidation.getMessagesByRoom), roomController.getMessagesByRoom)
-  .post(auth('sendMessage'), validate(roomValidation.sendMessage), roomController.sendMessage);
+  .get(
+    auth('getMessages'),
+    validate(roomValidation.getMessagesByRoom),
+    roomController.getMessagesByRoom,
+  )
+  .post(
+    auth('sendMessage'),
+    validate(roomValidation.sendMessage),
+    roomController.sendMessage,
+  );
 
 module.exports = router;
 

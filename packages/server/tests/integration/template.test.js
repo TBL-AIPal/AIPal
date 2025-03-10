@@ -4,9 +4,20 @@ const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { Template } = require('../../src/models');
 const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
-const { courseOne, courseTwo, insertCourses } = require('../fixtures/course.fixture');
-const { templateOne, templateTwo, insertTemplates } = require('../fixtures/template.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const {
+  courseOne,
+  courseTwo,
+  insertCourses,
+} = require('../fixtures/course.fixture');
+const {
+  templateOne,
+  templateTwo,
+  insertTemplates,
+} = require('../fixtures/template.fixture');
+const {
+  userOneAccessToken,
+  adminAccessToken,
+} = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -18,7 +29,10 @@ describe('Template routes', () => {
 
       const templateData = {
         name: 'Template 1',
-        constraints: ['This is the first constraint', 'This is the second constraint'],
+        constraints: [
+          'This is the first constraint',
+          'This is the second constraint',
+        ],
       };
 
       const res = await request(app)
@@ -31,7 +45,7 @@ describe('Template routes', () => {
         expect.objectContaining({
           name: templateData.name,
           constraints: expect.any(Object),
-        })
+        }),
       );
 
       const dbTemplate = await Template.findById(res.body.id);
@@ -65,7 +79,10 @@ describe('Template routes', () => {
       await insertCourses([courseOne]);
 
       const templateData = {
-        constraints: ['This is the first constraint', 'This is the second constraint'],
+        constraints: [
+          'This is the first constraint',
+          'This is the second constraint',
+        ],
       };
 
       await request(app)
@@ -95,7 +112,7 @@ describe('Template routes', () => {
           expect.objectContaining({
             name: templateTwo.name,
           }),
-        ])
+        ]),
       );
     });
 
@@ -124,7 +141,7 @@ describe('Template routes', () => {
       expect(res.body).toEqual(
         expect.objectContaining({
           name: templateOne.name,
-        })
+        }),
       );
     });
 
@@ -169,7 +186,7 @@ describe('Template routes', () => {
       expect(res.body).toEqual(
         expect.objectContaining({
           name: updateData.name,
-        })
+        }),
       );
 
       const dbTemplate = await Template.findById(templateOne._id);
