@@ -171,18 +171,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           isExpanded ? 'bg-gray-200' : 'hover:bg-gray-100'
         }`}
       >
-        <td className='border-b py-2 px-4'>
-          {isEditing ? (
-            <input
-              type='text'
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              className='border p-1'
-            />
-          ) : (
-            template.name
-          )}
-        </td>
+        <td className='border-b py-2 px-4'>{template.name}</td>
         <td className='border-b py-2 px-4 flex space-x-2'>
           {isEditing ? (
             <>
