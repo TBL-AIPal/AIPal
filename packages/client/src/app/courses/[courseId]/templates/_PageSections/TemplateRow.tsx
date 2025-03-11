@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -8,8 +9,10 @@ import { Document } from '@/lib/types/document';
 import { Room } from '@/lib/types/room';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 
+import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 
+import AddConstraintButton from './AddConstraintButton';
 import DocumentSelectionForm from './DocumentSelectionForm';
 import RoomCreateForm from './RoomCreateForm';
 
@@ -27,46 +30,64 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   onUpdate,
 }) => {
   const { courseId } = useParams<{ courseId: string }>();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(template.name);
-  const [editConstraints, setEditConstraints] = useState(
-    template.constraints.join(', ')
-  );
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>(
-    template.documents
-  );
+  const [newConstraint, setNewConstraint] = useState('');
+  const [currentConstraints, setCurrentConstraints] = useState<string[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [filenames, setFilenames] = useState<string[]>([]);
 
+  useEffect(() => {
+    if (isEditing) {
+      setCurrentConstraints(template.constraints);
+      setSelectedDocuments(template.documents);
+    }
+  }, [isEditing, template.constraints, template.documents]);
+
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
-    setIsEditing(false);
   };
 
   const toggleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsEditing((prev) => !prev);
-    setIsExpanded((_) => true);
+    setIsEditing((prev) => {
+      if (!prev) {
+        setEditName(template.name);
+        setCurrentConstraints(template.constraints);
+        setSelectedDocuments(template.documents);
+      }
+      return !prev;
+    });
+    setIsExpanded(true);
+  };
+
+  const handleAddConstraint = () => {
+    if (newConstraint.trim()) {
+      setCurrentConstraints([...currentConstraints, newConstraint.trim()]);
+      setNewConstraint('');
+    }
+  };
+
+  const handleRemoveConstraint = (indexToRemove: number) => {
+    setCurrentConstraints(currentConstraints.filter(
+      (_, index) => index !== indexToRemove
+    ));
   };
 
   const handleUpdate = () => {
-    const updatedConstraints = editConstraints
-      .split(',')
-      .map((c) => c.trim())
-      .filter((c) => c !== '');
     const updatedData: TemplateUpdateInput = {
       name: editName !== template.name ? editName : undefined,
-      constraints:
-        JSON.stringify(updatedConstraints) !==
-        JSON.stringify(template.constraints)
-          ? updatedConstraints
-          : undefined,
-      documents:
-        JSON.stringify(selectedDocuments) !== JSON.stringify(template.documents)
-          ? selectedDocuments
-          : undefined,
+      constraints: JSON.stringify(currentConstraints) !== 
+                  JSON.stringify(template.constraints) 
+                  ? currentConstraints 
+                  : undefined,
+      documents: JSON.stringify(selectedDocuments) !== 
+                JSON.stringify(template.documents) 
+                ? selectedDocuments 
+                : undefined,
     };
     onUpdate(updatedData);
     setIsEditing(false);
@@ -135,6 +156,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
 
   return (
     <>
+      {/* Main template row */}
       <tr
         onClick={toggleExpand}
         className={`cursor-pointer transition-colors duration-300 ${
@@ -172,7 +194,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
               Edit
             </button>
           )}
-          <button
+                    <button
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
@@ -192,31 +214,81 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           </button>
         </td>
       </tr>
+
       {isExpanded && (
         <tr>
           <td colSpan={2} className='border-b py-2 px-4'>
-            {isEditing ? (
-              <div className='mb-2'>
-                <label className='font-semibold mt-2 block'>Constraints:</label>
-                <textarea
-                  value={editConstraints}
-                  onChange={(e) => setEditConstraints(e.target.value)}
-                  className='border p-1 w-full'
-                />
-                {/* Document Selection Form */}
-                <label className='font-semibold mt-2 block'>Documents:</label>
-                <DocumentSelectionForm
-                  documents={courseDocuments}
-                  onSelectionChange={(selectedIds) =>
-                    setSelectedDocuments(selectedIds)
-                  } // Update selected documents
-                />
+            {/* Editing mode UI */}
+            {isEditing && (
+              <div className='mb-4'>
+                {/* Name input */}
+                <div className='mb-4'>
+                  <label className='font-semibold block mb-1'>Name:</label>
+                  <input
+                    type='text'
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className='border p-1 w-full'
+                  />
+                </div>
+
+                {/* Constraint management */}
+                <div className='mb-4'>
+                  <label className='font-semibold block mb-2'>Constraints:</label>
+                  <div className='flex gap-2 mb-2'>
+                    <Input
+                      id='newConstraint'
+                      value={newConstraint}
+                      onChange={(e) => setNewConstraint(e.target.value)}
+                      placeholder='Enter constraint'
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddConstraint();
+                        }
+                      }}
+                      required={false}
+                    />
+                    <AddConstraintButton
+                      onClick={handleAddConstraint}
+                      isDisabled={!newConstraint.trim()}
+                    />
+                  </div>
+                  <div className='flex flex-wrap gap-2'>
+                    {currentConstraints.map((constraint, index) => (
+                      <div
+                        key={index}
+                        className='flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-900 dark:text-white'
+                      >
+                        <span>{constraint}</span>
+                        <button
+                          type='button'
+                          onClick={() => handleRemoveConstraint(index)}
+                          className='ml-1 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700'
+                        >
+                          <X size={14} className='text-gray-500 dark:text-gray-400' />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Document selection */}
+                <div>
+                  <label className='font-semibold block mb-2'>Documents:</label>
+                  <DocumentSelectionForm
+                    documents={courseDocuments}
+                    onSelectionChange={(selectedIds) => setSelectedDocuments(selectedIds)}
+                  />
+                </div>
               </div>
-            ) : (
+            )}
+
+            {/* Display mode UI */}
+            {!isEditing && (
               <>
-                {/* Display the constraints when expanded */}
+                {/* Constraints display */}
                 <div className='mt-4'>
-                  {/* Header for Constraints */}
                   <h3 className='font-semibold'>Constraints</h3>
                   {template.constraints.length === 0 ? (
                     <p>No constraints available for this template.</p>
@@ -228,7 +300,8 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                     </ul>
                   )}
                 </div>
-                {/* Display the rooms when expanded */}
+
+                {/* Rooms display */}
                 <div className='mt-4'>
                   <h3 className='font-semibold'>Rooms</h3>
                   {rooms.length === 0 ? (
@@ -236,14 +309,14 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   ) : (
                     <ul className='list-disc pl-5'>
                       {rooms.map((room) => (
-                        <RoomItem key={room.id} room={room}/>
+                        <RoomItem key={room.id} room={room} />
                       ))}
                     </ul>
                   )}
                 </div>
-                {/* Display the documents when expanded */}
+
+                {/* Documents display */}
                 <div className='mt-4'>
-                  {/* Header for Documents */}
                   <h3 className='font-semibold'>Documents</h3>
                   {template.documents.length === 0 ? (
                     <p>No documents available for this template.</p>
@@ -260,6 +333,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           </td>
         </tr>
       )}
+
       {/* Room creation modal */}
       {isRoomModalOpen && (
         <Modal
