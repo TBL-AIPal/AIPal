@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CreateDocument, DeleteDocument } from '@/lib/API/document/mutations';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
@@ -15,14 +15,19 @@ import FileUpload from './_PageSections/FileUpload';
 
 const Materials: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
-  const courseIdString = Array.isArray(courseId) ? courseId[0] : courseId;
+  const courseIdString = useMemo(() => {
+    return Array.isArray(courseId) ? courseId[0] : courseId;
+  }, [courseId]);
 
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchDocuments = useCallback(async () => {
-    if (!courseIdString) return;
+    if (!courseIdString) {
+      logger('Course ID is missing. Skipping document fetch.');
+      return;
+    }
     setIsLoading(true);
     try {
       const res = await GetDocumentsByCourseId(courseIdString);
@@ -75,8 +80,10 @@ const Materials: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+    if (courseIdString) {
+      fetchDocuments();
+    }
+  }, [courseIdString, fetchDocuments]);
 
   return (
     <div className='p-4'>
