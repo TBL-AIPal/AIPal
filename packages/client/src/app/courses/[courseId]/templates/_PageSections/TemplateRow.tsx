@@ -72,24 +72,32 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   };
 
   const handleRemoveConstraint = (indexToRemove: number) => {
-    setCurrentConstraints(currentConstraints.filter(
-      (_, index) => index !== indexToRemove
-    ));
+    setCurrentConstraints(
+      currentConstraints.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const handleUpdate = () => {
     const updatedData: TemplateUpdateInput = {
       name: editName !== template.name ? editName : undefined,
-      constraints: JSON.stringify(currentConstraints) !== 
-                  JSON.stringify(template.constraints) 
-                  ? currentConstraints 
-                  : undefined,
-      documents: JSON.stringify(selectedDocuments) !== 
-                JSON.stringify(template.documents) 
-                ? selectedDocuments 
-                : undefined,
+      constraints:
+        JSON.stringify(currentConstraints) !==
+        JSON.stringify(template.constraints)
+          ? currentConstraints
+          : undefined,
+      documents:
+        JSON.stringify(selectedDocuments) !== JSON.stringify(template.documents)
+          ? selectedDocuments
+          : undefined,
     };
     onUpdate(updatedData);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditName(template.name);
+    setCurrentConstraints(template.constraints);
+    setSelectedDocuments(template.documents);
     setIsEditing(false);
   };
 
@@ -132,7 +140,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
         template.documents.map(async (docId) => {
           const document = await GetDocumentById(courseId, docId);
           return document.filename; // Extract the filename
-        })
+        }),
       );
       setFilenames(filenames);
     } catch (error) {
@@ -163,55 +171,56 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           isExpanded ? 'bg-gray-200' : 'hover:bg-gray-100'
         }`}
       >
-        <td className='border-b py-2 px-4'>
-          {isEditing ? (
-            <input
-              type='text'
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              className='border p-1'
-            />
-          ) : (
-            template.name
-          )}
-        </td>
         <td className='border-b py-2 px-4 flex space-x-2'>
           {isEditing ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUpdate();
-              }}
-              className='bg-blue-600 text-white px-2 py-1 rounded'
-            >
-              Save
-            </button>
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUpdate();
+                }}
+                className='bg-blue-600 text-white px-2 py-1 rounded'
+              >
+                Save
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancel();
+                }}
+                className='bg-gray-600 text-white px-2 py-1 rounded'
+              >
+                Cancel
+              </button>
+            </>
           ) : (
-            <button
-              onClick={toggleEdit}
-              className='text-blue-600 px-2 py-1 rounded'
-            >
-              Edit
-            </button>
+            <>
+              <button
+                onClick={toggleEdit}
+                className='text-blue-600 px-2 py-1 rounded'
+              >
+                Edit
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className='text-red-600 px-2 py-1 rounded'
+              >
+                Delete
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsRoomModalOpen(true);
+                }}
+                className='bg-green-600 text-white px-2 py-1 rounded'
+              >
+                Create Room
+              </button>
+            </>
           )}
-                    <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className='text-red-600 px-2 py-1 rounded'
-          >
-            Delete
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsRoomModalOpen(true);
-            }}
-            className='bg-green-600 text-white px-2 py-1 rounded'
-          >
-            Create Room
-          </button>
         </td>
       </tr>
 
@@ -234,7 +243,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
 
                 {/* Constraint management */}
                 <div className='mb-4'>
-                  <label className='font-semibold block mb-2'>Constraints:</label>
+                  <label className='font-semibold block mb-2'>
+                    Constraints:
+                  </label>
                   <div className='flex gap-2 mb-2'>
                     <Input
                       id='newConstraint'
@@ -266,7 +277,10 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                           onClick={() => handleRemoveConstraint(index)}
                           className='ml-1 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700'
                         >
-                          <X size={14} className='text-gray-500 dark:text-gray-400' />
+                          <X
+                            size={14}
+                            className='text-gray-500 dark:text-gray-400'
+                          />
                         </button>
                       </div>
                     ))}
@@ -278,7 +292,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   <label className='font-semibold block mb-2'>Documents:</label>
                   <DocumentSelectionForm
                     documents={courseDocuments}
-                    onSelectionChange={(selectedIds) => setSelectedDocuments(selectedIds)}
+                    onSelectionChange={(selectedIds) =>
+                      setSelectedDocuments(selectedIds)
+                    }
                   />
                 </div>
               </div>
@@ -362,7 +378,9 @@ const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
       <span className='font-semibold'>{room.name}</span> - {room.description}
       <br />
       <div className='flex items-center space-x-2'>
-        <span className='text-sm text-gray-600'>Room Code: <strong>{room.code}</strong></span>
+        <span className='text-sm text-gray-600'>
+          Room Code: <strong>{room.code}</strong>
+        </span>
 
         {/* Copy Button */}
         <button
