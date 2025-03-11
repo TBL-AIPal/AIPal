@@ -9,19 +9,9 @@ import { cn } from '@/lib/utils/utils';
 
 import SidebarItem from '@/components/sidebar/SidebarItem';
 
-import { sidebarConfig } from '@/constant/config/course';
+import { sidebarConfig, SidebarItemType } from '@/constant/config/course';
 
-interface SidebarItemType {
-  name: string;
-  icon: React.ElementType;
-  link: string;
-}
-
-const CourseLayout = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+const CourseLayout = ({ children }: { children: React.ReactNode }) => {
   const { courseId } = useParams();
   const courseIdString = Array.isArray(courseId) ? courseId[0] : courseId;
 
@@ -66,33 +56,36 @@ const CourseLayout = ({
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  const topItems = sidebarItems.filter((item) => item.position === 'top');
+  const bottomItems = sidebarItems.filter((item) => item.position === 'bottom');
+
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className='flex h-screen overflow-hidden'>
       {/* Mobile Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-gray-100 text-gray-800 rounded-r-lg shadow-md transition-transform duration-300 transform",
-          !sidebarOpen && "-translate-x-full",
-          isMobile ? 'md:hidden' : 'hidden'
+          'fixed inset-y-0 left-0 z-50 w-64 bg-gray-100 text-gray-800 rounded-r-lg shadow-md transition-transform duration-300 transform',
+          !sidebarOpen && '-translate-x-full',
+          isMobile ? 'md:hidden' : 'hidden',
         )}
       >
-        <div className="h-full overflow-y-auto">
+        <div className='h-full overflow-y-auto'>
           {/* Mobile Header */}
-          <div className="px-6 py-4 bg-color-primary-900 flex items-center justify-between">
-            <h3 className="text-xxl font-semibold text-blue-600">
-              {course?.name || 'Course'}
+          <div className='px-6 py-4 bg-color-primary-900 flex items-center justify-between'>
+            <h3 className='text-xxl font-semibold text-blue-600'>
+              'Placeholder'
             </h3>
-            <button 
+            <button
               onClick={toggleSidebar}
-              className="text-blue-600 hover:text-white text-2xl"
+              className='text-blue-600 hover:text-white text-2xl'
             >
               ×
             </button>
           </div>
-          
+
           {/* Mobile Navigation */}
-          <nav className="p-4 space-y-2">
-            {sidebarItems.map((item) => (
+          <nav className='p-4 space-y-2'>
+            {topItems.map((item) => (
               <SidebarItem
                 key={item.link}
                 name={item.name}
@@ -107,57 +100,91 @@ const CourseLayout = ({
       {/* Desktop Sidebar */}
       <div
         className={cn(
-          "hidden md:flex md:flex-col w-64 bg-gray-100 text-gray-800 rounded-tr-lg shadow-md",
-          !isMobile && "md:flex"
+          'hidden md:flex md:flex-col w-64 bg-gray-100 text-gray-800 rounded-tr-lg shadow-md',
+          !isMobile && 'md:flex',
         )}
       >
         {/* Desktop Header */}
-        <div className="px-6 pt-6 pb-4 bg-color-primary-900">
-          <h3 className="text-xl font-semibold text-blue-600">
+        <div className='px-6 pt-6 pb-4 bg-color-primary-900'>
+          <h3 className='text-xl font-semibold text-blue-600'>
             {course?.name || 'Course Details'}
           </h3>
         </div>
         {/* Divider Line */}
-        <div className="border-b border-gray-300 mx-4"></div>
+        <div className='border-b border-gray-300 mx-4'></div>
         {/* Desktop Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto space-y-2">
-          {sidebarItems.map((item) => (
-            <SidebarItem
-              key={item.link}
-              name={item.name}
-              icon={item.icon}
-              link={item.link}
-            />
-          ))}
+        <nav className='flex-1 p-4 overflow-y-auto space-y-2 flex flex-col'>
+          {/* Top-aligned items */}
+          <div className='space-y-2'>
+            {topItems.map((item) => (
+              <SidebarItem
+                key={item.link}
+                name={item.name}
+                icon={item.icon}
+                link={item.link}
+              />
+            ))}
+          </div>
+
+          {/* Spacer to push bottom items */}
+          <div className='flex-1' />
+          {/* Divider Line */}
+          <div className='border-b border-gray-300 mx-4'></div>
+          {/* Bottom-aligned items */}
+          <div className='space-y-2'>
+            {bottomItems.map((item) => (
+              <SidebarItem
+                key={item.link}
+                name={item.name}
+                icon={item.icon}
+                link={item.link}
+              />
+            ))}
+          </div>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 relative overflow-y-auto">
+      <div className='flex-1 relative overflow-y-auto'>
         {/* Mobile Header */}
         <div
           className={cn(
-            "md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-100 border-b",
-            "flex items-center justify-between px-4 py-3 rounded-b-lg"
+            'md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-100 border-b',
+            'flex items-center justify-between px-4 py-3 rounded-b-lg',
           )}
         >
           <button
             onClick={toggleSidebar}
-            className="text-gray-800 text-2xl focus:outline-none"
+            className='text-gray-800 text-2xl focus:outline-none'
           >
             ☰
           </button>
-          <h2 className="text-xxl font-semibold text-blue-600">
+          <h2 className='text-xxl font-semibold text-blue-600'>
             {course?.name || 'Course Details'}
           </h2>
-          <div className="w-8"></div>
+          {/* Bottom-Aligned Items as Logo Buttons */}
+          <div className='flex gap-2'>
+            {' '}
+            {/* Add spacing between buttons */}
+            {bottomItems.map((item) => (
+              <button
+                onClick={() => (window.location.href = item.link)}
+                className='text-gray-800 hover:text-blue-600 focus:outline-none'
+                aria-label={item.name}
+              >
+                {React.createElement(item.icon, { className: 'h-6 w-6' })}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Content Area */}
-        <div className={cn(
-          "p-6 pt-16 md:pt-6 h-full overflow-y-auto",
-          sidebarOpen && "md:ml-64"
-        )}>
+        <div
+          className={cn(
+            'p-6 pt-16 md:pt-6 h-full overflow-y-auto',
+            sidebarOpen && 'md:ml-64',
+          )}
+        >
           {children}
         </div>
       </div>
