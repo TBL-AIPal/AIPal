@@ -1,11 +1,13 @@
+import React, { ReactNode } from 'react';
+
 import ImageWithLoader from '@/components/ImageWithLoader';
 import UnstyledLink from '@/components/links/UnstyledLink';
 
 interface GalleryItemProps {
   src: string;
   href: string;
-  overlayContent?: React.ReactNode;
-  hoverContent?: React.ReactNode;
+  overlayContent?: ReactNode;
+  hoverContent?: ReactNode;
   imageAlt?: string;
 }
 
@@ -29,16 +31,16 @@ const GalleryItem: React.FC<GalleryItemProps> = ({
         />
       </div>
 
-      {/* Non-hover overlay */}
-      <div className='absolute inset-0 flex items-center justify-center bg-black/30 p-4 transition-opacity duration-300 group-hover:opacity-0'>
-        <div className='overflow-y-auto w-full h-full'>
+      {/* Non-hover overlay content */}
+      <div className='absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-30 text-white p-4 group-hover:opacity-0 transition-opacity duration-300 rounded-lg'>
+        <div className='w-full overflow-y-auto scrollbar-thin scrollbar-webkit'>
           {overlayContent}
         </div>
       </div>
 
-      {/* Hover overlay */}
-      <div className='absolute inset-0 flex items-center justify-center bg-black/60 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
-        <div className='overflow-y-auto w-full h-full'>
+      {/* Hover overlay content */}
+      <div className='absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-60 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg'>
+        <div className='w-full h-4/5 overflow-y-auto scrollbar-thin scrollbar-webkit'>
           {hoverContent}
         </div>
       </div>
