@@ -41,7 +41,7 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
 
   return (
     <FormItem>
-      <FormLabel htmlFor='newConstraint'>Add Constraint</FormLabel>
+      <FormLabel htmlFor='newConstraint'>Add</FormLabel>
       <div className="flex gap-2">
         <Input
           id='newConstraint'
@@ -49,6 +49,7 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
           onChange={(e) => setNewConstraint(e.target.value)}
           placeholder='Enter constraint'
           onKeyDown={handleKeyDown}
+          required={false}
         />
         <AddConstraintButton
           onClick={handleAddConstraint}
@@ -56,7 +57,7 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
         />
       </div>
 
-      <FormLabel htmlFor='addedConstraints' className="mt-4 block">Added Constraints:</FormLabel>
+      <FormLabel htmlFor='addedConstraints' className="mt-4 block">Added Constraints</FormLabel>
       <div className="mt-2 flex flex-wrap gap-2">
         {constraints.length > 0 ? (
           constraints.map((constraint, index) => (

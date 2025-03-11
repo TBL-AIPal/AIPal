@@ -48,6 +48,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   const toggleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsEditing((prev) => !prev);
+    setIsExpanded((_) => true);
   };
 
   const handleUpdate = () => {
