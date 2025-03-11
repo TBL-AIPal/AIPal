@@ -21,12 +21,12 @@ const GalleryItem: React.FC<GalleryItemProps> = ({
   return (
     <UnstyledLink href={href} className='relative block group h-full'>
       {/* Image Container */}
-      <div className='relative h-48 w-full rounded-lg overflow-hidden'>
+      <div className='relative aspect-w-4 aspect-h-3 w-full rounded-lg overflow-hidden'>
         <ImageWithLoader
           src={src}
           alt={imageAlt}
           fill
-          sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+          sizes='(max-width: 820px) 100vw, (max-width: 1080px) 50vw, (max-width: 1440px) 33vw, 25vw'
           className='object-cover transition-opacity duration-300'
         />
       </div>
