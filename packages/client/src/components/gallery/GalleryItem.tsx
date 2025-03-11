@@ -21,7 +21,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({
   return (
     <UnstyledLink href={href} className='relative block group h-full'>
       {/* Image Container */}
-      <div className='relative aspect-w-4 aspect-h-3 w-full rounded-lg overflow-hidden'>
+      <div className='relative aspect-w-4 aspect-h-3 min-h-[300px] w-full rounded-lg overflow-hidden'>
         <ImageWithLoader
           src={src}
           alt={imageAlt}
