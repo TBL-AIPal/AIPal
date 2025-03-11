@@ -79,6 +79,7 @@ const CourseLayout: React.FC<{ children: React.ReactNode }> = ({
             courseId={courseIdString}
             headerText={course ? course.name : 'Course Details'}
             userRole={userRole}
+            sidebarOpen={sidebarOpen}
           />
         </div>
       </div>
