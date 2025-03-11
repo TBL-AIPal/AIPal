@@ -1,6 +1,4 @@
 'use client';
-
-import { Menu } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
@@ -9,22 +7,31 @@ import { Course } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 import { cn } from '@/lib/utils/utils';
 
-import Button from '@/components/buttons/Button';
+import SidebarItem from '@/components/sidebar/SidebarItem';
 
-import CourseSidebar from './_PageSections/CourseSidebar';
+import { sidebarConfig } from '@/constant/config/course';
 
-const CourseLayout: React.FC<{ children: React.ReactNode }> = ({
+interface SidebarItemType {
+  name: string;
+  icon: React.ElementType;
+  link: string;
+}
+
+const CourseLayout = ({
   children,
+}: {
+  children: React.ReactNode;
 }) => {
-  const { courseId } = useParams<{ courseId: string | string[] }>();
+  const { courseId } = useParams();
   const courseIdString = Array.isArray(courseId) ? courseId[0] : courseId;
 
   const [course, setCourse] = useState<Course | null>(null);
-  const [userRole, setUserRole] = useState<string>('student');
+  const [userRole, setUserRole] = useState('student');
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Detect mobile view
+  const [sidebarItems, setSidebarItems] = useState<SidebarItemType[]>([]);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -33,66 +40,127 @@ const CourseLayout: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    // Fetch course details
     const fetchCourse = async () => {
       try {
         const courseData = await GetCourseById(courseIdString);
         setCourse(courseData);
-      } catch (err) {
-        logger(err, 'Error fetching course details');
+      } catch (error) {
+        logger(error, 'Unable to fetch course');
       }
     };
-    fetchCourse();
 
-    // Get user role
-    const userString = localStorage.getItem('user');
-    if (userString) {
-      const userData = JSON.parse(userString);
-      setUserRole(userData?.role || 'student');
+    const user = localStorage.getItem('user');
+    if (user) {
+      const { role } = JSON.parse(user);
+      setUserRole(role || 'student');
     }
+
+    fetchCourse();
   }, [courseIdString]);
 
-  return (
-    <div className='grid md:grid-cols-[240px_1fr] grid-cols-1 h-screen'>
-      {/* Mobile Toggle Button */}
-      <div className='md:hidden p-4 bg-white dark:bg-gray-900 border-b'>
-        <Button
-          variant='ghost'
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className='w-full justify-start'
-        >
-          <Menu className='mr-2' />
-          {sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
-        </Button>
-      </div>
+  useEffect(() => {
+    if (courseIdString && userRole) {
+      setSidebarItems(sidebarConfig.getItems(courseIdString, userRole));
+    }
+  }, [courseIdString, userRole]);
 
-      {/* Responsive Sidebar */}
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Mobile Sidebar */}
       <div
         className={cn(
-          'relative md:sticky md:top-0 md:h-screen md:w-full overflow-y-auto bg-white dark:bg-gray-900 transition-all duration-300',
-          isMobile && (sidebarOpen ? 'block' : 'hidden'),
-          isMobile && sidebarOpen && 'z-50 shadow-lg',
+          "fixed inset-y-0 left-0 z-50 w-64 bg-gray-100 text-gray-800 rounded-r-lg shadow-md transition-transform duration-300 transform",
+          !sidebarOpen && "-translate-x-full",
+          isMobile ? 'md:hidden' : 'hidden'
         )}
       >
-        <div className='md:sticky top-0'>
-          <CourseSidebar
-            courseId={courseIdString}
-            headerText={course ? course.name : 'Course Details'}
-            userRole={userRole}
-            sidebarOpen={sidebarOpen}
-          />
+        <div className="h-full overflow-y-auto">
+          {/* Mobile Header */}
+          <div className="px-6 py-4 bg-color-primary-900 flex items-center justify-between">
+            <h3 className="text-xxl font-semibold text-blue-600">
+              {course?.name || 'Course'}
+            </h3>
+            <button 
+              onClick={toggleSidebar}
+              className="text-blue-600 hover:text-white text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          
+          {/* Mobile Navigation */}
+          <nav className="p-4 space-y-2">
+            {sidebarItems.map((item) => (
+              <SidebarItem
+                key={item.link}
+                name={item.name}
+                icon={item.icon}
+                link={item.link}
+              />
+            ))}
+          </nav>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main
+      {/* Desktop Sidebar */}
+      <div
         className={cn(
-          'flex-1 p-6 overflow-y-auto transition-all duration-300',
-          isMobile && sidebarOpen && 'md:ml-64',
+          "hidden md:flex md:flex-col w-64 bg-gray-100 text-gray-800 rounded-tr-lg shadow-md",
+          !isMobile && "md:flex"
         )}
       >
-        {children}
-      </main>
+        {/* Desktop Header */}
+        <div className="px-6 pt-6 pb-4 bg-color-primary-900">
+          <h3 className="text-xl font-semibold text-blue-600">
+            {course?.name || 'Course Details'}
+          </h3>
+        </div>
+        {/* Divider Line */}
+        <div className="border-b border-gray-300 mx-4"></div>
+        {/* Desktop Navigation */}
+        <nav className="flex-1 p-4 overflow-y-auto space-y-2">
+          {sidebarItems.map((item) => (
+            <SidebarItem
+              key={item.link}
+              name={item.name}
+              icon={item.icon}
+              link={item.link}
+            />
+          ))}
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 relative overflow-y-auto">
+        {/* Mobile Header */}
+        <div
+          className={cn(
+            "md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-100 border-b",
+            "flex items-center justify-between px-4 py-3 rounded-b-lg"
+          )}
+        >
+          <button
+            onClick={toggleSidebar}
+            className="text-gray-800 text-2xl focus:outline-none"
+          >
+            ☰
+          </button>
+          <h2 className="text-xxl font-semibold text-blue-600">
+            {course?.name || 'Course Details'}
+          </h2>
+          <div className="w-8"></div>
+        </div>
+
+        {/* Content Area */}
+        <div className={cn(
+          "p-6 pt-16 md:pt-6 h-full overflow-y-auto",
+          sidebarOpen && "md:ml-64"
+        )}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 };
