@@ -3,9 +3,8 @@ import React, { useEffect, useState } from 'react';
 
 import { GetCoursesForUser } from '@/lib/API/course/queries';
 import { Course } from '@/lib/types/course';
-import { GetUserById } from '@/lib/API/user/queries'; // Assuming GetUserById is in this path
-import logger from '@/lib/utils/logger';
 import { User } from '@/lib/types/user';
+import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
 import { Modal } from '@/components/ui/Modal';
@@ -53,7 +52,10 @@ export default function CoursesPage() {
       if (userData.role === 'admin') {
         setIsAdmin(true);
         setCanAddCourse(true); // Admins can add courses
-      } else if (userData.role === 'teacher' && userData.status === 'approved') {
+      } else if (
+        userData.role === 'teacher' &&
+        userData.status === 'approved'
+      ) {
         setCanAddCourse(true); // Approved teachers can add courses
       }
     } catch (err) {
@@ -104,7 +106,7 @@ export default function CoursesPage() {
 
       {/* Course Gallery */}
       <div className='mt-8'>
-        <CourseGallery courses={courses} />
+        <CourseGallery courses={courses} isLoading={loading}/>
       </div>
     </div>
   );
