@@ -10,6 +10,7 @@ import logger from '@/lib/utils/logger';
 
 import DocumentRow from './_PageSections/DocumentRow';
 import DocumentTable from './_PageSections/DocumentTable';
+import DocumentTableSkeleton from './_PageSections/DocumentTableSkeleton';
 import FileUpload from './_PageSections/FileUpload';
 
 const Materials: React.FC = () => {
@@ -18,24 +19,25 @@ const Materials: React.FC = () => {
 
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchDocuments = useCallback(async () => {
     if (!courseIdString) return;
+    setIsLoading(true);
     try {
       const res = await GetDocumentsByCourseId(courseIdString);
       logger(res, 'Fetched documents successfully');
-      setDocuments(res || []); // Use empty array as fallback
+      setDocuments(res || []);
     } catch (error) {
       logger(error, 'Error fetching documents');
+    } finally {
+      setIsLoading(false);
     }
   }, [courseIdString]);
 
   const handleUpload = async (files: FileList) => {
     setIsUploading(true);
-  
     try {
-      // Upload of documents is done sequentially rather than concurrently 
-      // due to resource limitations
       for (const file of Array.from(files)) {
         logger(`Attempting to upload file "${file.name}"`);
         const formData = new FormData();
@@ -46,7 +48,6 @@ const Materials: React.FC = () => {
             formData,
           });
           logger(`File "${file.name}" uploaded successfully!`);
-          await fetchDocuments();
         } catch (error) {
           logger(error, `File "${file.name}" upload failed.`);
           throw error;
@@ -55,6 +56,7 @@ const Materials: React.FC = () => {
     } catch (error) {
       logger(error, 'One or more files failed to upload.');
     } finally {
+      await fetchDocuments();
       setIsUploading(false);
     }
   };
@@ -90,17 +92,21 @@ const Materials: React.FC = () => {
 
       {/* Files section */}
       <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Files</h1>
-      <DocumentTable>
-        {documents.map((document) => (
-          <DocumentRow
-            key={document.id}
-            name={document.filename}
-            timestamp={document.createdAt}
-            size={`${(document.size / 1024).toFixed(2)} KB`}
-            onDelete={() => handleDelete(document.id)}
-          />
-        ))}
-      </DocumentTable>
+      {isLoading || isUploading ? (
+        <DocumentTableSkeleton />
+      ) : (
+        <DocumentTable>
+          {documents.map((document) => (
+            <DocumentRow
+              key={document.id}
+              name={document.filename}
+              timestamp={document.createdAt}
+              size={`${(document.size / 1024).toFixed(2)} KB`}
+              onDelete={() => handleDelete(document.id)}
+            />
+          ))}
+        </DocumentTable>
+      )}
     </div>
   );
 };
