@@ -41,7 +41,7 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
 
   return (
     <FormItem>
-      <FormLabel htmlFor='newConstraint'>Add</FormLabel>
+      <FormLabel htmlFor='newConstraint'>Add Constraint</FormLabel>
       <div className="flex gap-2">
         <Input
           id='newConstraint'
