@@ -22,7 +22,12 @@ export default function LoginPage() {
       localStorage.setItem('refreshToken', data.tokens.refresh.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      window.location.href = '/dashboard/courses'; // Redirect on success
+      // Redirect based on user status
+      if (data.user.status === 'approved') {
+        window.location.href = '/dashboard/courses';
+      } else {
+        window.location.href = '/dashboard/profile';
+      }
     } catch (err) {
       setError('Invalid credentials, please try again.');
     } finally {

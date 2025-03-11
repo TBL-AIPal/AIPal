@@ -1,3 +1,4 @@
+const http = require('http');
 const mongoose = require('mongoose');
 const app = require('./app');
 const config = require('./config/config');
@@ -5,12 +6,15 @@ const logger = require('./config/logger');
 const {
   initializePythonProcess,
 } = require('./services/RAG/preprocessing.service');
+const setupWebSocket = require('./websockets/setupWebSocket');
 
 let server;
 logger.info(`Trying to connect to MongoDB using ${config.mongoose.url}`);
 mongoose.connect(config.mongoose.url).then(() => {
   logger.info('Connected to MongoDB');
-  server = app.listen(config.port, () => {
+  server = http.createServer(app);
+  setupWebSocket(server);
+  server.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
   });
 });

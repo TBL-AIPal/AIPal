@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useRef,useState } from 'react';
 
 import { createCombinedMessage, createDirectMessage, createGeminiMessage, createLlama3Message,createMultiAgentMessage, createRAGMessage } from '@/lib/API/message/mutations';
+import { GetUsers } from '@/lib/API/user/queries';
 import { GetRoomById } from '@/lib/API/room/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
 import { GetTemplateById } from '@/lib/API/template/queries';
@@ -29,8 +30,9 @@ const RoomChatPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('chatgpt-direct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const socketRef = useRef<WebSocket | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [users, setUsers] = useState<Record<string, { name: string; email: string }>>({}); 
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -38,6 +40,51 @@ const RoomChatPage: React.FC = () => {
       setUserId(user?.id || null);
     }
   }, []);  
+  
+  useEffect(() => {
+    if (!roomId) return;
+  
+    // ✅ Ensure WebSocket URL matches the backend server
+    const wsUrl = `ws://${window.location.hostname}:${process.env.NEXT_PUBLIC_SERVER_PORT}/rooms/${roomId}`;
+  
+    socketRef.current = new WebSocket(wsUrl);
+  
+    socketRef.current.onopen = () => {
+      console.log(`Connected to WebSocket server: ${wsUrl}`);
+    };
+  
+    socketRef.current.onmessage = (event) => {
+      const receivedMessage = JSON.parse(event.data);
+      setMessages((prev) => [...prev, receivedMessage]); // ✅ Update chat messages
+    };
+  
+    socketRef.current.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+  
+    return () => {
+      socketRef.current?.close(); // ✅ Cleanup WebSocket on unmount
+    };
+  }, [roomId]);  
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userList = await GetUsers(); // ✅ Fetch all users
+        const userMap: Record<string, { name: string; email: string }> = {};
+
+        userList.forEach((user) => {
+          userMap[user.id] = { name: user.name, email: user.email };
+        });
+
+        setUsers(userMap); // ✅ Store users in state
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -95,11 +142,13 @@ const RoomChatPage: React.FC = () => {
       return;
     }
 
-    // ✅ User message only includes role and content before sending
-    const userMessage = { role: 'user' as const, content: newMessage };
+    const userMessage = { role: 'user' as const, sender: userId, content: newMessage, modelUsed: selectedModel };
+
+    const updatedMessages = [...messages, userMessage];
+
+    // Send the message via WebSocket
+    socketRef.current?.send(JSON.stringify(userMessage));
     
-    // ✅ Updated messages include sender and modelUsed for UI state
-    const updatedMessages = [...messages, { ...userMessage, sender: userId, modelUsed: selectedModel }];
     setMessages(updatedMessages);
     setNewMessage('');
 
@@ -167,19 +216,42 @@ const RoomChatPage: React.FC = () => {
 
       console.log('API Response:', response);
 
-      setMessages(
-        response.responses.map((msg: Message) => ({
-          role: msg.role,
-          sender: msg.role === 'user' ? userId ?? 'unknown-user' : 'assistant', // ✅ Infer sender
-          content: msg.content,
-          modelUsed: msg.modelUsed || selectedModel, // ✅ Fallback to selectedModel if missing
-        }))
-      );
+      const formattedMessages = response.responses.map((msg: Message) => ({
+        role: msg.role,
+        sender: msg.role === 'user' ? userId ?? 'unknown-user' : 'assistant',
+        content: msg.content,
+        modelUsed: msg.modelUsed || selectedModel,
+      }));
+
+       // ✅ Send the new AI response to WebSocket
+       const lastMessage = formattedMessages.at(-1); // `at(-1)` gets the last element safely
+      
+       if (lastMessage) {
+        // ✅ Append only the last AI response to the existing state
+        setMessages((prevMessages) => [...prevMessages, lastMessage]);
+      
+        // ✅ Send the new AI response to WebSocket
+        if (socketRef.current) {
+          socketRef.current.send(JSON.stringify(lastMessage));
+        }
+      }
 
     } catch (error) {
         console.log('Caught error in handleSendMessage:', error);
       logger(error, 'Error sending message');
-      setMessages((prev) => [...prev, { role: 'assistant' as const, sender: 'assistant', content: 'An error occurred. Please try again.', modelUsed: selectedModel }]);
+      const errorMessage = {
+        role: 'assistant' as const,
+        sender: 'assistant',
+        content: 'An error occurred. Please try again.',
+        modelUsed: selectedModel,
+      };
+    
+      setMessages((prev) => [...prev, errorMessage]);
+    
+      // ✅ Also send error message to WebSocket
+      if (socketRef.current) {
+        socketRef.current.send(JSON.stringify(errorMessage));
+      }
     } finally {
       setLoadingMessage(false);
     }
@@ -226,7 +298,7 @@ const RoomChatPage: React.FC = () => {
                 ? 'You' 
                 : msg.sender === 'assistant' 
                 ? msg.modelUsed || 'assistant' 
-                : msg.sender}
+                : users[msg.sender]?.name || 'Unknown User'}
             </span>
             <span>{msg.content}</span>
         </div>
