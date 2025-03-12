@@ -43,7 +43,7 @@ const CourseGallery: React.FC<CourseGalleryProps> = ({
       hoverContent: (
         <div className='relative h-full'>
           {/* Delete button */}
-          <div className='flex justify-end mb-2'>
+          <div className='flex justify-center'>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -54,7 +54,7 @@ const CourseGallery: React.FC<CourseGalleryProps> = ({
               aria-label='Delete course'
             >
               {/* X Icon */}
-              <span className='text-base font-bold'>× Delete</span>
+              <span className='text-base font-bold'>×</span>
             </button>
           </div>
           {/* Course details */}
