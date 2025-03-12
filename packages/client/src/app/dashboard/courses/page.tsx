@@ -82,11 +82,11 @@ export default function CoursesPage() {
       {canAddCourse && (
         <TextButton
           className='fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg'
-          variant='primary'
+          variant='basic'
           onClick={() => setIsModalOpen(true)}
           disabled={loading}
         >
-          {loading ? 'Adding...' : '+ Add Course'}
+          {'Add Course'}
         </TextButton>
       )}
 
