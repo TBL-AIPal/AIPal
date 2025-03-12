@@ -43,18 +43,20 @@ const CourseGallery: React.FC<CourseGalleryProps> = ({
       hoverContent: (
         <div className='relative h-full'>
           {/* Delete button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleDelete(course.id);
-            }}
-            className='absolute top-2 right-2 p-2 bg-transparent text-white hover:bg-grey-800'
-            aria-label='Delete course'
-          >
-            {/* X Icon */}
-            <span className='text-xl font-bold text-white hover:bg-grey-800'>×</span>
-          </button>
+          <div className='flex justify-end mb-2'>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDelete(course.id);
+              }}
+              className='p-2 bg-transparent text-white hover:bg-gray-800 rounded-full'
+              aria-label='Delete course'
+            >
+              {/* X Icon */}
+              <span className='text-base font-bold'>× Delete</span>
+            </button>
+          </div>
           {/* Course details */}
           <div className='text-center'>
             <h3 className='text-lg font-bold'>{course.name}</h3>
