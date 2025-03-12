@@ -11,7 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 
 import CourseCreateForm from './_PageSections/CourseCreateForm';
 import CourseGallery from './_PageSections/CourseGallery';
-import { createErrorToast } from '@/lib/utils/toast';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,11 +97,12 @@ export default function CoursesPage() {
             course={{
               name: '',
               description: '',
-              apiKeys: { gemini: '', llama: '', chatgpt: '' }, // ✅ Updated to include multiple API keys
+              apiKeys: { gemini: '', llama: '', chatgpt: '' }, // Updated to include multiple API keys
             }}
             onCourseCreated={() => {
               handleModalClose();
               fetchCourses();
+              createInfoToast('Course added successfully!');
             }}
           />
         </Modal>

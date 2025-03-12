@@ -65,10 +65,10 @@ export default function RootLayout({
           gutter={8}
           containerClassName='z-50'
           toastOptions={{
-            className: 'rounded-md shadow-lg',
+            className: 'rounded-md shadow-lg max-w-[70%] w-full text-center',
             success: {
               className:
-                'rounded-md shadow-lg bg-green-50 border border-green-500 text-green-700',
+                'rounded-md shadow-lg bg-green-200 border border-green-500 text-green-700',
               iconTheme: {
                 primary: '#10B981',
                 secondary: 'white',
@@ -76,7 +76,7 @@ export default function RootLayout({
             },
             error: {
               className:
-                'rounded-md shadow-lg bg-red-50 border border-red-500 text-red-700',
+                'rounded-md shadow-lg bg-red-200 border border-red-500 text-red-700',
               iconTheme: {
                 primary: '#EF4444',
                 secondary: 'white',
