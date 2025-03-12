@@ -110,7 +110,10 @@ export default function CoursesPage() {
 
       {/* Course Gallery */}
       <div className='mt-8'>
-        <CourseGallery courses={courses} isLoading={loading}/>
+        <CourseGallery courses={courses} isLoading={loading} onDelete={() => {
+          fetchCourses();
+          createInfoToast('Course deleted successfully!');
+        }}/>
       </div>
     </div>
   );

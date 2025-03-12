@@ -11,10 +11,6 @@ interface UpdateCoursePropsI extends CourseFormValues {
   id: string;
 }
 
-interface DeleteCoursePropsI {
-  id: string;
-}
-
 // Create a new course
 export const CreateCourse = async ({
   name,
@@ -67,7 +63,7 @@ export const UpdateCourse = async ({
 };
 
 // Delete a course
-export const DeleteCourse = async ({ id }: DeleteCoursePropsI) => {
+export const DeleteCourse = async (id : String ) => {
   try {
     await api.delete(`/courses/${id}`);
   } catch (err) {
