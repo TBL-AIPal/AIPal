@@ -12,6 +12,7 @@ import DocumentRow from './_PageSections/DocumentRow';
 import DocumentTable from './_PageSections/DocumentTable';
 import DocumentTableSkeleton from './_PageSections/DocumentTableSkeleton';
 import FileUpload from './_PageSections/FileUpload';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 const Materials: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -25,8 +26,7 @@ const Materials: React.FC = () => {
 
   const fetchDocuments = useCallback(async () => {
     if (!courseIdString) {
-      logger('Course ID is missing. Skipping document fetch.');
-      return;
+      throw Error('Unable to fetch documents due to missing course ID');
     }
     setIsLoading(true);
     try {
@@ -34,7 +34,7 @@ const Materials: React.FC = () => {
       logger(res, 'Fetched documents successfully');
       setDocuments(res || []);
     } catch (error) {
-      logger(error, 'Error fetching documents');
+      createErrorToast('Unable to retrieve uploaded documents. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -55,9 +55,10 @@ const Materials: React.FC = () => {
           logger(`File "${file.name}" uploaded successfully!`);
         } catch (error) {
           logger(error, `File "${file.name}" upload failed.`);
-          throw error;
+          createErrorToast(`Unable to upload "${file.name}". Please try again later.`);
         }
       }
+      createInfoToast('Files have been uploaded successfully!');
     } catch (error) {
       logger(error, 'One or more files failed to upload.');
     } finally {
@@ -73,9 +74,10 @@ const Materials: React.FC = () => {
         documentId,
       });
       logger('Document deleted successfully');
+      createInfoToast('File have been deleted successfully!');
       await fetchDocuments();
     } catch (error) {
-      logger(error, 'Failed to delete document');
+      createErrorToast(`Unable to delete file. Please try again later.`);
     }
   };
 

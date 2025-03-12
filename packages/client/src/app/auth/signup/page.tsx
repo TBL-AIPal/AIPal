@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { CreateUser } from '@/lib/API/user/mutations';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState<{
     name: string;
     email: string;
     password: string;
-    role: 'student' | 'teacher'; // ✅ Explicitly define role type
+    role: 'student' | 'teacher'; // Explicitly define role type
   }>({
     name: '',
     email: '',
@@ -16,8 +17,6 @@ export default function SignupPage() {
     role: 'student',
   });
   
-
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
@@ -28,17 +27,14 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
       await CreateUser(formData);
-      console.log('Signup Successful');
+      createInfoToast('Account registration is successful!');
       window.location.href = '/'; // Redirect to home page after signup
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || 'Signup failed. Please try again.'
-      );
+      createErrorToast(err.response?.data?.message || 'Unable to register account. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +93,6 @@ export default function SignupPage() {
               <option value='student'>Student</option>
             </select>
           </div>
-          {error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
           <button
             type='submit'
             className='w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600'

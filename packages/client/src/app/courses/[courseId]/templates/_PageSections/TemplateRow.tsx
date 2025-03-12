@@ -15,6 +15,7 @@ import AddConstraintButton from './AddConstraintButton';
 import DocumentSelectionForm from './DocumentSelectionForm';
 import RoomCreateForm from './RoomCreateForm';
 import logger from '@/lib/utils/logger';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 interface TemplateRowProps {
   template: Template;
@@ -118,6 +119,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
         template: template.id,
       });
       fetchRooms();
+      createInfoToast('Room created successfully!');
+    } catch(error) {
+      createErrorToast('Unable to create room. Please try again later.');
     } finally {
       setIsRoomModalOpen(false);
     }

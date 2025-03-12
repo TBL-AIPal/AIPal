@@ -1,3 +1,4 @@
+import logger from '@/lib/utils/logger';
 import axios from 'axios';
 
 let isRefreshing = false;
@@ -11,24 +12,24 @@ const getApiBaseUrl = (): string => {
   }
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) {
-    console.error('❌ NEXT_PUBLIC_API_URL is not set.');
+    logger('NEXT_PUBLIC_API_URL is not set.');
     return '';
   }
   return apiUrl.startsWith('/') ? window.location.origin + apiUrl : apiUrl;
 };
 
-// ✅ Helper function to subscribe to token refresh
+// Helper function to subscribe to token refresh
 const subscribeTokenRefresh = (callback: (token: string) => void) => {
   refreshSubscribers.push(callback);
 };
 
-// ✅ Function to notify all subscribers
+// Function to notify all subscribers
 const onTokenRefreshed = (newToken: string) => {
   refreshSubscribers.forEach((callback) => callback(newToken));
   refreshSubscribers = []; // Clear the queue
 };
 
-// ✅ Request interceptor (attaches token)
+// Request interceptor (attaches token)
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
@@ -43,7 +44,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Response interceptor (handles refresh logic)
+// Response interceptor (handles refresh logic)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -66,19 +67,20 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-          throw new Error('❌ No refresh token available');
+          throw new Error('No refresh token available');
         }
 
         const refreshUrl = `${getApiBaseUrl()}/auth/refresh-tokens`;
-        console.log('🔄 Refreshing token at:', refreshUrl);
+        logger(refreshUrl, 'Refreshing token...');
+        
 
         const { data } = await axios.post(refreshUrl, { refreshToken });
 
         if (!data?.access?.token) {
-          throw new Error('❌ Invalid refresh response');
+          throw new Error('Invalid refresh response');
         }
 
-        console.log('✅ Token refreshed:', data.access.token);
+        logger(data.access.token, 'Token refreshed!');
 
         localStorage.setItem('authToken', data.access.token);
         localStorage.setItem('refreshToken', data.refresh.token);
@@ -91,7 +93,7 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${data.access.token}`;
         return axios(originalRequest);
       } catch (refreshError) {
-        console.error('❌ Token refresh failed, logging out...', refreshError);
+        logger(refreshError, 'Token refresh expired, logging out...');
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/auth/login';

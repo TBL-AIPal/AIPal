@@ -8,21 +8,21 @@ export const GetCoursesForUser = async (
   limit = 10,
 ): Promise<Course[]> => {
   try {
-    const response = await api.get('/courses', { params: { page, limit } }); // Token auto-attached ✅
+    const response = await api.get('/courses', { params: { page, limit } });
     return response.data.results;
   } catch (err) {
-    logger(err, `Error fetching courses for user`);
-    throw err;
+    logger(err, `Error fetching user's courses`);
+    throw new Error('Unable to retrieve course(s). Please try again.');
   }
 };
 
 // Get a specific course by ID
 export const GetCourseById = async (courseId: string): Promise<Course> => {
   try {
-    const response = await api.get(`/courses/${courseId}`); // Token auto-attached ✅
+    const response = await api.get(`/courses/${courseId}`);
     return response.data;
   } catch (err) {
     logger(err, `Error fetching course with ID ${courseId}`);
-    throw err;
+    throw new Error('Unable to retrieve selected course. Please try again.');
   }
 };

@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 
 import CourseCreateForm from './_PageSections/CourseCreateForm';
 import CourseGallery from './_PageSections/CourseGallery';
+import { createErrorToast } from '@/lib/utils/toast';
 
 export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +31,7 @@ export default function CoursesPage() {
       const fetchedCourses = await GetCoursesForUser(); // Fetch courses based on user role
       setCourses(fetchedCourses);
     } catch (err) {
-      logger(err, 'Error fetching courses');
+      createErrorToast('Unable to retrieve courses. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -42,6 +43,7 @@ export default function CoursesPage() {
       const userString = localStorage.getItem('user'); // Get the user object from localStorage
       if (!userString) {
         logger('User not authenticated', 'Error: No user in localStorage');
+        createErrorToast('Access denied. Please log in to proceed.');
         return;
       }
 
@@ -60,6 +62,7 @@ export default function CoursesPage() {
       }
     } catch (err) {
       logger(err, 'Error fetching user data');
+      createErrorToast(`Unable to retrieve user's data. Please try again later.`);
     }
   };
 

@@ -18,6 +18,7 @@ import { Modal } from '@/components/ui/Modal';
 
 import { TemplateCreateForm } from './_PageSections/TemplateCreateForm';
 import TemplateTable from './_PageSections/TemplateTable';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 const TemplatesPage = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -34,7 +35,7 @@ const TemplatesPage = () => {
       setTemplates(templates || []);
       logger(templates);
     } catch (error) {
-      logger(error, 'Error fetching templates');
+      createErrorToast('Unable to retrieve templates. Please try again later.');
     }
   }, [courseIdString]);
 
@@ -44,7 +45,7 @@ const TemplatesPage = () => {
       const fetchedDocuments = await GetDocumentsByCourseId(courseIdString);
       setDocuments(fetchedDocuments || []);
     } catch (err) {
-      logger(err, 'Error fetching documents');
+      createErrorToast('Unable to retrieve documents. Please try again later.');
     }
   }, [courseIdString]);
 
@@ -62,10 +63,10 @@ const TemplatesPage = () => {
         constraints: templateData.constraints,
         documents: templateData.documents,
       });
-      logger(templateData, 'Template added successfully');
+      createInfoToast('Template created successfully!');
       await fetchTemplates();
     } catch (error) {
-      logger(error, 'Failed to add template');
+      createErrorToast('Unable to add template. Please try again later.');
     } finally {
       setLoading(false);
       setIsModalOpen(false);
@@ -76,10 +77,10 @@ const TemplatesPage = () => {
     if (!courseIdString) return;
     try {
       await DeleteTemplate({ courseId: courseIdString, templateId });
-      logger('Template deleted successfully');
+      createInfoToast('Template deleted successfully');
       await fetchTemplates();
     } catch (error) {
-      logger(error, 'Failed to delete template');
+      createErrorToast('Unable to delete template. Please try again later.');
     }
   };
 
@@ -97,10 +98,10 @@ const TemplatesPage = () => {
         constraints: updatedData.constraints,
         documents: updatedData.documents,
       });
-      logger('Template updated successfully');
+      createInfoToast('Template updated successfully');
       await fetchTemplates();
     } catch (error) {
-      logger(error, 'Failed to update template');
+      createErrorToast('Unable to update template. Please try again later.');
     } finally {
       setLoading(false);
     }

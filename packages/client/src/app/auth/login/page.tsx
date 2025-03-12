@@ -2,16 +2,15 @@
 
 import React, { useState } from 'react';
 import api from '@/lib/API/auth/interceptor'; // Use Axios interceptor
+import { createErrorToast } from '@/lib/utils/toast';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
@@ -24,7 +23,7 @@ export default function LoginPage() {
 
       window.location.href = '/dashboard/courses'; // Redirect on success
     } catch (err) {
-      setError('Invalid credentials, please try again.');
+      createErrorToast('Invalid credentials, please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +56,6 @@ export default function LoginPage() {
               required
             />
           </div>
-          {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"

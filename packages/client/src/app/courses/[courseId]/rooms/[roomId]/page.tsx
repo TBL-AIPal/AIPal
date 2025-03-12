@@ -13,6 +13,7 @@ import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
+import { createErrorToast } from '@/lib/utils/toast';
 
 const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{ courseId: string; roomId: string }>();
@@ -26,7 +27,6 @@ const RoomChatPage: React.FC = () => {
   }[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('chatgpt-direct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +52,7 @@ const RoomChatPage: React.FC = () => {
         }
       } catch (err) {
         logger(err, 'Error fetching room details');
-        setError('Failed to load room details.');
+        createErrorToast('Unable to load room details. Please try again later.');
       }
     };
     fetchRoom();
@@ -62,19 +62,20 @@ const RoomChatPage: React.FC = () => {
     const fetchChatHistory = async () => {
       try {
         const chatMessages = await GetMessagesByRoomId(courseId, roomId);
-        // ✅ Sanitize messages to only keep `role`, `sender`, `content`
-        // ✅ Ensure role exists for each message
+        // Sanitize messages to only keep `role`, `sender`, `content`
+        // Ensure role exists for each message
         const sanitizedMessages = chatMessages.map(({ sender, content, modelUsed, role }) => ({
-            role: role || (sender === 'assistant' ? 'assistant' : 'user'), // ✅ Assign role based on sender if missing
+            role: role || (sender === 'assistant' ? 'assistant' : 'user'), // Assign role based on sender if missing
             sender,
             content,
-            modelUsed: modelUsed || 'unknown', // ✅ Default model if missing
+            modelUsed: modelUsed || 'unknown', // Default model if missing
           }));
   
           setMessages(sanitizedMessages);
           
       } catch (error) {
         logger(error, 'Error loading chat history');
+        createErrorToast('Unable to retrieve chat history. Please try again later.');
       }
     };
 
@@ -91,14 +92,15 @@ const RoomChatPage: React.FC = () => {
 
     if (!userId) {
       logger('User ID not found', 'Error sending message');
+      createErrorToast('Unable to send message since user ID is not found.');
       setLoadingMessage(false);
       return;
     }
 
-    // ✅ User message only includes role and content before sending
+    // User message only includes role and content before sending
     const userMessage = { role: 'user' as const, content: newMessage };
     
-    // ✅ Updated messages include sender and modelUsed for UI state
+    // Updated messages include sender and modelUsed for UI state
     const updatedMessages = [...messages, { ...userMessage, sender: userId, modelUsed: selectedModel }];
     setMessages(updatedMessages);
     setNewMessage('');
@@ -106,7 +108,7 @@ const RoomChatPage: React.FC = () => {
     try {
       let response;
       const templateId = template?.id ?? '';
-      // ✅ Sending only role and content to the backend
+      // Sending only role and content to the backend
       const sanitizedMessages = updatedMessages.map(({ role, content }) => ({ role, content }));
 
       switch (selectedModel) {
@@ -165,20 +167,19 @@ const RoomChatPage: React.FC = () => {
           });
       }
 
-      console.log('API Response:', response);
+      logger(response, 'LLM API Response');
 
       setMessages(
         response.responses.map((msg: Message) => ({
           role: msg.role,
-          sender: msg.role === 'user' ? userId ?? 'unknown-user' : 'assistant', // ✅ Infer sender
+          sender: msg.role === 'user' ? userId ?? 'unknown-user' : 'assistant', // Infer sender
           content: msg.content,
-          modelUsed: msg.modelUsed || selectedModel, // ✅ Fallback to selectedModel if missing
+          modelUsed: msg.modelUsed || selectedModel, // Fallback to selectedModel if missing
         }))
       );
 
     } catch (error) {
-        console.log('Caught error in handleSendMessage:', error);
-      logger(error, 'Error sending message');
+      logger(error, 'Caught error in handleSendMessage');
       setMessages((prev) => [...prev, { role: 'assistant' as const, sender: 'assistant', content: 'An error occurred. Please try again.', modelUsed: selectedModel }]);
     } finally {
       setLoadingMessage(false);

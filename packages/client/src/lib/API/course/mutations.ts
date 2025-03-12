@@ -5,6 +5,7 @@ import {
   CourseFormValues,
   CourseUpdateInput,
 } from '@/lib/types/course';
+import logger from '@/lib/utils/logger';
 
 interface UpdateCoursePropsI extends CourseFormValues {
   id: string;
@@ -23,14 +24,14 @@ export const CreateCourse = async ({
   const data: CourseCreateInput = {
     name,
     description,
-    apiKeys, // ✅ Now supports multiple API keys
+    apiKeys,
   };
 
   try {
-    await api.post('/courses', data); // Token auto-attached ✅
+    await api.post('/courses', data);
   } catch (err) {
-    console.error('Error creating course:', err);
-    throw err;
+    logger(err, 'Unable to create course');
+    throw new Error('Unable to create course. Please try again.');
   }
 };
 
@@ -44,33 +45,33 @@ export const UpdateCourse = async ({
   owner,
   students,
   staff,
-  whitelist, // Keep whitelist support
+  whitelist,
 }: UpdateCoursePropsI) => {
   const data: CourseUpdateInput = {
     name,
     description,
-    apiKeys, // ✅ Now supports updating multiple API keys
+    apiKeys,
     llmConstraints,
     owner,
     students,
     staff,
-    whitelist, // Include whitelist when updating the course
+    whitelist,
   };
 
   try {
-    await api.patch(`/courses/${id}`, data); // Token auto-attached ✅
+    await api.patch(`/courses/${id}`, data);
   } catch (err) {
-    console.error('Error updating course:', err);
-    throw err;
+    logger(err, 'Unable to update course');
+    throw new Error('Unable to update course. Please try again.');
   }
 };
 
 // Delete a course
 export const DeleteCourse = async ({ id }: DeleteCoursePropsI) => {
   try {
-    await api.delete(`/courses/${id}`); // Token auto-attached ✅
+    await api.delete(`/courses/${id}`);
   } catch (err) {
-    console.error('Error deleting course:', err);
-    throw err;
+    logger(err, 'Unable to delete course');
+    throw new Error('Unable to delete course. Please try again.');
   }
 };

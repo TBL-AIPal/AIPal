@@ -57,14 +57,31 @@ export default function RootLayout({
 }) {
   return (
     <html>
-      <body>{children}
-      <Toaster
+      <body>
+        {children}
+        <Toaster
           position='bottom-center'
           reverseOrder={false}
           gutter={8}
           containerClassName='z-50'
           toastOptions={{
             className: 'rounded-md shadow-lg',
+            success: {
+              className:
+                'rounded-md shadow-lg bg-green-50 border border-green-500 text-green-700',
+              iconTheme: {
+                primary: '#10B981',
+                secondary: 'white',
+              },
+            },
+            error: {
+              className:
+                'rounded-md shadow-lg bg-red-50 border border-red-500 text-red-700',
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: 'white',
+              },
+            },
           }}
         />
       </body>

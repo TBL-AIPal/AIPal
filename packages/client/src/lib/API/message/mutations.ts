@@ -1,5 +1,6 @@
 import api from '@/lib/API/auth/interceptor';
 import { SendMessageInput } from '@/lib/types/message';
+import logger from '@/lib/utils/logger';
 
 export const createDirectMessage = async ({
   courseId,
@@ -16,8 +17,8 @@ export const createDirectMessage = async ({
     });
     return response.data;
   } catch (err) {
-    console.error(`Error creating direct message for room ${roomId}:`, err);
-    throw err;
+    logger(err, `Error creating direct message for room ${roomId}`);
+    throw new Error('Unable to send message. Please try again.');
   }
 };
 
@@ -36,8 +37,8 @@ export const createRAGMessage = async ({
     });
     return response.data;
   } catch (err) {
-    console.error(`Error creating RAG message for room ${roomId}:`, err);
-    throw err;
+    logger(err, `Error creating RAG message for room ${roomId}`);
+    throw new Error('Unable to send message. Please try again.');
   }
 };
 
@@ -56,8 +57,8 @@ export const createMultiAgentMessage = async ({
     });
     return response.data;
   } catch (err) {
-    console.error(`Error creating multi-agent message for room ${roomId}:`, err);
-    throw err;
+    logger(err, `Error creating multi-agent message for room ${roomId}`);
+    throw new Error('Unable to send message. Please try again.');
   }
 };
 
@@ -76,8 +77,8 @@ export const createCombinedMessage = async ({
     });
     return response.data;
   } catch (err) {
-    console.error(`Error creating combined message for room ${roomId}:`, err);
-    throw err;
+    logger(err, `Error creating combined message for room ${roomId}`);
+    throw new Error('Unable to send message. Please try again.');
   }
 };
 
@@ -96,8 +97,8 @@ export const createGeminiMessage = async ({
     });
     return response.data;
   } catch (err) {
-    console.error(`Error creating Gemini message for room ${roomId}:`, err);
-    throw err;
+    logger(err, `Error creating Gemini message for room ${roomId}`);
+    throw new Error('Unable to send message. Please try again.');
   }
 };
 
@@ -116,7 +117,7 @@ export const createLlama3Message = async ({
     });
     return response.data;
   } catch (err) {
-    console.error(`Error creating LLaMA 3 message for room ${roomId}:`, err);
-    throw err;
+    logger(err, `Error creating LLaMA 3 message for room ${roomId}`);
+    throw new Error('Unable to send message. Please try again.');
   }
 };
