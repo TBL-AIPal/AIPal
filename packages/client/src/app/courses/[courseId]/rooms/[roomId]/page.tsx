@@ -2,9 +2,6 @@
 
 import { useParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
 import {
   createCombinedMessage,
   createDirectMessage,
@@ -21,9 +18,8 @@ import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 
-import TextButton from '@/components/buttons/TextButton';
 import { createErrorToast } from '@/lib/utils/toast';
-import { cn } from '@/lib/utils/utils';
+import MarkdownRenderer from './_PageSections/MarkdownRenderer';
 
 const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{
@@ -226,7 +222,7 @@ const RoomChatPage: React.FC = () => {
         <div className='flex-1'>
           {selectedMethod === 'direct' ? (
             <select
-              className='w-full p-2 border rounded'
+              className='w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-700'
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
             >
@@ -235,7 +231,7 @@ const RoomChatPage: React.FC = () => {
               <option value='llama3'>Llama 3.1</option>
             </select>
           ) : (
-            <div className='w-full p-2 rounded bg-gray-100 text-gray-600'>
+            <div className='w-full p-3 rounded-lg bg-gray-50 text-gray-600 text-sm'>
               Model selection disabled
             </div>
           )}
@@ -244,7 +240,7 @@ const RoomChatPage: React.FC = () => {
         {/* Method Selector */}
         <div className='flex-1'>
           <select
-            className='w-full p-2 border rounded'
+            className='w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-700'
             value={selectedMethod}
             onChange={(e) => {
               const newMethod = e.target.value;
@@ -261,7 +257,7 @@ const RoomChatPage: React.FC = () => {
       </div>
 
       {/* Chat Container */}
-      <div className='px-4 py-6 mb-20'>
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -270,60 +266,14 @@ const RoomChatPage: React.FC = () => {
             <div
               className={`max-w-[70%] p-4 rounded-lg ${
                 msg.sender === userId
-                  ? 'bg-blue-500 text-white rounded-br-none'
-                  : 'bg-gray-200 text-black rounded-bl-none border border-gray-100'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-black'
               }`}
             >
               {msg.sender === userId ? (
-                <span className='text-sm'>{msg.content}</span>
+                <span>{msg.content}</span>
               ) : (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    // Code blocks
-                    code({ node, className, children, ...props }) {
-                      return (
-                        <div className='my-2'>
-                          <code
-                            className={cn(
-                              className,
-                              'block p-4 rounded-lg bg-gray-800 text-gray-100 font-mono overflow-x-auto',
-                              'border border-gray-700 shadow-sm',
-                            )}
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        </div>
-                      );
-                    },
-
-                    // Links
-                    a({ href, children }) {
-                      return (
-                        <a
-                          href={href}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='text-blue-600 hover:text-blue-700 underline decoration-2 decoration-blue-300 hover:decoration-blue-400'
-                        >
-                          {children}
-                        </a>
-                      );
-                    },
-
-                    // Blockquotes
-                    blockquote({ children }) {
-                      return (
-                        <blockquote className='pl-4 my-4 border-l-4 border-gray-300 bg-gray-50 p-2 rounded-r-lg'>
-                          {children}
-                        </blockquote>
-                      );
-                    },
-                  }}
-                >
-                  {msg.content}
-                </ReactMarkdown>
+                <MarkdownRenderer content={msg.content} />
               )}
             </div>
           </div>
@@ -332,8 +282,8 @@ const RoomChatPage: React.FC = () => {
       </div>
 
       {/* Floating Input Area */}
-      <div className='fixed inset-x-0 bottom-0 z-20 p-4 bg-white border-t border-gray-200 shadow-t'>
-        <div className='flex flex-col gap-2'>
+      <div className='sticky bottom-0 z-10 p-4 bg-white border-t flex gap-4 shadow-md'>
+        <div className='flex items-center w-full gap-2'>
           {/* Multiline Textarea */}
           <textarea
             rows={1}
@@ -349,8 +299,8 @@ const RoomChatPage: React.FC = () => {
           />
 
           {/* Send Button */}
-          <TextButton
-            className='bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center'
+          <button
+            className='p-2 bg-blue-600 rounded-full hover:bg-blue-700 transition-transform disabled:opacity-50'
             onClick={handleSendMessage}
             disabled={loadingMessage}
           >
@@ -376,9 +326,22 @@ const RoomChatPage: React.FC = () => {
                 />
               </svg>
             ) : (
-              'Send'
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-6 w-6 text-white'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                strokeWidth='2'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
+                />
+              </svg>
             )}
-          </TextButton>
+          </button>
         </div>
       </div>
     </div>
