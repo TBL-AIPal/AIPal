@@ -2,7 +2,6 @@ import { X } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { GetDocumentById } from '@/lib/API/document/queries';
 import { CreateRoom } from '@/lib/API/room/mutations';
 import { GetRoomsByTemplateId } from '@/lib/API/room/queries';
 import { DocumentMetadata } from '@/lib/types/document';
@@ -15,6 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import AddConstraintButton from './AddConstraintButton';
 import DocumentSelectionForm from './DocumentSelectionForm';
 import RoomCreateForm from './RoomCreateForm';
+import logger from '@/lib/utils/logger';
 
 interface TemplateRowProps {
   template: Template;
@@ -133,20 +133,22 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
     }
   }, [courseId, template.id]);
 
-  const fetchFilenames = useCallback(async () => {
-    if (!template.id) return;
+  const fetchFilenames = useCallback(() => {
+    if (!template.id || !courseDocuments) return;
+  
     try {
-      const filenames = await Promise.all(
-        template.documents.map(async (docId) => {
-          const document = await GetDocumentById(courseId, docId);
-          return document.filename; // Extract the filename
-        }),
-      );
+      const filenames = template.documents.map((docId) => {
+        const document = courseDocuments.find((doc) => doc.id === docId);
+        if (document === undefined) {
+          throw new Error(`Document ${docId} not found in course documents.`);
+        }
+        return document.filename;
+      });
       setFilenames(filenames);
-    } catch (error) {
-      // Handle errors here if necessary
+    } catch (err) {
+      logger(err, 'Error fetching filenames');
     }
-  }, [template.documents, courseId, template.id]);
+  }, [template.id, template.documents, courseDocuments]);
 
   useEffect(() => {
     if (isExpanded) {
@@ -171,8 +173,24 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           isExpanded ? 'bg-gray-200' : 'hover:bg-gray-100'
         }`}
       >
-        <td className='border-b py-2 px-4'>{template.name}</td>
+        <td className='border-b py-2 px-4'>
+          {/* Editing mode UI */}
+          {isEditing ? (
+            <div className='mb-4'>
+               {/* Name input */}
+              <input
+                type='text'
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className='border p-1 w-full'
+              />
+            </div>
+          ) : (
+            <span>{template.name}</span>
+          )}
+        </td>
         <td className='border-b py-2 px-4 flex space-x-2'>
+          {/* Editing mode UI */}
           {isEditing ? (
             <>
               <button
@@ -231,17 +249,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
             {/* Editing mode UI */}
             {isEditing && (
               <div className='mb-4'>
-                {/* Name input */}
-                <div className='mb-4'>
-                  <label className='font-semibold block mb-1'>Name:</label>
-                  <input
-                    type='text'
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className='border p-1 w-full'
-                  />
-                </div>
-
                 {/* Constraint management */}
                 <div className='mb-4'>
                   <label className='font-semibold block mb-2'>
