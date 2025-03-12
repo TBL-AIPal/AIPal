@@ -55,6 +55,7 @@ export default {
   },
   plugins: [
     require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
     function ({ addUtilities }) {
       const newUtilities = {
         '.scrollbar-thin': {

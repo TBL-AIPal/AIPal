@@ -115,4 +115,32 @@
   .animated-underline:focus-visible {
     background-size: 0 2px, 100% 2px;
   }
+
+  .prose {
+    @apply text-sm text-gray-800;
+  }
+  
+  .prose a {
+    @apply text-blue-600;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 px-1 py-0.5 rounded;
+  }
+  
+  .prose pre {
+    @apply bg-gray-50 p-4 rounded-lg overflow-auto;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-gray-200 pl-4 italic;
+  }
+  
+  .prose ul {
+    @apply list-disc pl-5;
+  }
+  
+  .prose ol {
+    @apply list-decimal pl-5;
+  }
 }

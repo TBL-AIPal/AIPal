@@ -181,7 +181,7 @@ const CourseLayout = ({ children }: { children: React.ReactNode }) => {
         {/* Content Area */}
         <div
           className={cn(
-            'p-6 pt-16 md:pt-6 h-full overflow-y-auto',
+            'p-6 pt-16 md:pt-6 h-full',
             sidebarOpen && 'md:ml-64',
           )}
         >

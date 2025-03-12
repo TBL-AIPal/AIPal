@@ -1,9 +1,8 @@
 'use client';
-
 import { useParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
-import parse from 'html-react-parser';
-
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   createCombinedMessage,
   createDirectMessage,
@@ -19,7 +18,6 @@ import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
-
 import TextButton from '@/components/buttons/TextButton';
 import { createErrorToast } from '@/lib/utils/toast';
 
@@ -40,7 +38,8 @@ const RoomChatPage: React.FC = () => {
   >([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('chatgpt-direct');
+  const [selectedModel, setSelectedModel] = useState('chatgpt');
+  const [selectedMethod, setSelectedMethod] = useState('direct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -132,7 +131,7 @@ const RoomChatPage: React.FC = () => {
         content,
       }));
 
-      switch (selectedModel) {
+      switch (selectedMethod) {
         case 'multi-agent':
           response = await createMultiAgentMessage({
             courseId,
@@ -218,93 +217,131 @@ const RoomChatPage: React.FC = () => {
   return (
     <div className='flex flex-col h-screen'>
       {/* Settings Section */}
-      <div className='p-4 bg-white border-b flex gap-4'>
-        {/* AI Model Dropdown or Static Label */}
-        <div>
-          <label className='block font-bold'>Select Model:</label>
-          {selectedModel === 'direct' ? (
-            // Show dropdown when "Direct" is selected
-            <select
-              className='w-full p-2 border rounded'
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-            >
-              <option value='direct'>ChatGPT</option>
-              <option value='gemini'>Gemini</option>
-              <option value='llama3'>Llama 3.1</option>
-            </select>
-          ) : (
-            // Show static label for other methods
-            <div className='w-full p-2 border rounded bg-gray-100 text-gray-600'>
-              Only "Direct" supports model selection
-            </div>
-          )}
-        </div>
+      <div className='p-4 bg-gray-50 shadow-sm rounded-lg mx-4 my-2'>
+        <div className='flex gap-4'>
+          {/* AI Model Selector */}
+          <div className='flex-1'>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Model
+            </label>
+            {selectedMethod === 'direct' ? (
+              <select
+                className='w-full p-3 bg-gray-100 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+              >
+                <option value='chatgpt'>ChatGPT</option>
+                <option value='gemini'>Gemini</option>
+                <option value='llama3'>Llama 3.1</option>
+              </select>
+            ) : (
+              <div className='p-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-500'>
+                Only Direct supports model selection
+              </div>
+            )}
+          </div>
 
-        {/* Method Dropdown */}
-        <div>
-          <label className='block font-bold'>Select Method:</label>
-          <select
-            className='w-full p-2 border rounded'
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-          >
-            <option value='direct'>Direct</option>
-            <option value='multi-agent'>Multi-Agent</option>
-            <option value='rag'>Retrieval Augmented Generation</option>
-            <option value='combined'>RAG + Multi-Agent</option>
-          </select>
+          {/* Method Selector */}
+          <div className='flex-1'>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Method
+            </label>
+            <select
+              className='w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+              value={selectedMethod}
+              onChange={(e) => {
+                const newMethod = e.target.value;
+                setSelectedMethod(newMethod);
+                if (newMethod !== 'direct') setSelectedModel('chatgpt');
+              }}
+            >
+              <option value='direct'>Direct</option>
+              <option value='multi-agent'>Multi-Agent</option>
+              <option value='rag'>RAG</option>
+              <option value='combined'>Combined</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Chat Container */}
-      <div className='flex-1 overflow-y-auto px-4 py-6 space-y-4'>
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
-          >
+      <div className='flex-1 overflow-y-auto px-4 pt-2 pb-16'>
+        <div className='space-y-4'>
+          {messages.map((msg, index) => (
             <div
-              className={`max-w-[70%] p-4 rounded-lg ${
-                msg.sender === userId
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-black'
-              }`}
+              key={index}
+              className={`flex ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
             >
-              {msg.sender === userId ? (
-                <span>{msg.content}</span>
-              ) : (
-                <div>{parse(msg.content)}</div>
-              )}
+              <div
+                className={`max-w-[75%] p-4 rounded-2xl shadow-sm ${
+                  msg.sender === userId
+                    ? 'bg-blue-100 text-blue-900 rounded-br-none'
+                    : 'bg-white text-gray-900 rounded-bl-none border border-gray-100'
+                }`}
+              >
+                {/* Markdown Rendering */}
+                {msg.sender === userId ? (
+                  <span className='text-sm'>{msg.content}</span>
+                ) : (
+                  <div className='prose prose-sm prose-p:my-0 prose-li:my-0 prose-ul:my-0 prose-ol:my-0'>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ node, className, ...props }) {
+                          return (
+                            <code
+                              className={`${className} bg-gray-100 p-1 rounded-lg`}
+                              {...props}
+                            />
+                          );
+                        },
+                        a({ href, children }) {
+                          return (
+                            <a
+                              href={href}
+                              className='text-blue-500 underline'
+                              target='_blank'
+                              rel='noopener noreferrer'
+                            >
+                              {children}
+                            </a>
+                          );
+                        },
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input Area */}
-      <footer className='p-4 border-t bg-white'>
-        <div className='flex items-center gap-2'>
-          <textarea
-            rows={1}
-            className='flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none overflow-hidden'
-            placeholder='Type a message...'
+      <footer className='fixed inset-x-0 bottom-0 p-4 bg-white border-t border-gray-200 shadow-t'>
+        <div className='flex items-end gap-2'>
+          <input
+            type='text'
+            className='flex-1 p-4 bg-gray-50 border border-gray-200 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400'
+            placeholder='Message...'
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === 'Enter' && !e.shiftKey && handleSendMessage()
-            }
+            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             disabled={loadingMessage}
-            style={{ maxHeight: '100px' }} // Limit height for long messages
           />
           <button
-            className='bg-blue-600 text-white p-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-200 ease-in-out disabled:opacity-50'
+            className={`p-2.5 bg-blue-600 rounded-full transition-transform hover:scale-105 ${
+              loadingMessage ? 'cursor-not-allowed' : ''
+            }`}
             onClick={handleSendMessage}
             disabled={loadingMessage}
           >
             {loadingMessage ? (
               <svg
-                className='animate-spin h-5 w-5 text-white'
+                className='w-5 h-5 animate-spin text-white'
                 xmlns='http://www.w3.org/2000/svg'
                 fill='none'
                 viewBox='0 0 24 24'
@@ -316,26 +353,26 @@ const RoomChatPage: React.FC = () => {
                   r='10'
                   stroke='currentColor'
                   strokeWidth='4'
-                ></circle>
+                />
                 <path
                   className='opacity-75'
                   fill='currentColor'
                   d='M4 12a8 8 0 018-8v8H4z'
-                ></path>
+                />
               </svg>
             ) : (
               <svg
+                className='w-6 h-6 text-white'
                 xmlns='http://www.w3.org/2000/svg'
-                className='h-5 w-5'
-                fill='none'
                 viewBox='0 0 24 24'
+                fill='none'
                 stroke='currentColor'
+                strokeWidth='2'
               >
                 <path
                   strokeLinecap='round'
                   strokeLinejoin='round'
-                  strokeWidth='2'
-                  d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
+                  d='M6 12L18 12M18 12L12 6M18 12L12 18'
                 />
               </svg>
             )}
