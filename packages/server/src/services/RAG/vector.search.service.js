@@ -70,14 +70,9 @@ const generateContextualizedQuery = async (query, apiKey, documentIds) => {
 
     // Append documents to the start of the query
     const prompt = `
-      Use the following context to answer the question at the end. While you can include external information, prioritize details from the provided context. Note that it is not necessary for you to use all the information provided as some of the context may be irrelevant to the question. You may use the information as a starting point and expand more on it.
-
-      Documents:
-      ${textDocuments}
-      End of Documents.
-
-      Question:
-      ${query}`;
+Documents:
+${textDocuments}
+`;
     return prompt;
   } catch (error) {
     logger.error('generateContextualizedQueryError:', error);
