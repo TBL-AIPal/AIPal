@@ -2,14 +2,14 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { GetDocumentsByCourseId } from '@/lib/API/document/queries'; // Import the document fetching function
+import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import {
   CreateTemplate,
   DeleteTemplate,
   UpdateTemplate,
 } from '@/lib/API/template/mutations';
 import { GetTemplatesByCourseId } from '@/lib/API/template/queries';
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 
@@ -25,7 +25,7 @@ const TemplatesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
 
   const fetchTemplates = useCallback(async () => {
     if (!courseIdString) return;

@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { GetDocumentById } from '@/lib/API/document/queries';
 import { CreateRoom } from '@/lib/API/room/mutations';
 import { GetRoomsByTemplateId } from '@/lib/API/room/queries';
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { Room } from '@/lib/types/room';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 
@@ -18,7 +18,7 @@ import RoomCreateForm from './RoomCreateForm';
 
 interface TemplateRowProps {
   template: Template;
-  courseDocuments: Document[];
+  courseDocuments: DocumentMetadata[];
   onDelete: () => void;
   onUpdate: (updatedData: TemplateUpdateInput) => void;
 }

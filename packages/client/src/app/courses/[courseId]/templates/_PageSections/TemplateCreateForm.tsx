@@ -2,7 +2,7 @@
 import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { TemplateFormValues } from '@/lib/types/template';
 
 import { Form } from '@/components/ui/Form';
@@ -13,7 +13,7 @@ import { TemplateForm } from './TemplateForm';
 
 interface TemplateCreateFormProps {
   onCreateTemplate: (template: TemplateFormValues) => void;
-  documents: Document[];
+  documents: DocumentMetadata[];
 }
 
 const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({

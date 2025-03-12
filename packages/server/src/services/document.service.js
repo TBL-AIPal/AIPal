@@ -72,15 +72,20 @@ const createDocument = async (courseId, file) => {
 };
 
 /**
- * Get documents by course ID
+ * Get documents' metadata by course ID
  * @param {ObjectId} courseId
  * @returns {Promise<Document[]>}
  */
 const getDocumentsByCourseId = async (courseId) => {
-  const course = await Course.findById(courseId).populate('documents');
+  const course = await Course.findById(courseId).populate({
+    path: 'documents',
+    select: '-data -text',
+  });
+
   if (!course) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
+
   // Return an empty array if no documents are found
   return course.documents.length ? course.documents : [];
 };

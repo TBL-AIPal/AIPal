@@ -1,10 +1,13 @@
-export interface Document {
+export interface Document extends DocumentMetadata {
+  data: Buffer;
+  text: string;
+}
+
+export interface DocumentMetadata {
   id: string;
   filename: string;
-  data: Buffer;
   contentType: DocumentContentType;
   size: number;
-  text: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CreateDocument, DeleteDocument } from '@/lib/API/document/mutations';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import logger from '@/lib/utils/logger';
 
 import DocumentRow from './_PageSections/DocumentRow';
@@ -19,7 +19,7 @@ const Materials: React.FC = () => {
     return Array.isArray(courseId) ? courseId[0] : courseId;
   }, [courseId]);
 
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
