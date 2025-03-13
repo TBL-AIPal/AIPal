@@ -102,7 +102,7 @@ const Materials: React.FC = () => {
       <div className='mt-4'></div>
 
       {/* Files section */}
-      <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Files</h1>
+      <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Available Documents</h1>
       {isLoading || isUploading ? (
         <DocumentTableSkeleton />
       ) : documents.length === 0 ? (
