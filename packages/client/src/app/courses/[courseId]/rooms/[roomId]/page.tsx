@@ -215,9 +215,9 @@ const RoomChatPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className='flex flex-col h-screen'>
       {/* Floating Settings Bar (Sticky Top) */}
-      <div className='sticky top-0 z-10 p-4 bg-white border-b flex gap-4 shadow-sm'>
+      <div className='sticky top-4 z-10 p-4 bg-white border-t flex gap-4 shadow-md rounded-2xl'>
         {/* AI Model Selector */}
         <div className='flex-1'>
           {selectedMethod === 'direct' ? (
@@ -257,7 +257,7 @@ const RoomChatPage: React.FC = () => {
       </div>
 
       {/* Chat Container */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+      <div className='flex-1 overflow-y-auto px-4 py-6 space-y-4'>
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -282,7 +282,7 @@ const RoomChatPage: React.FC = () => {
       </div>
 
       {/* Floating Input Area */}
-      <div className='sticky bottom-0 z-10 p-4 bg-white border-t flex gap-4 shadow-md'>
+      <div className='sticky bottom-4 z-10 p-4 bg-white border-t flex gap-4 shadow-md rounded-2xl'>
         <div className='flex items-center w-full gap-2'>
           {/* Multiline Textarea */}
           <textarea
