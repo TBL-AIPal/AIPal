@@ -50,7 +50,7 @@ const CourseGallery: React.FC<CourseGalleryProps> = ({
                 e.stopPropagation();
                 handleDelete(course.id);
               }}
-              className='p-2 bg-transparent text-white hover:bg-gray-800 rounded-full'
+              className='w-8 h-8 flex items-center justify-center bg-transparent text-white hover:bg-gray-800 rounded-full'
               aria-label='Delete course'
             >
               {/* X Icon */}
