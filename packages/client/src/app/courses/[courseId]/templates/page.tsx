@@ -19,6 +19,7 @@ import { Modal } from '@/components/ui/Modal';
 import { TemplateCreateForm } from './_PageSections/TemplateCreateForm';
 import TemplateTable from './_PageSections/TemplateTable';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
+import EmptyState from '@/components/ui/EmptyState';
 
 const TemplatesPage = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -86,7 +87,7 @@ const TemplatesPage = () => {
 
   const handleUpdateTemplate = async (
     templateId: string,
-    updatedData: TemplateUpdateInput
+    updatedData: TemplateUpdateInput,
   ) => {
     if (!courseIdString) return;
     setLoading(true);
@@ -114,15 +115,27 @@ const TemplatesPage = () => {
 
   return (
     <div className='p-4'>
-      {/* Template Table */}
       <div>
         <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Templates</h1>
-        <TemplateTable
-          templates={templates}
-          courseDocuments={documents}
-          onDelete={handleDeleteTemplate}
-          onUpdate={handleUpdateTemplate}
-        />
+        {templates.length === 0 ? (
+          // Empty State
+          <EmptyState
+            title='Create Your First Template!'
+            description={[
+              'Templates let you customize how the AI responds in chat rooms.',
+              'For example, ask for responses in Chinese or limit replies to certain materials.',
+              "Choose which uploaded materials the AI should use for context.",
+            ]}
+          />
+        ) : (
+          // Template Table
+          <TemplateTable
+            templates={templates}
+            courseDocuments={documents}
+            onDelete={handleDeleteTemplate}
+            onUpdate={handleUpdateTemplate}
+          />
+        )}
       </div>
 
       {/* Add Template Button */}

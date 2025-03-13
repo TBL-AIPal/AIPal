@@ -13,6 +13,7 @@ import DocumentTable from './_PageSections/DocumentTable';
 import DocumentTableSkeleton from './_PageSections/DocumentTableSkeleton';
 import FileUpload from './_PageSections/FileUpload';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Materials: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -34,7 +35,9 @@ const Materials: React.FC = () => {
       logger(res, 'Fetched documents successfully');
       setDocuments(res || []);
     } catch (error) {
-      createErrorToast('Unable to retrieve uploaded documents. Please try again later.');
+      createErrorToast(
+        'Unable to retrieve uploaded documents. Please try again later.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +58,9 @@ const Materials: React.FC = () => {
           logger(`File "${file.name}" uploaded successfully!`);
         } catch (error) {
           logger(error, `File "${file.name}" upload failed.`);
-          createErrorToast(`Unable to upload "${file.name}". Please try again later.`);
+          createErrorToast(
+            `Unable to upload "${file.name}". Please try again later.`,
+          );
         }
       }
       createInfoToast('Files have been uploaded successfully!');
@@ -91,18 +96,25 @@ const Materials: React.FC = () => {
     <div className='p-4'>
       {/* Upload section */}
       <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Upload</h1>
-      <FileUpload
-        onUpload={handleUpload}
-        isUploading={isUploading}
-      />
+      <FileUpload onUpload={handleUpload} isUploading={isUploading} />
 
       {/* Divider */}
       <div className='mt-4'></div>
 
       {/* Files section */}
-      <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Files</h1>
+      <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Files</h1>
       {isLoading || isUploading ? (
         <DocumentTableSkeleton />
+      ) : documents.length === 0 ? (
+        <EmptyState
+          title='Hey there!'
+          description={[
+            'Upload your course materials here.',
+            'AI Pal will process them to build a smart knowledge base.',
+            'This helps the AI give you better, more personalized answers!',
+          ]}
+          tip='Tip: Smaller documents work best! Customize templates for faster responses and more precise results.'
+        />
       ) : (
         <DocumentTable>
           {documents.map((document) => (
