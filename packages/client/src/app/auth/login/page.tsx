@@ -35,6 +35,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = () => {
+    window.location.href = '/auth/forgot-password';
+  };
+
   return (
     <main className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="relative p-8 bg-white shadow-md rounded-md">
@@ -70,6 +74,16 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          {/* Forgot Password Button */}
+          <div className="text-right mb-4">
+            <button 
+              type="button" 
+              className="text-blue-500 text-sm hover:underline"
+              onClick={handleForgotPassword}
+            >
+              Forgot password?
+            </button>
           </div>
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
           <button
