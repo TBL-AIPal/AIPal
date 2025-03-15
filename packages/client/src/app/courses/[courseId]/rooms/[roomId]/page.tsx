@@ -45,7 +45,7 @@ const RoomChatPage: React.FC = () => {
     if (!roomId) return;
   
     // ✅ Ensure WebSocket URL matches the backend server
-    const wsUrl = `ws://${window.location.hostname}:${process.env.NEXT_PUBLIC_SERVER_PORT}/rooms/${roomId}`;
+    const wsUrl = `ws://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/rooms/${roomId}`;
   
     socketRef.current = new WebSocket(wsUrl);
   
