@@ -36,7 +36,11 @@ const ChatMessage = ({
             isUserMessage ? 'text-blue-200' : 'text-gray-600'
           }`}
         >
-          {message.sender === userId ? 'You' : message.sender}
+          {isUserMessage
+            ? 'You'
+            : message.sender === 'assistant'
+              ? `${message.sender} (${message.modelUsed || 'unknown'})`
+              : message.sender}
         </div>
 
         {/* Message Content */}
