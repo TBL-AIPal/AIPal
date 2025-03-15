@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
+
 import {
   createCombinedMessage,
   createDirectMessage,
@@ -17,9 +18,11 @@ import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
 import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
-
 import { createErrorToast } from '@/lib/utils/toast';
-import MarkdownRenderer from './_PageSections/MarkdownRenderer';
+
+import ChatContainer from './_PageSections/ChatCointainer';
+import ChatInput from './_PageSections/ChatInput';
+import SettingsBar from './_PageSections/SettingsBar';
 
 const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{
@@ -28,14 +31,7 @@ const RoomChatPage: React.FC = () => {
   }>();
   const [room, setRoom] = useState<Room | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
-  const [messages, setMessages] = useState<
-    {
-      role: 'user' | 'assistant' | 'system';
-      sender: string;
-      content: string;
-      modelUsed?: string;
-    }[]
-  >([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [selectedModel, setSelectedModel] = useState('chatgpt');
@@ -115,21 +111,19 @@ const RoomChatPage: React.FC = () => {
       return;
     }
 
-    const userMessage = { role: 'user' as const, content: newMessage };
-    const updatedMessages = [
-      ...messages,
-      { ...userMessage, sender: userId, modelUsed: selectedModel },
-    ];
+    const userMessage = {
+      role: 'user' as const,
+      content: newMessage,
+      sender: userId,
+      modelUsed: selectedModel,
+    };
+    const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setNewMessage('');
 
     try {
       let response;
       const templateId = template?.id ?? '';
-      const sanitizedMessages = updatedMessages.map(({ role, content }) => ({
-        role,
-        content,
-      }));
 
       switch (selectedMethod) {
         case 'multi-agent':
@@ -138,7 +132,7 @@ const RoomChatPage: React.FC = () => {
             templateId,
             roomId,
             userId,
-            conversation: sanitizedMessages,
+            conversation: updatedMessages,
           });
           break;
         case 'rag':
@@ -147,7 +141,7 @@ const RoomChatPage: React.FC = () => {
             templateId,
             roomId,
             userId,
-            conversation: sanitizedMessages,
+            conversation: updatedMessages,
           });
           break;
         case 'combined':
@@ -156,7 +150,7 @@ const RoomChatPage: React.FC = () => {
             templateId,
             roomId,
             userId,
-            conversation: sanitizedMessages,
+            conversation: updatedMessages,
           });
           break;
         case 'gemini':
@@ -165,7 +159,7 @@ const RoomChatPage: React.FC = () => {
             templateId,
             roomId,
             userId,
-            conversation: sanitizedMessages,
+            conversation: updatedMessages,
           });
           break;
         case 'llama3':
@@ -174,7 +168,7 @@ const RoomChatPage: React.FC = () => {
             templateId,
             roomId,
             userId,
-            conversation: sanitizedMessages,
+            conversation: updatedMessages,
           });
           break;
         default:
@@ -183,7 +177,7 @@ const RoomChatPage: React.FC = () => {
             templateId,
             roomId,
             userId,
-            conversation: sanitizedMessages,
+            conversation: updatedMessages,
           });
       }
 
@@ -216,134 +210,28 @@ const RoomChatPage: React.FC = () => {
 
   return (
     <div className='flex flex-col h-screen'>
-      {/* Floating Settings Bar (Sticky Top) */}
-      <div className='sticky top-4 z-10 p-4 bg-white border-t flex gap-4 shadow-md rounded-2xl'>
-        {/* AI Model Selector */}
-        <div className='flex-1'>
-          {selectedMethod === 'direct' ? (
-            <select
-              className='w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-700'
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-            >
-              <option value='chatgpt'>ChatGPT</option>
-              <option value='gemini'>Gemini</option>
-              <option value='llama3'>Llama 3.1</option>
-            </select>
-          ) : (
-            <div className='w-full p-3 rounded-lg bg-gray-50 text-gray-600 text-sm'>
-              Model selection disabled
-            </div>
-          )}
-        </div>
-
-        {/* Method Selector */}
-        <div className='flex-1'>
-          <select
-            className='w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-700'
-            value={selectedMethod}
-            onChange={(e) => {
-              const newMethod = e.target.value;
-              setSelectedMethod(newMethod);
-              if (newMethod !== 'direct') setSelectedModel('chatgpt');
-            }}
-          >
-            <option value='direct'>Direct</option>
-            <option value='multi-agent'>Multi-Agent</option>
-            <option value='rag'>RAG</option>
-            <option value='combined'>Combined</option>
-          </select>
-        </div>
-      </div>
+      {/* Settings Bar */}
+      <SettingsBar
+        selectedModel={selectedModel}
+        setSelectedModel={setSelectedModel}
+        selectedMethod={selectedMethod}
+        setSelectedMethod={setSelectedMethod}
+      />
 
       {/* Chat Container */}
-      <div className='flex-1 overflow-y-auto px-4 py-6 space-y-4'>
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[70%] p-4 rounded-lg ${
-                msg.sender === userId
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-black'
-              }`}
-            >
-              {msg.sender === userId ? (
-                <span>{msg.content}</span>
-              ) : (
-                <MarkdownRenderer content={msg.content} />
-              )}
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+      <ChatContainer
+        messages={messages}
+        userId={userId || ''}
+        messagesEndRef={messagesEndRef}
+      />
 
-      {/* Floating Input Area */}
-      <div className='sticky bottom-4 z-10 p-4 bg-white border-t flex gap-4 shadow-md rounded-2xl'>
-        <div className='flex items-center w-full gap-2'>
-          {/* Multiline Textarea */}
-          <textarea
-            rows={1}
-            className='flex-1 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none overflow-auto'
-            placeholder='Type a message...'
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === 'Enter' && !e.shiftKey && handleSendMessage()
-            }
-            disabled={loadingMessage}
-            style={{ maxHeight: '10rem' }} // 10rem max height
-          />
-
-          {/* Send Button */}
-          <button
-            className='p-2 bg-blue-600 rounded-full hover:bg-blue-700 transition-transform disabled:opacity-50'
-            onClick={handleSendMessage}
-            disabled={loadingMessage}
-          >
-            {loadingMessage ? (
-              <svg
-                className='animate-spin h-5 w-5 text-white'
-                xmlns='http://www.w3.org/2000/svg'
-                fill='none'
-                viewBox='0 0 24 24'
-              >
-                <circle
-                  className='opacity-25'
-                  cx='12'
-                  cy='12'
-                  r='10'
-                  stroke='currentColor'
-                  strokeWidth='4'
-                />
-                <path
-                  className='opacity-75'
-                  fill='currentColor'
-                  d='M4 12a8 8 0 018-8v8H4z'
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-6 w-6 text-white'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-                strokeWidth='2'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
+      {/* Chat Input */}
+      <ChatInput
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        handleSendMessage={handleSendMessage}
+        loadingMessage={loadingMessage}
+      />
     </div>
   );
 };
