@@ -4,7 +4,13 @@ import { createInfoToast } from '@/lib/utils/toast';
 
 import MarkdownRenderer from './MarkdownRenderer';
 
-const ChatMessage = ({ message, userId }: { message: Message; userId: string }) => {
+const ChatMessage = ({
+  message,
+  userId,
+}: {
+  message: Message;
+  userId: string;
+}) => {
   const isUserMessage = message.sender === userId;
 
   // Function to copy text to clipboard
@@ -22,7 +28,7 @@ const ChatMessage = ({ message, userId }: { message: Message; userId: string }) 
         className={`relative max-w-[70%] p-4 rounded-lg shadow-md ${
           isUserMessage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
         }`}
-        style={{ paddingRight: '3rem' }}
+        style={{ paddingBottom: '3rem' }}
       >
         {/* User ID Display */}
         <div
@@ -34,7 +40,7 @@ const ChatMessage = ({ message, userId }: { message: Message; userId: string }) 
         </div>
 
         {/* Message Content */}
-        <div className="pr-8">
+        <div>
           {isUserMessage ? (
             <span>{message.content}</span>
           ) : (
@@ -51,17 +57,17 @@ const ChatMessage = ({ message, userId }: { message: Message; userId: string }) 
         >
           {/* Clipboard Icon */}
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
+            xmlns='http://www.w3.org/2000/svg'
+            fill='none'
+            viewBox='0 0 24 24'
             strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-4 h-4"
+            stroke='currentColor'
+            className='w-4 h-4'
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'
             />
           </svg>
         </button>
