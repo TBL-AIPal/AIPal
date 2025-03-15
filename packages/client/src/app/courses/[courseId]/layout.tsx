@@ -168,6 +168,7 @@ const CourseLayout = ({ children }: { children: React.ReactNode }) => {
             {/* Add spacing between buttons */}
             {bottomItems.map((item) => (
               <button
+                key={item.name}
                 onClick={() => (window.location.href = item.link)}
                 className='text-gray-800 hover:text-blue-600 focus:outline-none'
                 aria-label={item.name}
