@@ -21,8 +21,10 @@ export default function ForgotPasswordPage() {
       setTimeout(() => {
         window.location.href = '/auth/login'; // Redirect after 3 seconds
       }, 3000);
-    } catch (err) {
-      setError('Error sending reset link. Please try again.');
+    } catch (err: any) {
+      // Extract the actual error message from the backend response
+      const backendError = err.response?.data?.message || 'An error occurred. Please try again.';
+      setError(backendError);
     } finally {
       setIsLoading(false);
     }

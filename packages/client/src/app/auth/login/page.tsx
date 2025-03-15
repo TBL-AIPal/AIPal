@@ -17,17 +17,18 @@ export default function LoginPage() {
     try {
       const { data } = await api.post('/auth/login', { email, password });
 
+      // Block login if user is not approved
+      if (data.user.status !== 'approved') {
+        setError('Your account is not approved yet. Please contact support.');
+        return;
+      }
+
       // Store tokens securely
       localStorage.setItem('authToken', data.tokens.access.token);
       localStorage.setItem('refreshToken', data.tokens.refresh.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect based on user status
-      if (data.user.status === 'approved') {
-        window.location.href = '/dashboard/courses';
-      } else {
-        window.location.href = '/dashboard/profile';
-      }
+      window.location.href = '/dashboard/courses';
     } catch (err) {
       setError('Invalid credentials, please try again.');
     } finally {
