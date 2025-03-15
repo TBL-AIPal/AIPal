@@ -63,23 +63,32 @@ export default function RootLayout({
           position='bottom-center'
           reverseOrder={false}
           gutter={8}
-          containerClassName='z-50'
+          containerStyle={{ maxWidth: '90%', margin: '0 auto' }}
           toastOptions={{
-            className: 'rounded-md shadow-lg max-w-[70%] w-full text-center',
+            style: { 
+              maxWidth: '90%', 
+              width: '100%', 
+              borderRadius: '2rem',
+              padding: '0.5rem 1rem' 
+            },
             success: {
-              className:
-                'rounded-md shadow-lg bg-green-200 border border-green-500 text-green-700',
               iconTheme: {
                 primary: '#10B981',
                 secondary: 'white',
               },
+              style: {
+                background: '#E6F9F3',
+                color: '#0F766E',
+              },
             },
             error: {
-              className:
-                'rounded-md shadow-lg bg-red-200 border border-red-500 text-red-700',
               iconTheme: {
                 primary: '#EF4444',
                 secondary: 'white',
+              },
+              style: {
+                background: '#FDECEC',
+                color: '#B91C1C',
               },
             },
           }}
