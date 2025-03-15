@@ -56,29 +56,5 @@ export default {
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
-    function ({ addUtilities }) {
-      const newUtilities = {
-        '.scrollbar-thin': {
-          scrollbarWidth: 'thin', // For Firefox
-          scrollbarColor: 'transparent transparent',
-        },
-        '.scrollbar-webkit': {
-          '&::-webkit-scrollbar': {
-            width: '8px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: 'transparent',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: 'rgba(0, 0, 0, 0)',
-            borderRadius: '4px',
-          },
-          '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.1)', // Slightly darker on hover
-          },
-        },
-      };
-      addUtilities(newUtilities, ['responsive']);
-    },
   ],
 } satisfies Config;
