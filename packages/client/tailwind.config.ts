@@ -59,22 +59,22 @@ export default {
     function ({ addUtilities }) {
       const newUtilities = {
         '.scrollbar-thin': {
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#888 transparent', // For Firefox
+          scrollbarWidth: 'thin', // For Firefox
+          scrollbarColor: 'transparent transparent',
         },
         '.scrollbar-webkit': {
           '&::-webkit-scrollbar': {
             width: '8px',
           },
           '&::-webkit-scrollbar-track': {
-            background: 'transparent', // Transparent track
+            background: 'transparent',
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#888', // Gray thumb
+            backgroundColor: 'rgba(0, 0, 0, 0)',
             borderRadius: '4px',
           },
           '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#555', // Darker gray on hover
+            backgroundColor: 'rgba(0, 0, 0, 0.1)', // Slightly darker on hover
           },
         },
       };
