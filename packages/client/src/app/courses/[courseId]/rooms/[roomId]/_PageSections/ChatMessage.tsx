@@ -22,6 +22,7 @@ const ChatMessage = ({ message, userId }: { message: Message; userId: string }) 
         className={`relative max-w-[70%] p-4 rounded-lg shadow-md ${
           isUserMessage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
         }`}
+        style={{ paddingRight: '3rem' }}
       >
         {/* User ID Display */}
         <div
@@ -33,11 +34,13 @@ const ChatMessage = ({ message, userId }: { message: Message; userId: string }) 
         </div>
 
         {/* Message Content */}
-        {isUserMessage ? (
-          <span>{message.content}</span>
-        ) : (
-          <MarkdownRenderer content={message.content} />
-        )}
+        <div className="pr-8">
+          {isUserMessage ? (
+            <span>{message.content}</span>
+          ) : (
+            <MarkdownRenderer content={message.content} />
+          )}
+        </div>
 
         {/* Copy Button */}
         <button
