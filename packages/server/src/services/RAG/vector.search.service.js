@@ -22,8 +22,8 @@ async function getContextualData(queryVector, documentIds) {
             },
           },
           'queryVector': queryVector,
-          'numCandidates': 20,
-          'limit': 3,
+          'numCandidates': 100,
+          'limit': 7,
         },
       },
       {
