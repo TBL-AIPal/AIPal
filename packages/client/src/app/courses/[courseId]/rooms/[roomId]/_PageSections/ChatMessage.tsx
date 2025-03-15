@@ -1,3 +1,8 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+import { GetUserById } from '@/lib/API/user/queries';
 import { Message } from '@/lib/types/message';
 import logger from '@/lib/utils/logger';
 import { createInfoToast } from '@/lib/utils/toast';
@@ -11,7 +16,24 @@ const ChatMessage = ({
   message: Message;
   userId: string;
 }) => {
+  const [userName, setUserName] = useState<string>('Loading...');
   const isUserMessage = message.sender === userId;
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        if (message.sender !== userId && message.sender !== 'assistant') {
+          const user = await GetUserById(message.sender);
+          setUserName(user?.name || 'Unknown User');
+        }
+      } catch (error) {
+        logger(error, 'Unable to retrieve user');
+        setUserName('Unknown User');
+      }
+    };
+
+    fetchUserName();
+  }, [message.sender, userId]);
 
   // Function to copy text to clipboard
   const handleCopy = (content: string) => {
@@ -40,7 +62,7 @@ const ChatMessage = ({
             ? 'You'
             : message.sender === 'assistant'
               ? `${message.sender} (${message.modelUsed || 'unknown'})`
-              : message.sender}
+              : userName}
         </div>
 
         {/* Message Content */}
