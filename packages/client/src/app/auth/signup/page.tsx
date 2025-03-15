@@ -16,7 +16,7 @@ export default function SignupPage() {
     role: 'student',
   });
   
-
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,6 +28,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     setError('');
     setIsLoading(true);
 
@@ -91,6 +96,18 @@ export default function SignupPage() {
               placeholder='Enter your password'
               value={formData.password}
               onChange={handleChange}
+              required
+            />
+          </div>
+          <div className='mb-4'>
+            <label className='block text-sm font-medium mb-2'>Confirm Password</label>
+            <input
+              type='password'
+              name='confirmPassword'
+              className='w-full px-4 py-2 border rounded-md'
+              placeholder='Confirm your password'
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
           </div>
