@@ -107,9 +107,7 @@ const Overview: React.FC = () => {
         whitelist: [...whitelist, ...newUsers],
       });
 
-      // ✅ Immediately update state to trigger re-render
-      setCourseDetails(prev => prev ? { ...prev, whitelist: [...prev.whitelist, ...newUsers] } : prev);
-
+      fetchUsers();
       setDialogOpen(false);
     } catch (error) {
       logger(error, 'Error adding users');
@@ -142,10 +140,7 @@ const Overview: React.FC = () => {
       {/* Show Whitelisted Emails */}
       {courseDetails?.whitelist && courseDetails.whitelist.length > 0 && (
         <div className="mt-4">
-          <h2 className="text-xl font-semibold text-gray-700">Pending Invites</h2>
-          <p className="text-gray-600 mb-2">
-            These users have been whitelisted and will be automatically approved when they create an account.
-          </p>
+          <h2 className="text-xl font-semibold text-gray-700">Whitelisted Emails</h2>
           <ul className="border rounded p-4 bg-gray-100">
             {courseDetails.whitelist.map((email) => (
               <li key={email} className="text-gray-800 p-2 border-b last:border-b-0">{email}</li>
@@ -153,7 +148,6 @@ const Overview: React.FC = () => {
           </ul>
         </div>
       )}
-
       
       {userRole !== 'student' && (
         <button onClick={() => setDialogOpen(true)} className="bg-blue-600 text-white p-2 rounded mt-4">
