@@ -37,7 +37,16 @@ export default function LoginPage() {
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white shadow-md rounded-md">
+      <div className="relative p-8 bg-white shadow-md rounded-md">
+      <div className="flex items-center pb-4">
+          <button
+            type="button"
+            className="text-2xl text-gray-600 hover:text-gray-800 rounded-full hover:bg-gray-200"
+            onClick={() => window.history.back()}
+          >
+            ←
+          </button>
+        </div>
         <h1 className="text-2xl font-bold mb-4">Login</h1>
         <form onSubmit={handleLogin}>
           <div className="mb-4">
