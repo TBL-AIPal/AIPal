@@ -1,13 +1,14 @@
 import api from '@/lib/API/auth/interceptor';
 import { User } from '@/lib/types/user';
 import logger from '@/lib/utils/logger';
+
 export const GetUsers = async (page = 1, limit = 10): Promise<User[]> => {
   try {
     const response = await api.get('/users', { params: { page, limit } });
     return response.data.results;
   } catch (err) {
-    logger(err, `Error fetching users`);
-    throw err;
+    logger(err, 'Error fetching users');
+    throw new Error('Failed to fetch users. Please try again later.');
   }
 };
 
@@ -23,7 +24,7 @@ export const GetUsersByCourseId = async (
     return response.data.results;
   } catch (err) {
     logger(err, `Error fetching users for course ${courseId}`);
-    throw err;
+    throw new Error('Failed to fetch users for this course. Please try again later.');
   }
 };
 
@@ -33,7 +34,7 @@ export const GetUserById = async (userId: string): Promise<User> => {
     return response.data;
   } catch (err) {
     logger(err, `Error fetching user ${userId}`);
-    throw err;
+    throw new Error('Failed to fetch user details. Please try again later.');
   }
 };
 
@@ -43,7 +44,7 @@ export const GetUsersByRole = async (role: string): Promise<User[]> => {
     return response.data.results;
   } catch (err) {
     logger(err, `Error fetching users with role ${role}`);
-    throw err;
+    throw new Error('Failed to fetch users for this role. Please try again later.');
   }
 };
 
@@ -52,7 +53,7 @@ export const ApproveUser = async (userId: string): Promise<void> => {
     await api.patch(`/users/${userId}`, { status: 'approved' });
   } catch (err) {
     logger(err, `Error approving user ${userId}`);
-    throw err;
+    throw new Error('Failed to approve user. Please try again later.');
   }
 };
 
@@ -60,7 +61,7 @@ export const RejectUser = async (userId: string): Promise<void> => {
   try {
     await api.patch(`/users/${userId}`, { status: 'rejected' });
   } catch (err) {
-    logger(err, `Error rejecting user ${userId}`);;
-    throw err;
+    logger(err, `Error rejecting user ${userId}`);
+    throw new Error('Failed to reject user. Please try again later.');
   }
 };

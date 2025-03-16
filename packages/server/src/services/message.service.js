@@ -121,6 +121,27 @@ const processDocuments = async (documents, conversation, apiKey) => {
   return Promise.all(summaryPromises);
 };
 
+function generateMarkdownPrompt(
+  contextualizedQuery = 'NONE',
+  constraints = [],
+) {
+  return `
+You are an assistant that provides answers strictly in Markdown format. Ensure all responses are properly formatted using Markdown syntax. Do not include any plain text outside of Markdown formatting.
+You are designed to provide accurate and concise answers based on the context provided below. While you may incorporate external knowledge if necessary, prioritize using the details from the provided documents to ensure relevance and accuracy.
+
+Context: "${contextualizedQuery}"
+Constraints: ${constraints.join(', ')}
+
+Instructions:
+1. Use headings (\`# H1\`, \`## H2\`, etc.) for organizing information hierarchically.
+2. Use bullet points (\`-\` or \`*\`) or numbered lists for enumerations.
+3. Format code snippets using backticks (\` \` \`) for inline code or triple backticks (\`\`\`) for blocks.
+4. Use bold (\`**bold**\`) and italics (\`*italics*\`) for emphasis where appropriate.
+5. Include links as \`[text](url)\` and images as \`![alt text](url)\`.
+6. Ensure tables are formatted with proper Markdown table syntax if needed.
+`;
+}
+
 // **🔹 Direct ChatGPT Message**
 const createDirectReply = async (courseId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
@@ -192,7 +213,7 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
   const managerConversation = [
     {
       role: 'system',
-      content: `Context: "${contextualizedQuery}". Constraints: ${constraints.join(', ')}`,
+      content: generateMarkdownPrompt(contextualizedQuery, constraints),
     },
     { role: 'user', content: conversation[conversation.length - 1].content },
   ];
@@ -254,7 +275,7 @@ const createMultiAgentReply = async (courseId, templateId, messageBody) => {
   const managerConversation = [
     {
       role: 'system',
-      content: `Summarized content: "${finalSummary}". Constraints: ${constraints.join(', ')}`,
+      content: generateMarkdownPrompt(finalSummary, constraints),
     },
     { role: 'user', content: conversation[conversation.length - 1].content },
   ];
@@ -323,7 +344,10 @@ const createContextualizedAndMultiAgentReply = async (
   const managerConversation = [
     {
       role: 'system',
-      content: `Summarized content: "${finalSummary}". Context: "${contextualizedQuery}". Constraints: ${constraints.join(', ')}`,
+      content: generateMarkdownPrompt(
+        finalSummary + contextualizedQuery,
+        constraints,
+      ),
     },
     { role: 'user', content: conversation[conversation.length - 1].content },
   ];

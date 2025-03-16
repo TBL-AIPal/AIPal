@@ -1,5 +1,6 @@
 import api from '@/lib/API/auth/interceptor';
 import { User } from '@/lib/types/user';
+import logger from '@/lib/utils/logger';
 
 export const CreateUser = async (userData: Partial<User>): Promise<User> => {
   try {
@@ -10,7 +11,7 @@ export const CreateUser = async (userData: Partial<User>): Promise<User> => {
     });
     return response.data;
   } catch (err) {
-    console.error('Error creating user:', err);
-    throw err;
+    logger(err, 'Unable to create a user');
+    throw new Error('An unexpected error occurred. Please try again.');
   }
 };

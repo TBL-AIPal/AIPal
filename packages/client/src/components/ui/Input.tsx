@@ -8,11 +8,21 @@ export interface InputProps
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  required?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, id, value, onChange, placeholder, type = 'text', ...props },
+    {
+      className,
+      id,
+      value,
+      onChange,
+      placeholder,
+      type = 'text',
+      required = true,
+      ...props
+    },
     ref
   ) => {
     return (
@@ -27,7 +37,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         placeholder={placeholder}
         ref={ref}
-        required
+        required={required}
         {...props}
       />
     );

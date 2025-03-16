@@ -18,7 +18,7 @@ const AddConstraintButton: React.FC<AddConstraintButtonProps> = ({
         isDisabled ? 'opacity-50 cursor-not-allowed' : ''
       }`}
     >
-      Add Constraint
+      Add
     </button>
   );
 };

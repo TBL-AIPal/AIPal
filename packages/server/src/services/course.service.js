@@ -1,8 +1,10 @@
 const httpStatus = require('http-status');
-const { Course, Template, Document } = require('../models');
+const { Course } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { decrypt } = require('../utils/cryptoUtils');
 const config = require('../config/config');
+const { deleteTemplateById } = require('./template.service');
+const { deleteDocumentById } = require('./document.service');
 
 /**
  * Create a course
@@ -107,14 +109,21 @@ const deleteCourseById = async (courseId) => {
 
   // Delete all templates associated with the course
   if (course.templates.length > 0) {
-    await Template.deleteMany({ _id: { $in: course.templates } });
+    await Promise.all(
+      course.templates.map((templateId) =>
+        deleteTemplateById(courseId, templateId),
+      ),
+    );
   }
 
   // Delete all documents associated with the course
   if (course.documents.length > 0) {
-    await Document.deleteMany({ _id: { $in: course.documents } });
+    await Promise.all(
+      course.documents.map((documentId) =>
+        deleteDocumentById(courseId, documentId),
+      ),
+    );
   }
-
   await course.remove();
   return course;
 };
@@ -135,5 +144,5 @@ module.exports = {
   getApiKeyById,
   updateCourseById,
   deleteCourseById,
-  getCourseByEmail
+  getCourseByEmail,
 };

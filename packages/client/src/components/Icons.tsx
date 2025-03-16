@@ -1,6 +1,6 @@
 import {
   Database,
-  LayoutDashboard,
+  ChevronLeft ,
   PanelsTopLeft,
   SlidersHorizontal,
   DoorOpen,
@@ -10,6 +10,6 @@ export const CourseSidebarIcons = {
   PanelsTopLeft,
   Database,
   SlidersHorizontal,
-  LayoutDashboard,
+  ChevronLeft,
   DoorOpen,
 };

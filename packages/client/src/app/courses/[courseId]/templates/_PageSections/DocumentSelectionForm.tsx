@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 
 import CheckboxList from '@/components/ui/CheckboxList';
 import { FormItem, FormLabel } from '@/components/ui/Form';
 
 interface DocumentSelectionFormProps {
-  documents: Document[];
+  documents: DocumentMetadata[];
   onSelectionChange?: (selectedDocumentIds: string[]) => void;
 }
 
@@ -14,8 +14,8 @@ const DocumentSelectionForm: React.FC<DocumentSelectionFormProps> = ({
   documents,
   onSelectionChange,
 }) => {
-  const getDocumentId = (document: Document): string => document.id;
-  const getDocumentLabel = (document: Document): string => document.filename;
+  const getDocumentId = (document: DocumentMetadata): string => document.id;
+  const getDocumentLabel = (document: DocumentMetadata): string => document.filename;
 
   return (
     <FormItem>
@@ -28,7 +28,7 @@ const DocumentSelectionForm: React.FC<DocumentSelectionFormProps> = ({
           items={documents}
           getId={getDocumentId}
           getLabel={getDocumentLabel}
-          onChange={onSelectionChange} // Pass the callback to handle selection changes
+          onChange={onSelectionChange}
         />
       </div>
     </FormItem>

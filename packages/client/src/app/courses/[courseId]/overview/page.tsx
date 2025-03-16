@@ -12,6 +12,7 @@ import { UpdateCourse } from '@/lib/API/course/mutations';
 
 import AccountRow from './_PageSections/AccountRow';
 import AccountTable from './_PageSections/AccountTable';
+import { createErrorToast } from '@/lib/utils/toast';
 
 const Overview: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -23,15 +24,14 @@ const Overview: React.FC = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [emailList, setEmailList] = useState<string>('');
   const [userRole, setUserRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
-  const [courseOwner, setCourseOwner] = useState<User | null>(null); // ✅ Store course owner
+  const [courseOwner, setCourseOwner] = useState<User | null>(null); //
 
   const fetchUsers = useCallback(async () => {
     if (!courseIdString) return;
     try {
       const users = await GetUsersByCourseId(courseIdString);
       logger(users, 'Fetched users successfully');
-
-      // ✅ Determine current user's role
+      // Determine current user's role
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       const currentUser = users.find((user) => user.email === storedUser?.email);
 
@@ -41,7 +41,7 @@ const Overview: React.FC = () => {
 
       setAccounts(users || []);
     } catch (error) {
-      logger(error, 'Error fetching users');
+      createErrorToast('Failed to fetch the course participants. Please try again later.');
     }
   }, [courseIdString]);
 
@@ -50,7 +50,7 @@ const Overview: React.FC = () => {
       const users = await GetUsers();
       setAllUsers(users || []);
     } catch (error) {
-      logger(error, 'Error fetching all users');
+      createErrorToast('Failed to fetch the course participants. Please try again later.');
     }
   }, []);
 
@@ -58,10 +58,10 @@ const Overview: React.FC = () => {
     if (!courseIdString) return;
     try {
       const course = await GetCourseById(courseIdString);
-      console.log(course);
+      logger(course, 'Course retrieved successfully');
       setCourseDetails(course);
 
-      // ✅ Fetch owner details if available
+      // Fetch owner details if available
       if (course.owner) {
         const ownerUser = await GetUsers().then(users => users.find(user => user.id === course.owner));
         if (ownerUser) {
@@ -69,7 +69,7 @@ const Overview: React.FC = () => {
         }
       }
     } catch (error) {
-      logger(error, 'Error fetching course details');
+      createErrorToast('Unable to retrieve course details. Please try again later.');
     }
   }, [courseIdString]);
 
@@ -95,7 +95,7 @@ const Overview: React.FC = () => {
       await UpdateCourse({
         id: courseIdString,
         name,
-        apiKeys, // ✅ Updated to support multiple API keys
+        apiKeys, // Updated to support multiple API keys
         students: [
           ...accounts.filter(user => user.role !== 'teacher').map(user => user.id), 
           ...studentIds,
@@ -110,7 +110,7 @@ const Overview: React.FC = () => {
       fetchUsers();
       setDialogOpen(false);
     } catch (error) {
-      logger(error, 'Error adding users');
+      createErrorToast('Unable to add users. Please try again later.');
     }
   };
 

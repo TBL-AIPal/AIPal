@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 
 import TemplateRow from '@/app/courses/[courseId]/templates/_PageSections/TemplateRow';
 interface TemplateTableProps {
   templates: Template[];
-  courseDocuments: Document[];
+  courseDocuments: DocumentMetadata[];
   onDelete: (templateId: string) => void;
   onUpdate: (templateId: string, updatedData: TemplateUpdateInput) => void;
 }

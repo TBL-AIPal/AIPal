@@ -15,9 +15,10 @@ const createMessage = {
       conversation: Joi.array()
         .items(
           Joi.object({
-            role: Joi.string().valid('user', 'assistant', 'system').required(), // ✅ Role validation
-            sender: Joi.string().optional(), // ✅ Allow sender inside conversation
-            content: Joi.string().required(), // ✅ Content is required
+            role: Joi.string().valid('user', 'assistant', 'system').required(),
+            sender: Joi.string().required(),
+            content: Joi.string().required(),
+            modelUsed: Joi.string().required(),
           }),
         )
         .min(1)

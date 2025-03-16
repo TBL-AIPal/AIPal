@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import * as React from 'react';
+import { Toaster } from 'react-hot-toast';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
@@ -56,7 +57,43 @@ export default function RootLayout({
 }) {
   return (
     <html>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster
+          position='bottom-center'
+          reverseOrder={false}
+          gutter={8}
+          containerStyle={{ maxWidth: '90%', margin: '0 auto' }}
+          toastOptions={{
+            style: { 
+              maxWidth: '90%', 
+              width: '100%', 
+              borderRadius: '2rem',
+              padding: '0.5rem 1rem' 
+            },
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: 'white',
+              },
+              style: {
+                background: '#E6F9F3',
+                color: '#0F766E',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: 'white',
+              },
+              style: {
+                background: '#FDECEC',
+                color: '#B91C1C',
+              },
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }

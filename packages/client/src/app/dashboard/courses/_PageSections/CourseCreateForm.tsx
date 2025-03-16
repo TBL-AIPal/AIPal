@@ -43,10 +43,9 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
     try {
       await CreateCourse({ name, description, apiKeys });
       reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
-      router.refresh();
       onCourseCreated();
     } catch (err) {
-      logger(err);
+      logger(err, 'Error creating course');
     }
   };
 

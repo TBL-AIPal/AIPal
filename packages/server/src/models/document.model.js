@@ -6,7 +6,6 @@ const documentSchema = new mongoose.Schema(
     filename: {
       type: String,
       required: true,
-      unique: true,
     },
     data: {
       type: Buffer,

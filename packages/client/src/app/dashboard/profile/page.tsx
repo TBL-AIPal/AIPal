@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { GetUsers, ApproveUser, RejectUser } from '@/lib/API/user/queries';
 import { User } from '@/lib/types/user';
 import logger from '@/lib/utils/logger';
+import { createErrorToast } from '@/lib/utils/toast';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -18,6 +19,7 @@ export default function ProfilePage() {
       const userString = localStorage.getItem('user');
       if (!userString) {
         logger('User not authenticated', 'Error: No user in localStorage');
+        createErrorToast('Access denied. Please log in to proceed.');
         setLoading(false);
         return;
       }
@@ -29,6 +31,7 @@ export default function ProfilePage() {
       fetchAllUsers();
     } catch (err) {
       logger(err, 'Error fetching user data');
+      createErrorToast(`Unable to retrieve user's information. Please try again later.`);
       setLoading(false);
     }
   };
@@ -36,11 +39,11 @@ export default function ProfilePage() {
   const fetchAllUsers = async () => {
     try {
       const users = await GetUsers();
-      // ✅ Filter users by role (excluding admins)
+      // Filter users by role (excluding admins)
       setTeachers(users.filter((u) => u.role === 'teacher'));
       setStudents(users.filter((u) => u.role === 'student'));
     } catch (err) {
-      logger(err, 'Error fetching users');
+      createErrorToast('Unable to retrieve users information. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -62,6 +65,7 @@ export default function ProfilePage() {
       );
     } catch (err) {
       logger(err, `Error changing status to ${newStatus}`);
+      createErrorToast(`Unable to approve/reject user. Please try again later.`);
     }
   };
 
@@ -90,6 +94,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       logger(err, `Error approving all ${userType}s`);
+      createErrorToast(`Unable to approve users. Please try again later.`);
     }
   };
 
