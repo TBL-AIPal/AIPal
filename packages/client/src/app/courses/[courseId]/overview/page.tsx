@@ -194,7 +194,7 @@ const Overview: React.FC = () => {
       {(userRole === 'admin' || courseOwner?.id === user?.id) && (
         <button
           onClick={() => setEditModalOpen(true)}
-          className="bg-yellow-500 text-white p-2 rounded mt-4"
+          className="fixed bottom-6 right-6 flex items-center gap-2 bg-blue-500 text-white font-semibold px-5 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-blue-600"
         >
           Edit Course
         </button>
