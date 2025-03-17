@@ -18,7 +18,7 @@ export default function LoginPage() {
       const { data } = await api.post('/auth/login', { email, password });
 
       // Block login if user is not approved
-      if (data.user.status !== 'approved') {
+      if (data.user.status !== 'approved' && data.user.role !== 'admin') {
         setError('Your account is not approved yet. Please contact support.');
         return;
       }

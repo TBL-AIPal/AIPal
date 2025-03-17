@@ -12,6 +12,7 @@ import { UpdateCourse } from '@/lib/API/course/mutations';
 
 import AccountRow from './_PageSections/AccountRow';
 import AccountTable from './_PageSections/AccountTable';
+import UpdateCourseForm from './_PageSections/UpdateCourseForm';
 
 const Overview: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -24,6 +25,8 @@ const Overview: React.FC = () => {
   const [emailList, setEmailList] = useState<string>('');
   const [userRole, setUserRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
   const [courseOwner, setCourseOwner] = useState<User | null>(null); // ✅ Store course owner
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   const fetchUsers = useCallback(async () => {
     if (!courseIdString) return;
@@ -33,10 +36,9 @@ const Overview: React.FC = () => {
 
       // ✅ Determine current user's role
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const currentUser = users.find((user) => user.email === storedUser?.email);
 
-      if (currentUser) {
-        setUserRole(currentUser.role as 'admin' | 'teacher' | 'student');
+      if (storedUser) {
+        setUserRole(storedUser.role as 'admin' | 'teacher' | 'student');
       }
 
       setAccounts(users || []);
@@ -78,6 +80,11 @@ const Overview: React.FC = () => {
     fetchAllUsers();
     fetchCourseDetails();
   }, [fetchUsers, fetchAllUsers, fetchCourseDetails]);
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    setUser(storedUser || null);
+  }, []);
 
   const handleAddUsers = async () => {
     if (!courseIdString || !courseDetails || !emailList) return;
@@ -180,6 +187,27 @@ const Overview: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Edit Course Button (Only for Admins & Course Owners) */}
+      {(userRole === 'admin' || courseOwner?.id === user?.id) && (
+        <button
+          onClick={() => setEditModalOpen(true)}
+          className="bg-yellow-500 text-white p-2 rounded mt-4"
+        >
+          Edit Course
+        </button>
+      )}
+
+      {/* Edit Course Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
+          <UpdateCourseForm
+            course={courseDetails!}
+            onClose={() => setEditModalOpen(false)}
+            onCourseUpdated={fetchCourseDetails}
+          />
         </div>
       )}
     </div>
