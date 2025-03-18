@@ -185,7 +185,7 @@ const Overview: React.FC = () => {
         </button>
       )}
       </div>
-
+      
       <div className="p-4">
       {/* Tutorial Groups Section */}
       <h1 className="text-2xl font-semibold mb-2 text-blue-600">Staff and Students</h1>
@@ -235,7 +235,9 @@ const Overview: React.FC = () => {
             </li>
           ))
         ) : (
+          <div className="ml-4 mt-2 p-2 bg-white border rounded shadow">
           <p className="text-gray-500">No tutorial groups yet.</p>
+          </div>
         )}
       </ul>
       <ul className="border rounded p-4 bg-gray-100">
@@ -294,7 +296,7 @@ const Overview: React.FC = () => {
               </AccountTable>
             ) : (
               <p className="text-gray-500 px-2 py-1">
-                {courseDetails?.whitelist ? "No pending invites." : "Loading invites..."}
+                No pending invites.
               </p>
             )}
           </div>

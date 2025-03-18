@@ -5,6 +5,7 @@ export interface Room {
   description: string;
   code: string;
   template: string; // The ID of the associated template
+  allowedUsers: string[];
   createdAt: string;
   updatedAt: string;
 }
