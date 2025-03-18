@@ -39,13 +39,13 @@ const CourseLayout: React.FC<{ children: React.ReactNode }> = ({
   }, [courseIdString]);
 
   return (
-    <div className='flex'>
+    <div className='flex h-screen'>
       <CourseSidebar
         courseId={courseIdString}
         headerText={course ? course.name : 'Course Details'}
         userRole={userRole} // Pass the user role to CourseSidebar
       />
-      <main className='flex-1 p-6'>{children}</main>
+      <main className='flex-1 p-6 overflow-y-auto'>{children}</main>
     </div>
   );
 };

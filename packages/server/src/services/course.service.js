@@ -33,7 +33,10 @@ const queryCourses = async (filter, options) => {
  * @returns {Promise<Course>}
  */
 const getCourseById = async (id) => {
-  const course = await Course.findById(id);
+  const course = await Course.findById(id).populate({
+    path: 'tutorialGroups',
+    populate: { path: 'students', select: 'name email' }, 
+  });
   if (!course) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }

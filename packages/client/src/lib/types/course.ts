@@ -16,8 +16,21 @@ export interface Course {
   whitelist: string[]; // ✅ Supports email whitelisting
   documents: string[];
   templates: string[];
+  tutorialGroups?: TutorialGroup[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Student {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface TutorialGroup {
+  _id: string;
+  name: string;
+  students: Student[]; // Array of student objects instead of just IDs
 }
 
 export interface CourseFormValues {

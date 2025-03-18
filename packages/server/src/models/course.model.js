@@ -35,6 +35,9 @@ const courseSchema = new mongoose.Schema(
     templates: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] },
     ],
+    tutorialGroups: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'TutorialGroup', default: [] },
+    ],
   },
   {
     timestamps: true,

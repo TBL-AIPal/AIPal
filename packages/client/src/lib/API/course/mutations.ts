@@ -100,3 +100,22 @@ export const DeleteCourse = async ({ id }: DeleteCoursePropsI) => {
     throw new Error('An unexpected error occurred.');
   }
 };
+
+export const CreateTutorialGroup = async (courseId: string, groupName: string) => {
+  if (!courseId || !groupName) {
+    throw new Error('Course ID and group name are required.');
+  }
+
+  const data = { name: groupName };
+
+  try {
+    await api.post(`/courses/${courseId}/tutorial-groups`, data);
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      console.error('Error creating tutorial group:', err.response?.data || err.message);
+      throw new Error(err.response?.data?.message || 'Failed to create tutorial group');
+    }
+    console.error('Unexpected error:', err);
+    throw new Error('An unexpected error occurred.');
+  }
+};

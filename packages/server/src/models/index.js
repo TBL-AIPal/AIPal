@@ -5,3 +5,4 @@ module.exports.Document = require('./document.model');
 module.exports.Chunk = require('./chunk.model');
 module.exports.Template = require('./template.model');
 module.exports.Room = require('./room.model');
+module.exports.TutorialGroup = require('./tutorial.group.model');
