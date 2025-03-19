@@ -17,11 +17,8 @@ export default function SignupPage() {
     role: 'student',
   });
   
-<<<<<<< HEAD
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-=======
->>>>>>> main
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -33,26 +30,20 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-<<<<<<< HEAD
 
     if (formData.password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
     setError('');
-=======
->>>>>>> main
     setIsLoading(true);
 
     try {
       await CreateUser(formData);
-<<<<<<< HEAD
       setShowSuccess(true); // Show success popup instead of console logging
       setTimeout(() => {
         window.location.href = '/'; // Redirect after 3 seconds
       }, 3000);
-=======
->>>>>>> main
       createInfoToast('Account registration is successful!');
       window.location.href = '/'; // Redirect to home page after signup
     } catch (err: any) {

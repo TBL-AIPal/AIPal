@@ -1,8 +1,5 @@
 import api from '@/lib/API/auth/interceptor';
-<<<<<<< HEAD
 import axios, { AxiosError } from 'axios';
-=======
->>>>>>> main
 
 import {
   CourseCreateInput,
@@ -73,7 +70,6 @@ export const DeleteCourse = async (id : String ) => {
   } catch (err) {
     logger(err, 'Unable to delete course');
     throw new Error('Unable to delete course. Please try again.');
-<<<<<<< HEAD
   }
 };
 
@@ -93,7 +89,5 @@ export const CreateTutorialGroup = async (courseId: string, groupName: string) =
     }
     console.error('Unexpected error:', err);
     throw new Error('An unexpected error occurred.');
-=======
->>>>>>> main
   }
 };
