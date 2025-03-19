@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { CreateCourse } from '@/lib/API/course/mutations';
-import { APIKeys, CourseCreateInput, CourseFormValues } from '@/lib/types/course';
+import { CourseCreateInput, CourseFormValues } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 
 import { Form } from '@/components/ui/Form';
@@ -42,6 +42,7 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
   const onSubmit = async (values: CourseFormValues) => {
     const { name, description, apiKeys } = values;
 
+<<<<<<< HEAD
     // ✅ Ensure filteredApiKeys has the correct type
     const filteredApiKeys: Partial<APIKeys> = Object.fromEntries(
       Object.entries(apiKeys).filter(([_, value]) => value.trim() !== '')
@@ -53,15 +54,22 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
       return;
     }
     
+=======
+>>>>>>> main
     try {
-      await CreateCourse({ name, description, apiKeys: filteredApiKeys });
+      await CreateCourse({ name, description, apiKeys });
       reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
       onCourseCreated();
+<<<<<<< HEAD
     } catch (err: any) {
       logger(err, 'Error creating course');
 
       const backendError = err.message || 'An unexpected error occurred.';
       setErrorMessage(backendError);
+=======
+    } catch (err) {
+      logger(err, 'Error creating course');
+>>>>>>> main
     }
   };
 

@@ -8,7 +8,7 @@ export interface Course {
   id: string;
   name: string;
   description?: string;
-  apiKeys: APIKeys; // Updated to support multiple API keys
+  apiKeys: APIKeys; // ✅ Now allows partial API keys
   llmConstraints: string[];
   owner: string;
   students: string[];

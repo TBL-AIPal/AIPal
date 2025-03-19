@@ -15,7 +15,10 @@ import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import AccountRow from './_PageSections/AccountRow';
 import AccountTable from './_PageSections/AccountTable';
 import { createErrorToast } from '@/lib/utils/toast';
+<<<<<<< HEAD
 import UpdateCourseForm from './_PageSections/UpdateCourseForm';
+=======
+>>>>>>> main
 
 const Overview: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -29,6 +32,7 @@ const Overview: React.FC = () => {
   const [emailList, setEmailList] = useState<string>('');
   const [userRole, setUserRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
   const [courseOwner, setCourseOwner] = useState<User | null>(null); //
+<<<<<<< HEAD
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [tutorialGroups, setTutorialGroups] = useState<TutorialGroup[]>([]);
@@ -43,6 +47,8 @@ const Overview: React.FC = () => {
       [groupId]: !prev[groupId],
     }));
   };
+=======
+>>>>>>> main
 
   const fetchUsers = useCallback(async () => {
     if (!courseIdString) return;
@@ -120,7 +126,11 @@ const Overview: React.FC = () => {
         id: courseIdString,
         name,
         apiKeys, // Updated to support multiple API keys
+<<<<<<< HEAD
         students: Array.from(new Set([
+=======
+        students: [
+>>>>>>> main
           ...accounts.filter(user => user.role !== 'teacher').map(user => user.id), 
           ...studentIds,
         ])),
@@ -131,6 +141,7 @@ const Overview: React.FC = () => {
         whitelist: Array.from(new Set([...whitelist, ...newUsers])),
       });      
 
+<<<<<<< HEAD
       if (selectedTutorialGroup) {
         await UpdateTutorialGroup({
           courseId: courseIdString,
@@ -141,6 +152,10 @@ const Overview: React.FC = () => {
 
       await fetchCourseDetails();
       setUserDialogOpen(false);
+=======
+      fetchUsers();
+      setDialogOpen(false);
+>>>>>>> main
     } catch (error) {
       createErrorToast('Unable to add users. Please try again later.');
     }
@@ -210,6 +225,7 @@ const Overview: React.FC = () => {
                 )}
               </div>
 
+<<<<<<< HEAD
               {/* Show users when expanded */}
               {expandedSections[group._id] && (
               <div className="ml-4 mt-2 p-2 bg-white border rounded shadow">
@@ -307,6 +323,20 @@ const Overview: React.FC = () => {
       </ul>
 
       <div className="rounded flex gap-4">
+=======
+      {/* Show Whitelisted Emails */}
+      {courseDetails?.whitelist && courseDetails.whitelist.length > 0 && (
+        <div className="mt-4">
+          <h2 className="text-xl font-semibold text-gray-700">Whitelisted Emails</h2>
+          <ul className="border rounded p-4 bg-gray-100">
+            {courseDetails.whitelist.map((email) => (
+              <li key={email} className="text-gray-800 p-2 border-b last:border-b-0">{email}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+>>>>>>> main
       {userRole !== 'student' && (
         <button onClick={() => setUserDialogOpen(true)} className="bg-blue-600 text-white p-2 rounded mt-4">
           Add Users

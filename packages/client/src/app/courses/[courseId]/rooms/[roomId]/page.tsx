@@ -38,8 +38,13 @@ const RoomChatPage: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState('chatgpt');
   const [selectedMethod, setSelectedMethod] = useState('direct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+<<<<<<< HEAD
   const socketRef = useRef<WebSocket | null>(null);
   const [users, setUsers] = useState<Record<string, { name: string; email: string }>>({}); 
+=======
+
+  const [userId, setUserId] = useState<string | null>(null);
+>>>>>>> main
 
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -48,6 +53,7 @@ const RoomChatPage: React.FC = () => {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       setUserId(user?.id || null);
     }
+<<<<<<< HEAD
   }, []);  
   
   useEffect(() => {
@@ -93,6 +99,8 @@ const RoomChatPage: React.FC = () => {
     };
 
     fetchUsers();
+=======
+>>>>>>> main
   }, []);
 
   useEffect(() => {
