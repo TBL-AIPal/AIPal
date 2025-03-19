@@ -31,18 +31,6 @@ export default function HomePage() {
               Sign Up
             </ButtonLink>
           </div>
-
-          {/* Navigation Links */}
-          <ButtonLink
-            className='mt-6'
-            href='/dashboard/courses'
-            variant='light'
-          >
-            Course List
-          </ButtonLink>
-          <ButtonLink className='mt-6' href='/components' variant='light'>
-            See all components
-          </ButtonLink>
         </div>
       </section>
     </main>

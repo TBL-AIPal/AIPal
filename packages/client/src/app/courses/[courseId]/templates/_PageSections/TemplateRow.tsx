@@ -1,22 +1,25 @@
+import { X } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { GetDocumentById } from '@/lib/API/document/queries';
 import { CreateRoom } from '@/lib/API/room/mutations';
 import { GetRoomsByTemplateId } from '@/lib/API/room/queries';
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { Room } from '@/lib/types/room';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 
+import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 
-import ChatRoomPage from './chat';
+import AddConstraintButton from './AddConstraintButton';
 import DocumentSelectionForm from './DocumentSelectionForm';
 import RoomCreateForm from './RoomCreateForm';
+import logger from '@/lib/utils/logger';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 interface TemplateRowProps {
   template: Template;
-  courseDocuments: Document[];
+  courseDocuments: DocumentMetadata[];
   onDelete: () => void;
   onUpdate: (updatedData: TemplateUpdateInput) => void;
 }
@@ -28,42 +31,60 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   onUpdate,
 }) => {
   const { courseId } = useParams<{ courseId: string }>();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(template.name);
-  const [editConstraints, setEditConstraints] = useState(
-    template.constraints.join(', ')
-  );
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>(
-    template.documents
-  );
+  const [newConstraint, setNewConstraint] = useState('');
+  const [currentConstraints, setCurrentConstraints] = useState<string[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [filenames, setFilenames] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isEditing) {
+      setCurrentConstraints(template.constraints);
+      setSelectedDocuments(template.documents);
+    }
+  }, [isEditing, template.constraints, template.documents]);
 
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
-    setIsEditing(false);
   };
 
   const toggleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsEditing((prev) => !prev);
+    setIsEditing((prev) => {
+      if (!prev) {
+        setEditName(template.name);
+        setCurrentConstraints(template.constraints);
+        setSelectedDocuments(template.documents);
+      }
+      return !prev;
+    });
+    setIsExpanded(true);
+  };
+
+  const handleAddConstraint = () => {
+    if (newConstraint.trim()) {
+      setCurrentConstraints([...currentConstraints, newConstraint.trim()]);
+      setNewConstraint('');
+    }
+  };
+
+  const handleRemoveConstraint = (indexToRemove: number) => {
+    setCurrentConstraints(
+      currentConstraints.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const handleUpdate = () => {
-    const updatedConstraints = editConstraints
-      .split(',')
-      .map((c) => c.trim())
-      .filter((c) => c !== '');
     const updatedData: TemplateUpdateInput = {
       name: editName !== template.name ? editName : undefined,
       constraints:
-        JSON.stringify(updatedConstraints) !==
+        JSON.stringify(currentConstraints) !==
         JSON.stringify(template.constraints)
-          ? updatedConstraints
+          ? currentConstraints
           : undefined,
       documents:
         JSON.stringify(selectedDocuments) !== JSON.stringify(template.documents)
@@ -71,6 +92,13 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           : undefined,
     };
     onUpdate(updatedData);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditName(template.name);
+    setCurrentConstraints(template.constraints);
+    setSelectedDocuments(template.documents);
     setIsEditing(false);
   };
 
@@ -91,6 +119,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
         template: template.id,
       });
       fetchRooms();
+      createInfoToast('Room created successfully!');
+    } catch(error) {
+      createErrorToast('Unable to create room. Please try again later.');
     } finally {
       setIsRoomModalOpen(false);
     }
@@ -106,20 +137,22 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
     }
   }, [courseId, template.id]);
 
-  const fetchFilenames = useCallback(async () => {
-    if (!template.id) return;
+  const fetchFilenames = useCallback(() => {
+    if (!template.id || !courseDocuments) return;
+  
     try {
-      const filenames = await Promise.all(
-        template.documents.map(async (docId) => {
-          const document = await GetDocumentById(courseId, docId);
-          return document.filename; // Extract the filename
-        })
-      );
+      const filenames = template.documents.map((docId) => {
+        const document = courseDocuments.find((doc) => doc.id === docId);
+        if (document === undefined) {
+          throw new Error(`Document ${docId} not found in course documents.`);
+        }
+        return document.filename;
+      });
       setFilenames(filenames);
-    } catch (error) {
-      // Handle errors here if necessary
+    } catch (err) {
+      logger(err, 'Error fetching filenames');
     }
-  }, [template.documents, courseId, template.id]);
+  }, [template.id, template.documents, courseDocuments]);
 
   useEffect(() => {
     if (isExpanded) {
@@ -135,14 +168,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
     fetchFilenames,
   ]);
 
-  // Handler for clicking on a room, which opens the chat modal
-  const handleRoomClick = (room: Room) => {
-    setSelectedRoom(room);
-    setIsChatModalOpen(true); // Open chat modal when a room is clicked
-  };
-
   return (
     <>
+      {/* Main template row */}
       <tr
         onClick={toggleExpand}
         className={`cursor-pointer transition-colors duration-300 ${
@@ -150,81 +178,145 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
         }`}
       >
         <td className='border-b py-2 px-4'>
+          {/* Editing mode UI */}
           {isEditing ? (
-            <input
-              type='text'
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              className='border p-1'
-            />
+            <div className='mb-4'>
+               {/* Name input */}
+              <input
+                type='text'
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className='border p-1 w-full'
+              />
+            </div>
           ) : (
-            template.name
+            <span>{template.name}</span>
           )}
         </td>
         <td className='border-b py-2 px-4 flex space-x-2'>
+          {/* Editing mode UI */}
           {isEditing ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUpdate();
-              }}
-              className='bg-blue-600 text-white px-2 py-1 rounded'
-            >
-              Save
-            </button>
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUpdate();
+                }}
+                className='bg-blue-600 text-white px-2 py-1 rounded'
+              >
+                Save
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancel();
+                }}
+                className='bg-gray-600 text-white px-2 py-1 rounded'
+              >
+                Cancel
+              </button>
+            </>
           ) : (
-            <button
-              onClick={toggleEdit}
-              className='text-blue-600 px-2 py-1 rounded'
-            >
-              Edit
-            </button>
+            <>
+              <button
+                onClick={toggleEdit}
+                className='text-blue-600 px-2 py-1 rounded'
+              >
+                Edit
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className='text-red-600 px-2 py-1 rounded'
+              >
+                Delete
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsRoomModalOpen(true);
+                }}
+                className='bg-green-600 text-white px-2 py-1 rounded'
+              >
+                Create Room
+              </button>
+            </>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className='text-red-600 px-2 py-1 rounded'
-          >
-            Delete
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsRoomModalOpen(true);
-            }}
-            className='bg-green-600 text-white px-2 py-1 rounded'
-          >
-            Create Room
-          </button>
         </td>
       </tr>
+
       {isExpanded && (
         <tr>
           <td colSpan={2} className='border-b py-2 px-4'>
-            {isEditing ? (
-              <div className='mb-2'>
-                <label className='font-semibold mt-2 block'>Constraints:</label>
-                <textarea
-                  value={editConstraints}
-                  onChange={(e) => setEditConstraints(e.target.value)}
-                  className='border p-1 w-full'
-                />
-                {/* Document Selection Form */}
-                <label className='font-semibold mt-2 block'>Documents:</label>
-                <DocumentSelectionForm
-                  documents={courseDocuments}
-                  onSelectionChange={(selectedIds) =>
-                    setSelectedDocuments(selectedIds)
-                  } // Update selected documents
-                />
+            {/* Editing mode UI */}
+            {isEditing && (
+              <div className='mb-4'>
+                {/* Constraint management */}
+                <div className='mb-4'>
+                  <label className='font-semibold block mb-2'>
+                    Constraints:
+                  </label>
+                  <div className='flex gap-2 mb-2'>
+                    <Input
+                      id='newConstraint'
+                      value={newConstraint}
+                      onChange={(e) => setNewConstraint(e.target.value)}
+                      placeholder='Enter constraint'
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddConstraint();
+                        }
+                      }}
+                      required={false}
+                    />
+                    <AddConstraintButton
+                      onClick={handleAddConstraint}
+                      isDisabled={!newConstraint.trim()}
+                    />
+                  </div>
+                  <div className='flex flex-wrap gap-2'>
+                    {currentConstraints.map((constraint, index) => (
+                      <div
+                        key={index}
+                        className='flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-900 dark:text-white'
+                      >
+                        <span>{constraint}</span>
+                        <button
+                          type='button'
+                          onClick={() => handleRemoveConstraint(index)}
+                          className='ml-1 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700'
+                        >
+                          <X
+                            size={14}
+                            className='text-gray-500 dark:text-gray-400'
+                          />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Document selection */}
+                <div>
+                  <label className='font-semibold block mb-2'>Documents:</label>
+                  <DocumentSelectionForm
+                    documents={courseDocuments}
+                    onSelectionChange={(selectedIds) =>
+                      setSelectedDocuments(selectedIds)
+                    }
+                  />
+                </div>
               </div>
-            ) : (
+            )}
+
+            {/* Display mode UI */}
+            {!isEditing && (
               <>
-                {/* Display the constraints when expanded */}
+                {/* Constraints display */}
                 <div className='mt-4'>
-                  {/* Header for Constraints */}
                   <h3 className='font-semibold'>Constraints</h3>
                   {template.constraints.length === 0 ? (
                     <p>No constraints available for this template.</p>
@@ -236,8 +328,8 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                     </ul>
                   )}
                 </div>
-                {/* Display the rooms when expanded */}
-                {/* Display the rooms when expanded */}
+
+                {/* Rooms display */}
                 <div className='mt-4'>
                   <h3 className='font-semibold'>Rooms</h3>
                   {rooms.length === 0 ? (
@@ -245,14 +337,14 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   ) : (
                     <ul className='list-disc pl-5'>
                       {rooms.map((room) => (
-                        <RoomItem key={room.id} room={room} onRoomClick={handleRoomClick} />
+                        <RoomItem key={room.id} room={room} />
                       ))}
                     </ul>
                   )}
-                </div>;
-                {/* Display the documents when expanded */}
+                </div>
+
+                {/* Documents display */}
                 <div className='mt-4'>
-                  {/* Header for Documents */}
                   <h3 className='font-semibold'>Documents</h3>
                   {template.documents.length === 0 ? (
                     <p>No documents available for this template.</p>
@@ -269,6 +361,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           </td>
         </tr>
       )}
+
       {/* Room creation modal */}
       {isRoomModalOpen && (
         <Modal
@@ -278,28 +371,12 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
           <RoomCreateForm onCreateRoom={handleCreateRoom} />
         </Modal>
       )}
-      {/* Chat room modal */}
-      {isChatModalOpen && selectedRoom && (
-        <Modal
-          title={`Chat Room - ${selectedRoom.name}`} // Display room name in the modal title
-          onClose={() => setIsChatModalOpen(false)} // Close the modal on user action
-          size='xl'
-        >
-          <ChatRoomPage
-            roomName={selectedRoom.name}
-            roomDescription={selectedRoom.description}
-            courseId={courseId}
-            templateId={selectedRoom.template}
-            constraints={template.constraints}
-          />
-        </Modal>
-      )}
     </>
   );
 };
 
 // Separate RoomItem component to fix useState issue
-const RoomItem: React.FC<{ room: Room; onRoomClick: (room: Room) => void }> = ({ room, onRoomClick }) => {
+const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = (code: string) => {
@@ -309,11 +386,13 @@ const RoomItem: React.FC<{ room: Room; onRoomClick: (room: Room) => void }> = ({
   };
 
   return (
-    <li key={room.id} className='cursor-pointer text-blue-600 hover:underline' onClick={() => onRoomClick(room)}>
+    <li key={room.id} className='text-blue-600'>
       <span className='font-semibold'>{room.name}</span> - {room.description}
       <br />
       <div className='flex items-center space-x-2'>
-        <span className='text-sm text-gray-600'>Room Code: <strong>{room.code}</strong></span>
+        <span className='text-sm text-gray-600'>
+          Room Code: <strong>{room.code}</strong>
+        </span>
 
         {/* Copy Button */}
         <button

@@ -5,6 +5,7 @@ import {
   TemplateFormValues,
   TemplateUpdateInput,
 } from '@/lib/types/template';
+import logger from '@/lib/utils/logger';
 
 interface CreateTemplatePropsI extends TemplateFormValues {
   courseId: string;
@@ -35,8 +36,8 @@ export const CreateTemplate = async ({
   try {
     await api.post(`/courses/${courseId}/templates`, data);
   } catch (err) {
-    console.error(`Error creating template in course ${courseId}:`, err);
-    throw err;
+    logger(err, `Error creating template in course ${courseId}`);
+    throw new Error('Unable to create template. Please try again.');
   }
 };
 
@@ -56,8 +57,8 @@ export const UpdateTemplate = async ({
   try {
     await api.patch(`/courses/${courseId}/templates/${templateId}`, data);
   } catch (err) {
-    console.error(`Error updating template ${templateId} in course ${courseId}:`, err);
-    throw err;
+    logger(err, `Error updating template ${templateId} in course ${courseId}`);
+    throw new Error('Unable to update template. Please try again.');
   }
 };
 
@@ -65,7 +66,7 @@ export const DeleteTemplate = async ({ courseId, templateId }: DeleteTemplatePro
   try {
     await api.delete(`/courses/${courseId}/templates/${templateId}`);
   } catch (err) {
-    console.error(`Error deleting template ${templateId} in course ${courseId}:`, err);
-    throw err;
+    logger(err, `Error deleting template ${templateId} in course ${courseId}`);
+    throw new Error('Unable to delete template. Please try again.');
   }
 };

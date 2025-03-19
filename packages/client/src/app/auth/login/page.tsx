@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import api from '@/lib/API/auth/interceptor'; // Use Axios interceptor
+import { createErrorToast } from '@/lib/utils/toast';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,7 +12,6 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
@@ -28,9 +28,9 @@ export default function LoginPage() {
       localStorage.setItem('refreshToken', data.tokens.refresh.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      window.location.href = '/dashboard/courses';
+      window.location.href = '/dashboard/courses'; // Redirect on success
     } catch (err) {
-      setError('Invalid credentials, please try again.');
+      createErrorToast('Invalid credentials, please try again.');
     } finally {
       setIsLoading(false);
     }

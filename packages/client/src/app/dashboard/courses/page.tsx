@@ -3,15 +3,15 @@ import React, { useEffect, useState } from 'react';
 
 import { GetCoursesForUser } from '@/lib/API/course/queries';
 import { Course } from '@/lib/types/course';
-import { GetUserById } from '@/lib/API/user/queries'; // Assuming GetUserById is in this path
-import logger from '@/lib/utils/logger';
 import { User } from '@/lib/types/user';
+import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
 import { Modal } from '@/components/ui/Modal';
 
 import CourseCreateForm from './_PageSections/CourseCreateForm';
 import CourseGallery from './_PageSections/CourseGallery';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +31,7 @@ export default function CoursesPage() {
       const fetchedCourses = await GetCoursesForUser(); // Fetch courses based on user role
       setCourses(fetchedCourses);
     } catch (err) {
-      logger(err, 'Error fetching courses');
+      createErrorToast('Unable to retrieve courses. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -43,6 +43,7 @@ export default function CoursesPage() {
       const userString = localStorage.getItem('user'); // Get the user object from localStorage
       if (!userString) {
         logger('User not authenticated', 'Error: No user in localStorage');
+        createErrorToast('Access denied. Please log in to proceed.');
         return;
       }
 
@@ -53,11 +54,15 @@ export default function CoursesPage() {
       if (userData.role === 'admin') {
         setIsAdmin(true);
         setCanAddCourse(true); // Admins can add courses
-      } else if (userData.role === 'teacher' && userData.status === 'approved') {
+      } else if (
+        userData.role === 'teacher' &&
+        userData.status === 'approved'
+      ) {
         setCanAddCourse(true); // Approved teachers can add courses
       }
     } catch (err) {
       logger(err, 'Error fetching user data');
+      createErrorToast(`Unable to retrieve user's data. Please try again later.`);
     }
   };
 
@@ -77,11 +82,11 @@ export default function CoursesPage() {
       {canAddCourse && (
         <TextButton
           className='fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg'
-          variant='primary'
+          variant='basic'
           onClick={() => setIsModalOpen(true)}
           disabled={loading}
         >
-          {loading ? 'Adding...' : '+ Add Course'}
+          {'Add Course'}
         </TextButton>
       )}
 
@@ -92,11 +97,12 @@ export default function CoursesPage() {
             course={{
               name: '',
               description: '',
-              apiKeys: { gemini: '', llama: '', chatgpt: '' }, // ✅ Updated to include multiple API keys
+              apiKeys: { gemini: '', llama: '', chatgpt: '' }, // Updated to include multiple API keys
             }}
             onCourseCreated={() => {
               handleModalClose();
               fetchCourses();
+              createInfoToast('Course added successfully!');
             }}
           />
         </Modal>
@@ -104,7 +110,10 @@ export default function CoursesPage() {
 
       {/* Course Gallery */}
       <div className='mt-8'>
-        <CourseGallery courses={courses} />
+        <CourseGallery courses={courses} isLoading={loading} onDelete={() => {
+          fetchCourses();
+          createInfoToast('Course deleted successfully!');
+        }}/>
       </div>
     </div>
   );

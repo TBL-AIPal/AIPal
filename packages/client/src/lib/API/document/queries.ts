@@ -1,25 +1,32 @@
 import api from '@/lib/API/auth/interceptor';
-import { cache } from 'react';
-import { Document } from '@/lib/types/document';
+import { Document, DocumentMetadata } from '@/lib/types/document';
+import logger from '@/lib/utils/logger';
 
-// Get all documents for a course
-export const GetDocumentsByCourseId = cache(async (courseId: string): Promise<Document[]> => {
+// Get all documents' metadata for a course
+export const GetDocumentsByCourseId = async (
+  courseId: string,
+): Promise<DocumentMetadata[]> => {
   try {
     const response = await api.get(`/courses/${courseId}/documents`);
     return response.data;
   } catch (err) {
-    console.error(`Error fetching documents for course ${courseId}:`, err);
+    logger(err, `Error fetching documents' metadata for course ${courseId}`);
     throw err;
   }
-});
+};
 
 // Get a single document by its ID
-export const GetDocumentById = cache(async (courseId: string, documentId: string): Promise<Document> => {
+export const GetDocumentById = async (
+  courseId: string,
+  documentId: string,
+): Promise<Document> => {
   try {
-    const response = await api.get(`/courses/${courseId}/documents/${documentId}`);
+    const response = await api.get(
+      `/courses/${courseId}/documents/${documentId}`,
+    );
     return response.data;
   } catch (err) {
-    console.error(`Error fetching document ${documentId} from course ${courseId}:`, err);
+    logger(err, `Error fetching document ${documentId} from course ${courseId}:`);
     throw err;
   }
-});
+};

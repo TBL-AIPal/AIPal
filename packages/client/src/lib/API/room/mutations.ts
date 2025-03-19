@@ -1,4 +1,5 @@
 import api from '@/lib/API/auth/interceptor';
+import logger from '@/lib/utils/logger';
 
 interface CreateRoomProps {
   courseId: string;
@@ -17,8 +18,8 @@ export const CreateRoom = async ({ courseId, name, description, code, template }
       template,
     });
   } catch (err) {
-    console.error(`Error creating room in course ${courseId}:`, err);
-    throw err;
+    logger(err, `Error creating room in course ${courseId}`);
+    throw new Error('Unable to create room. Please try again.');
   }
 };
 

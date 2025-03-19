@@ -1,11 +1,11 @@
-'use client'; // This marks the component as a Client Component
+'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import { createErrorToast } from '@/lib/utils/toast';
+import logger from '@/lib/utils/logger';
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleLogout = async () => {
     try {
@@ -21,8 +21,8 @@ export default function SettingsPage() {
       // Redirect to the login page
       window.location.href = '/'; // Redirect to the login page after logout
     } catch (err) {
-      setError('Error logging out. Please try again.');
-      console.error('Error logging out:', err);
+      logger(err, 'Error logging out');
+      createErrorToast('Unable to log out. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -30,7 +30,6 @@ export default function SettingsPage() {
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen p-4'>
-      {error && <p className='text-red-500 mb-4'>{error}</p>}
       <button
         onClick={handleLogout}
         disabled={isLoading}

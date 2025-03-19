@@ -2,7 +2,7 @@
 import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { TemplateFormValues } from '@/lib/types/template';
 
 import { Form } from '@/components/ui/Form';
@@ -13,7 +13,7 @@ import { TemplateForm } from './TemplateForm';
 
 interface TemplateCreateFormProps {
   onCreateTemplate: (template: TemplateFormValues) => void;
-  documents: Document[];
+  documents: DocumentMetadata[];
 }
 
 const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
@@ -31,9 +31,7 @@ const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
   const { handleSubmit, reset, watch } = formMethods;
   const template = watch();
 
-  const handleAddConstraint = (constraint: string) => {
-    const currentConstraints = template.constraints || [];
-    const newConstraints = [...currentConstraints, constraint];
+  const handleConstraintChange = (newConstraints: string[]) => {
     formMethods.setValue('constraints', newConstraints);
   };
 
@@ -60,7 +58,7 @@ const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
         {/* Constraint Form */}
         <ConstraintForm
           constraints={template.constraints || []}
-          onAddConstraint={handleAddConstraint}
+          onConstraintChange={handleConstraintChange}
         />
 
         {/* Document Selection Form */}
@@ -68,10 +66,10 @@ const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
           {documents.length > 0 ? (
             <DocumentSelectionForm
               documents={documents}
-              onSelectionChange={handleDocumentSelectionChange} // Pass the handler
+              onSelectionChange={handleDocumentSelectionChange}
             />
           ) : (
-            <p>No documents.</p>
+            <p>No documents uploaded yet.</p>
           )}
         </div>
 

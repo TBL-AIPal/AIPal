@@ -56,10 +56,9 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
     try {
       await CreateCourse({ name, description, apiKeys: filteredApiKeys });
       reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
-      router.refresh();
       onCourseCreated();
     } catch (err: any) {
-      logger(err);
+      logger(err, 'Error creating course');
 
       const backendError = err.message || 'An unexpected error occurred.';
       setErrorMessage(backendError);

@@ -2,14 +2,14 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { GetDocumentsByCourseId } from '@/lib/API/document/queries'; // Import the document fetching function
+import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import {
   CreateTemplate,
   DeleteTemplate,
   UpdateTemplate,
 } from '@/lib/API/template/mutations';
 import { GetTemplatesByCourseId } from '@/lib/API/template/queries';
-import { Document } from '@/lib/types/document';
+import { DocumentMetadata } from '@/lib/types/document';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 
@@ -18,6 +18,8 @@ import { Modal } from '@/components/ui/Modal';
 
 import { TemplateCreateForm } from './_PageSections/TemplateCreateForm';
 import TemplateTable from './_PageSections/TemplateTable';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
+import EmptyState from '@/components/ui/EmptyState';
 
 const TemplatesPage = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -25,7 +27,7 @@ const TemplatesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
 
   const fetchTemplates = useCallback(async () => {
     if (!courseIdString) return;
@@ -34,7 +36,7 @@ const TemplatesPage = () => {
       setTemplates(templates || []);
       logger(templates);
     } catch (error) {
-      logger(error, 'Error fetching templates');
+      createErrorToast('Unable to retrieve templates. Please try again later.');
     }
   }, [courseIdString]);
 
@@ -44,7 +46,7 @@ const TemplatesPage = () => {
       const fetchedDocuments = await GetDocumentsByCourseId(courseIdString);
       setDocuments(fetchedDocuments || []);
     } catch (err) {
-      logger(err, 'Error fetching documents');
+      createErrorToast('Unable to retrieve documents. Please try again later.');
     }
   }, [courseIdString]);
 
@@ -62,10 +64,10 @@ const TemplatesPage = () => {
         constraints: templateData.constraints,
         documents: templateData.documents,
       });
-      logger(templateData, 'Template added successfully');
+      createInfoToast('Template created successfully!');
       await fetchTemplates();
     } catch (error) {
-      logger(error, 'Failed to add template');
+      createErrorToast('Unable to add template. Please try again later.');
     } finally {
       setLoading(false);
       setIsModalOpen(false);
@@ -76,16 +78,16 @@ const TemplatesPage = () => {
     if (!courseIdString) return;
     try {
       await DeleteTemplate({ courseId: courseIdString, templateId });
-      logger('Template deleted successfully');
+      createInfoToast('Template deleted successfully');
       await fetchTemplates();
     } catch (error) {
-      logger(error, 'Failed to delete template');
+      createErrorToast('Unable to delete template. Please try again later.');
     }
   };
 
   const handleUpdateTemplate = async (
     templateId: string,
-    updatedData: TemplateUpdateInput
+    updatedData: TemplateUpdateInput,
   ) => {
     if (!courseIdString) return;
     setLoading(true);
@@ -97,10 +99,10 @@ const TemplatesPage = () => {
         constraints: updatedData.constraints,
         documents: updatedData.documents,
       });
-      logger('Template updated successfully');
+      createInfoToast('Template updated successfully');
       await fetchTemplates();
     } catch (error) {
-      logger(error, 'Failed to update template');
+      createErrorToast('Unable to update template. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -113,15 +115,27 @@ const TemplatesPage = () => {
 
   return (
     <div className='p-4'>
-      {/* Template Table */}
       <div>
         <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Templates</h1>
-        <TemplateTable
-          templates={templates}
-          courseDocuments={documents}
-          onDelete={handleDeleteTemplate}
-          onUpdate={handleUpdateTemplate}
-        />
+        {templates.length === 0 ? (
+          // Empty State
+          <EmptyState
+            title='Create Your First Template!'
+            description={[
+              'Templates let you customize how the AI responds in chat rooms.',
+              'For example, ask for responses in Chinese or limit replies to certain materials.',
+              "Choose which uploaded materials the AI should use for context.",
+            ]}
+          />
+        ) : (
+          // Template Table
+          <TemplateTable
+            templates={templates}
+            courseDocuments={documents}
+            onDelete={handleDeleteTemplate}
+            onUpdate={handleUpdateTemplate}
+          />
+        )}
       </div>
 
       {/* Add Template Button */}

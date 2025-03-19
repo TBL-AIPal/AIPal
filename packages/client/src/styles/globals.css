@@ -115,4 +115,53 @@
   .animated-underline:focus-visible {
     background-size: 0 2px, 100% 2px;
   }
+
+  .prose {
+    @apply text-sm text-gray-800;
+  }
+  
+  .prose a {
+    @apply text-blue-600;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 px-1 py-0.5 rounded;
+  }
+  
+  .prose pre {
+    @apply bg-gray-50 p-4 rounded-lg overflow-auto;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-gray-200 pl-4 italic;
+  }
+  
+  .prose ul {
+    @apply list-disc pl-5;
+  }
+  
+  .prose ol {
+    @apply list-decimal pl-5;
+  }
+
+  /* Width */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: transparent; /* Transparent track */
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0);
+    border-radius: 5px; /* Rounded corners */
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
 }

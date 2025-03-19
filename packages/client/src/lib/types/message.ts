@@ -13,6 +13,7 @@ export interface SendMessageInput {
 
 export interface Message {
   role: 'user' | 'assistant' | 'system';
+  sender: string;
   content: string;
   modelUsed?: string;
 }
