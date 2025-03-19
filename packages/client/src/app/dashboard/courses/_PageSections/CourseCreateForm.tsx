@@ -1,11 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { CreateCourse } from '@/lib/API/course/mutations';
-import { CourseCreateInput, CourseFormValues } from '@/lib/types/course';
+import { APIKeys, CourseCreateInput, CourseFormValues } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 
 import { Form } from '@/components/ui/Form';
@@ -22,6 +22,8 @@ interface AddFormProps {
 export default function CourseCreateForm({ course, onCourseCreated }: AddFormProps) {
   const router = useRouter();
   const { name, description, apiKeys } = course;
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const formMethods = useForm<CourseFormValues>({
     defaultValues: {
@@ -40,12 +42,26 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
   const onSubmit = async (values: CourseFormValues) => {
     const { name, description, apiKeys } = values;
 
+    // ✅ Ensure filteredApiKeys has the correct type
+    const filteredApiKeys: Partial<APIKeys> = Object.fromEntries(
+      Object.entries(apiKeys).filter(([_, value]) => value.trim() !== '')
+    );
+
+    // Ensure at least one key is provided
+    if (Object.keys(filteredApiKeys).length === 0) {
+      setErrorMessage('Please provide at least one API key.');
+      return;
+    }
+    
     try {
       await CreateCourse({ name, description, apiKeys });
       reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
       onCourseCreated();
-    } catch (err) {
+    } catch (err: any) {
       logger(err, 'Error creating course');
+
+      const backendError = err.message || 'An unexpected error occurred.';
+      setErrorMessage(backendError);
     }
   };
 
@@ -55,6 +71,8 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
         <NameForm />
         <DescriptionForm />
         <APIKeyForm />
+
+        {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
 
         <button
           type='submit'

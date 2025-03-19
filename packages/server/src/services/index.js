@@ -7,6 +7,7 @@ module.exports.documentService = require('./document.service');
 module.exports.templateService = require('./template.service');
 module.exports.roomService = require('./room.service');
 module.exports.messageService = require('./message.service');
+module.exports.tutorialGroupService = require('./tutorial.group.service');
 
 module.exports.gptService = require('./RAG/embedding.service');
 module.exports.gptService = require('./RAG/vector.search.service');

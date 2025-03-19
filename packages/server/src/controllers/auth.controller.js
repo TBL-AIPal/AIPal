@@ -5,12 +5,11 @@ const { authService, userService, tokenService, emailService, courseService } = 
 const register = catchAsync(async (req, res) => {
   const { email, role } = req.body;
 
-  // ✅ Step 1: Create User
-  const user = await userService.createUser(req.body);
-  const tokens = await tokenService.generateAuthTokens(user);
-
-  // ✅ Step 2: Check if the email is in a course's whitelist
   const course = await courseService.getCourseByEmail(email);
+  const isApproved = Boolean(course);
+
+  const user = await userService.createUser({ ...req.body, approved: isApproved });
+  const tokens = await tokenService.generateAuthTokens(user);
 
   if (course) {
     const isTeacher = role === 'teacher';

@@ -81,18 +81,23 @@ const updateCourse = catchAsync(async (req, res) => {
   const { courseId } = req.params;
   const updateData = { ...req.body };
 
+  const existingCourse = await Course.findById(courseId);
+  if (!existingCourse) {
+    throw new Error('Course not found');
+  }
+
   // Encrypt API keys if provided in the request body
   if (updateData.apiKeys) {
     updateData.apiKeys = {
       gemini: updateData.apiKeys.gemini
         ? encrypt(updateData.apiKeys.gemini, config.encryption.key)
-        : '',
+        : existingCourse.apiKeys.gemini,
       llama: updateData.apiKeys.llama
         ? encrypt(updateData.apiKeys.llama, config.encryption.key)
-        : '',
+        : existingCourse.apiKeys.llama,
       chatgpt: updateData.apiKeys.chatgpt
         ? encrypt(updateData.apiKeys.chatgpt, config.encryption.key)
-        : '',
+        : existingCourse.apiKeys.chatgpt,
     };
   }
 

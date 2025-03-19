@@ -48,6 +48,9 @@ const getRoomsByTemplate = {
 
 const updateRoom = {
   params: Joi.object().keys({
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID is required',
+    }),
     roomId: Joi.string().custom(objectId).required().messages({
       'any.required': 'Room ID is required',
     }),
@@ -58,6 +61,7 @@ const updateRoom = {
       description: Joi.string(),
       code: Joi.string(),
       template: Joi.string().custom(objectId),
+      allowedUsers: Joi.array().items(Joi.string().custom(objectId)),
     })
     .min(1)
     .strict(),

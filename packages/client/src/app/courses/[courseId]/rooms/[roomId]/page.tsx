@@ -13,6 +13,7 @@ import {
 } from '@/lib/API/message/mutations';
 import { GetRoomById } from '@/lib/API/room/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
+import { GetUsers } from '@/lib/API/user/queries';
 import { GetTemplateById } from '@/lib/API/template/queries';
 import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
@@ -37,6 +38,8 @@ const RoomChatPage: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState('chatgpt');
   const [selectedMethod, setSelectedMethod] = useState('direct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const [users, setUsers] = useState<Record<string, { name: string; email: string }>>({}); 
 
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -45,6 +48,51 @@ const RoomChatPage: React.FC = () => {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       setUserId(user?.id || null);
     }
+  }, []);  
+  
+  useEffect(() => {
+    if (!roomId) return;
+  
+    // ✅ Ensure WebSocket URL matches the backend server
+    const wsUrl = `ws://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/rooms/${roomId}`;
+  
+    socketRef.current = new WebSocket(wsUrl);
+  
+    socketRef.current.onopen = () => {
+      console.log(`Connected to WebSocket server: ${wsUrl}`);
+    };
+  
+    socketRef.current.onmessage = (event) => {
+      const receivedMessage = JSON.parse(event.data);
+      setMessages((prev) => [...prev, receivedMessage]); // ✅ Update chat messages
+    };
+  
+    socketRef.current.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+  
+    return () => {
+      socketRef.current?.close(); // ✅ Cleanup WebSocket on unmount
+    };
+  }, [roomId]);  
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userList = await GetUsers(); // ✅ Fetch all users
+        const userMap: Record<string, { name: string; email: string }> = {};
+
+        userList.forEach((user) => {
+          userMap[user.id] = { name: user.name, email: user.email };
+        });
+
+        setUsers(userMap); // ✅ Store users in state
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   useEffect(() => {
