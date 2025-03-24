@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { UpdateCourse } from '@/lib/API/course/mutations';
 import { Course } from '@/lib/types/course';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 interface UpdateCourseFormProps {
   course: Course;
@@ -25,7 +26,6 @@ const UpdateCourseForm: React.FC<UpdateCourseFormProps> = ({ course, onClose, on
       });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,7 +41,6 @@ const UpdateCourseForm: React.FC<UpdateCourseFormProps> = ({ course, onClose, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
 
     const updatedApiKeys = Object.fromEntries(
         Object.entries(formData.apiKeys).filter(([_, value]) => value.trim() !== '')
@@ -54,10 +53,11 @@ const UpdateCourseForm: React.FC<UpdateCourseFormProps> = ({ course, onClose, on
           description: formData.description,
           apiKeys: updatedApiKeys, // ✅ Only send entered API keys
     });
-      onCourseUpdated(); // Refresh the course details
-      onClose();
+        createInfoToast('Course updated successfully!');
+        onCourseUpdated(); // Refresh the course details
+        onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to update course.');
+        createErrorToast(err.message || 'Failed to update course.');
     } finally {
       setIsLoading(false);
     }
@@ -101,8 +101,6 @@ const UpdateCourseForm: React.FC<UpdateCourseFormProps> = ({ course, onClose, on
             />
           </div>
         ))}
-
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
         <div className="flex justify-between mt-4">
           <button

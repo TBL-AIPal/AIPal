@@ -84,7 +84,7 @@ export const CreateTutorialGroup = async (courseId: string, groupName: string) =
     await api.post(`/courses/${courseId}/tutorial-groups`, data);
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
-      console.error('Error creating tutorial group:', err.response?.data || err.message);
+      logger(err, `Error creating tutorial group: ${err.response?.data || err.message}`);
       throw new Error(err.response?.data?.message || 'Failed to create tutorial group');
     }
     console.error('Unexpected error:', err);

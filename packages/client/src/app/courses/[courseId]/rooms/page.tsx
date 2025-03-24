@@ -16,6 +16,7 @@ import TextButton from '@/components/buttons/TextButton';
 import { UserPlusIcon, ArrowRightCircleIcon } from '@heroicons/react/24/solid';
 import { User } from '@/lib/types/user';
 import { UpdateRoom } from '@/lib/API/room/mutations';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 const RoomsPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -33,7 +34,6 @@ const RoomsPage: React.FC = () => {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [roomCode, setRoomCode] = useState('');
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>('student');
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -76,7 +76,6 @@ const RoomsPage: React.FC = () => {
   const handleOpenModal = (room: Room) => {
     setSelectedRoom(room);
     setRoomCode('');
-    setError(null);
     if (currentUser?.role !== 'student' || room.allowedUsers?.includes(currentUser?.id ?? "")) {
       logger(`User ${currentUser?.id} is already allowed. Entering room ${room.name}...`);
       router.push(`/courses/${courseIdString}/rooms/${room.id}`);
@@ -87,7 +86,7 @@ const RoomsPage: React.FC = () => {
 
   const handleEnterRoom = async () => {
     if (!selectedRoom || !roomCode.trim()) {
-      setError('Please enter a code.');
+      createErrorToast('Please enter a code.');
       return;
     }
   
@@ -111,10 +110,10 @@ const RoomsPage: React.FC = () => {
         router.push(`/courses/${courseIdString}/rooms/${selectedRoom.id}`);
       } catch (error) {
         logger(error, "Error updating allowedUsers for room entry");
-        setError('Failed to update user access. Please try again.');
+        createErrorToast('Failed to update user access. Please try again.');
       }
     } else {
-      setError('Invalid code. Please try again.');
+      createErrorToast('Invalid code. Please try again.');
     }
   };  
 
@@ -141,10 +140,12 @@ const RoomsPage: React.FC = () => {
         allowedUsers: newAllowedUsers 
       });
   
+      createInfoToast('Users added successfully!');
       setIsAddUserModalOpen(false);
       fetchRooms(); // ✅ Refresh room data after updating users
     } catch (error) {
       logger(error, "Error adding users to room");
+      createErrorToast('Failed to add users. Please try again.');
     }
   };  
 
@@ -248,10 +249,8 @@ const RoomsPage: React.FC = () => {
               value={roomCode}
               onChange={(e) => {
                 setRoomCode(e.target.value);
-                setError(null); // Clear error when user types
               }}
             />
-            {error && <p className="text-red-500">{error}</p>}
             <div className="flex justify-end space-x-2">
               <TextButton className="bg-gray-500 text-white px-4 py-2 rounded" onClick={() => setIsModalOpen(false)}>
                 Cancel

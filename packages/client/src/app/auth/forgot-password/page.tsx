@@ -2,29 +2,27 @@
 
 import React, { useState } from 'react';
 import api from '@/lib/API/auth/interceptor';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
-    setError('');
     setIsLoading(true);
 
     try {
       await api.post('/auth/forgot-password', { email });
-      setMessage('Reset link sent! Check your email.');
+      createInfoToast('Reset link sent! Check your email.');
+
       setTimeout(() => {
-        window.location.href = '/auth/login'; // Redirect after 3 seconds
+        window.location.href = '/auth/login';
       }, 3000);
     } catch (err: any) {
-      // Extract the actual error message from the backend response
-      const backendError = err.response?.data?.message || 'An error occurred. Please try again.';
-      setError(backendError);
+      const backendError =
+        err.response?.data?.message || 'An error occurred. Please try again.';
+      createErrorToast(backendError);
     } finally {
       setIsLoading(false);
     }
@@ -33,8 +31,8 @@ export default function ForgotPasswordPage() {
   return (
     <main className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="p-8 bg-white shadow-md rounded-md w-96">
-        
-        {/* Back Button (Top-Left) */}
+
+        {/* Back Button */}
         <div className="flex items-center pb-4">
           <button
             type="button"
@@ -60,10 +58,6 @@ export default function ForgotPasswordPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-
-          {/* Success & Error Messages */}
-          {message && <p className="text-green-600 text-sm mt-2">{message}</p>}
-          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
           <button
             type="submit"

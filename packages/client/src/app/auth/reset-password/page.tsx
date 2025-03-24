@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation'; // Get token from URL
 import api from '@/lib/API/auth/interceptor';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -10,32 +11,27 @@ export default function ResetPasswordPage() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
-    setError('');
-
     // Ensure passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
+        createErrorToast('Passwords do not match.');
+        return;
     }
 
     setIsLoading(true);
 
     try {
       await api.post('/auth/reset-password', { token, password });
-      setMessage('Password successfully reset! Redirecting to login...');
+      createInfoToast('Password successfully reset! Redirecting to login...');
       setTimeout(() => {
         window.location.href = '/auth/login'; // Redirect after success
       }, 3000);
     } catch (err: any) {
       const backendError = err.response?.data?.message || 'Failed to reset password. Try again.';
-      setError(backendError);
+      createErrorToast(backendError);
     } finally {
       setIsLoading(false);
     }
@@ -81,11 +77,7 @@ export default function ResetPasswordPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-
-          {/* Success & Error Messages */}
-          {message && <p className="text-green-600 text-sm mt-2">{message}</p>}
-          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-
+          
           <button
             type="submit"
             className="w-full mt-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"

@@ -13,14 +13,15 @@ const createCourse = {
       description: Joi.string().allow(''),
       apiKeys: Joi.object()
         .keys({
-          gemini: Joi.string().pattern(apiKeyPattern).messages({
+          gemini: Joi.string().allow('').pattern(apiKeyPattern).messages({
             'string.pattern.base': 'Gemini API Key must be valid',
           }),
-          llama: Joi.string().pattern(apiKeyPattern).messages({
+          llama: Joi.string().allow('').pattern(apiKeyPattern).messages({
             'string.pattern.base': 'Llama API Key must be valid',
           }),
-          chatgpt: Joi.string().pattern(apiKeyPattern).messages({
+          chatgpt: Joi.string().required().pattern(apiKeyPattern).messages({
             'string.pattern.base': 'ChatGPT API Key must be valid',
+            'any.required': 'ChatGPT API Key is required',
           }),
         })
         .messages({

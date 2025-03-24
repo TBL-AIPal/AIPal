@@ -18,9 +18,7 @@ export default function SignupPage() {
   });
   
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -32,20 +30,17 @@ export default function SignupPage() {
     e.preventDefault();
 
     if (formData.password !== confirmPassword) {
-      setError('Passwords do not match.');
+      createErrorToast('Passwords do not match.');
       return;
     }
-    setError('');
     setIsLoading(true);
 
     try {
       await CreateUser(formData);
-      setShowSuccess(true); // Show success popup instead of console logging
+      createInfoToast('Account registration is successful! Redirecting...');
       setTimeout(() => {
         window.location.href = '/'; // Redirect after 3 seconds
       }, 3000);
-      createInfoToast('Account registration is successful!');
-      window.location.href = '/'; // Redirect to home page after signup
     } catch (err: any) {
       createErrorToast(err.response?.data?.message || 'Unable to register account. Please try again later.');
     } finally {
@@ -136,17 +131,6 @@ export default function SignupPage() {
           </button>
         </form>
       </div>
-
-      {/* Success Popup Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-md shadow-md text-center w-80">
-            <h2 className="text-xl font-semibold text-green-600 mb-2">Success!</h2>
-            <p className="text-gray-700 mb-4">Your account has been created.</p>
-            <p className="text-sm text-gray-500">Redirecting to home...</p>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

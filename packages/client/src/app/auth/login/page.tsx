@@ -7,7 +7,6 @@ import { createErrorToast } from '@/lib/utils/toast';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -19,7 +18,7 @@ export default function LoginPage() {
 
       // Block login if user is not approved
       if (data.user.status !== 'approved' && data.user.role !== 'admin') {
-        setError('Your account is not approved yet. Please contact support.');
+        createErrorToast('Your account is not approved yet. Please contact support.')
         return;
       }
 
@@ -86,7 +85,6 @@ export default function LoginPage() {
               Forgot password?
             </button>
           </div>
-          {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
