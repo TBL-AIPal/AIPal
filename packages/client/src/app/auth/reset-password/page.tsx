@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      await api.post('/auth/reset-password', { token, password });
+      await api.post(`/auth/reset-password?token=${token}`, { password });
       createInfoToast('Password successfully reset! Redirecting to login...');
       setTimeout(() => {
         window.location.href = '/auth/login'; // Redirect after success
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          
+
           <button
             type="submit"
             className="w-full mt-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
