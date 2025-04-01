@@ -14,6 +14,12 @@ const createRoom = {
       template: Joi.string().custom(objectId).required().messages({
         'any.required': 'Template ID is required',
       }),
+      selectedModel: Joi.string()
+        .valid('chatgpt', 'gemini', 'llama3')
+        .required(),
+      selectedMethod: Joi.string()
+        .valid('direct', 'multi-agent', 'rag', 'combined')
+        .required(),
     })
     .strict(),
 };
@@ -62,6 +68,8 @@ const updateRoom = {
       code: Joi.string(),
       template: Joi.string().custom(objectId),
       allowedUsers: Joi.array().items(Joi.string().custom(objectId)),
+      selectedModel: Joi.string(),
+      selectedMethod: Joi.string(),
     })
     .min(1)
     .strict(),

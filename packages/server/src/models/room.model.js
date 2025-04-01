@@ -23,8 +23,14 @@ const roomSchema = new mongoose.Schema(
     },
     allowedUsers: {
       type: [mongoose.Schema.Types.ObjectId],
-      ref: 'User', 
+      ref: 'User',
       default: [],
+    },
+    selectedModel: {
+      type: String,
+    },
+    selectedMethod: {
+      type: String,
     },
   },
   {

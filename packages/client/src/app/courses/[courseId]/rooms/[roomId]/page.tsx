@@ -24,6 +24,7 @@ import { createErrorToast } from '@/lib/utils/toast';
 import ChatContainer from './_PageSections/ChatCointainer';
 import ChatInput from './_PageSections/ChatInput';
 import SettingsBar from './_PageSections/SettingsBar';
+import { UpdateRoom } from '@/lib/API/room/mutations';
 
 const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{
@@ -42,11 +43,13 @@ const RoomChatPage: React.FC = () => {
   const [users, setUsers] = useState<Record<string, { name: string; email: string }>>({}); 
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       setUserId(user?.id || null);
+      setUserRole(user?.role);
     }
   }, []);  
   
@@ -109,6 +112,9 @@ const RoomChatPage: React.FC = () => {
           );
           setTemplate(fetchedTemplate);
         }
+        if (fetchedRoom.selectedModel) setSelectedModel(fetchedRoom.selectedModel);
+        if (fetchedRoom.selectedMethod) setSelectedMethod(fetchedRoom.selectedMethod);
+
       } catch (err) {
         logger(err, 'Error fetching room details');
         createErrorToast(
@@ -147,6 +153,33 @@ const RoomChatPage: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+
+  const handleModelChange = async (model: string) => {
+    setSelectedModel(model);
+    try {
+      await UpdateRoom({
+        courseId,
+        roomId,
+        selectedModel: model,
+      });
+    } catch (err) {
+      logger(err, 'Failed to update selectedModel in room');
+    }
+  };
+  
+  const handleMethodChange = async (method: string) => {
+    setSelectedMethod(method);
+    try {
+      await UpdateRoom({
+        courseId,
+        roomId,
+        selectedMethod: method,
+      });
+    } catch (err) {
+      logger(err, 'Failed to update selectedMethod in room');
+    }
+  };  
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -261,9 +294,10 @@ const RoomChatPage: React.FC = () => {
       {/* Settings Bar */}
       <SettingsBar
         selectedModel={selectedModel}
-        setSelectedModel={setSelectedModel}
+        setSelectedModel={handleModelChange}
         selectedMethod={selectedMethod}
-        setSelectedMethod={setSelectedMethod}
+        setSelectedMethod={handleMethodChange}
+        isTeacher={userRole !== 'student'}
       />
 
       {/* Chat Container */}
