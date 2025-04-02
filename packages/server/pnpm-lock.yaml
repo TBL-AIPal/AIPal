@@ -71,6 +71,9 @@ importers:
       passport-jwt:
         specifier: ^4.0.1
         version: 4.0.1
+      pdf-image:
+        specifier: ^2.0.0
+        version: 2.0.0
       pdf-parse:
         specifier: ^1.1.1
         version: 1.1.1
@@ -1573,6 +1576,9 @@ packages:
     resolution: {integrity: sha512-w+5mJ3GuFL+NjVtJlvydShqE1eN3h3PbI7/5LAsYJP/2qtuMXjfL2LpHSRqo4b4eSF5K/DH1JXKUAHSB2UW50g==}
     engines: {node: '>= 0.4'}
 
+  es6-promise@4.2.8:
+    resolution: {integrity: sha512-HJDGx5daxeIvxdBxvG2cb9g4tEvwIk3i8+nhX0yGrYmZUzbkdg8QbDevheDB8gd0//uPj4c1EQua8Q+MViT0/w==}
+
   escalade@3.2.0:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
@@ -2985,6 +2991,9 @@ packages:
 
   pause@0.0.1:
     resolution: {integrity: sha512-KG8UEiEVkR3wGEb4m5yZkVCzigAD+cVEJck2CzYZO37ZGJfctvVptVO192MwrtPhzONn6go8ylnOdMhKqi4nfg==}
+
+  pdf-image@2.0.0:
+    resolution: {integrity: sha512-RyB8f/Khw8wZt2xXGWtQu/5ZyKl4pzNSi9/dnYNJOuGnxRiZvmUVmz6xmG6Xts53k8ZZaOBjDwoT4jjAVzIoPQ==}
 
   pdf-parse@1.1.1:
     resolution: {integrity: sha512-v6ZJ/efsBpGrGGknjtq9J/oC8tZWq0KWL5vQrk2GlzLEQPUDB1ex+13Rmidl1neNN358Jn9EHZw5y07FFtaC7A==}
@@ -5912,6 +5921,8 @@ snapshots:
       is-date-object: 1.1.0
       is-symbol: 1.1.1
 
+  es6-promise@4.2.8: {}
+
   escalade@3.2.0: {}
 
   escape-html@1.0.3: {}
@@ -7569,6 +7580,10 @@ snapshots:
   path-to-regexp@0.1.12: {}
 
   pause@0.0.1: {}
+
+  pdf-image@2.0.0:
+    dependencies:
+      es6-promise: 4.2.8
 
   pdf-parse@1.1.1:
     dependencies:

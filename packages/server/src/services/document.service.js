@@ -1,10 +1,14 @@
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
+const PDFImage = require('pdf-image');
 const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { generateEmbedding } = require('./RAG/embedding.service');
+const {
+  generateEmbedding,
+  describePageVisualElements,
+} = require('./RAG/embedding.service');
 const { processTextBatch } = require('./RAG/preprocessing.service');
-const recursiveSplit = require('../utils/recursiveSplit');
+const splitPagesWithOverlap = require('../utils/splitTexts');
 const { decrypt } = require('../utils/cryptoUtils');
 const logger = require('../config/logger');
 const config = require('../config/config');
@@ -24,9 +28,34 @@ const createDocument = async (courseId, file) => {
     text: '',
   };
 
+  let pdfTitle = '';
+  let pagesText = [];
+  let pageImages = [];
+
   if (file.mimetype === 'application/pdf') {
+    // Extract text and metadata
     const pdfData = await pdfParse(file.buffer);
     documentData.text = pdfData.text;
+
+    // Extract the title from metadata if available
+    if (pdfData.metadata && pdfData.metadata.Title) {
+      pdfTitle = pdfData.metadata.Title;
+    }
+
+    // Split the text into pages (assume pages are split using \f)
+    pagesText = pdfData.text.split('\f').filter((page) => page.trim() !== '');
+
+    // Render each page as an image
+    const pdfImage = new PDFImage({
+      data: file.buffer,
+      outputDirectory: '/tmp',
+    });
+
+    const renderedImages = await pdfImage.convertFile();
+    pageImages = renderedImages.map((path, index) => ({
+      page: index + 1,
+      path,
+    }));
   }
 
   const document = await Document.create({
@@ -49,12 +78,40 @@ const createDocument = async (courseId, file) => {
   const apiKey = decrypt(course.apiKeys.chatgpt, config.encryption.key);
   logger.info('API Key retrieved for embeddings');
 
-  logger.info('Splitting text into chunks...');
-  const chunksText = recursiveSplit(documentData.text, 1000, 200);
-  logger.info(`Generated ${chunksText.length} chunks`);
+  // Generate image description
+  const imageDescriptions = await Promise.all(
+    pageImages.map(async (image) => {
+      logger.info(`Analyzing page ${image.page} for visual elements`);
+      const description = await describePageVisualElements(image.path, apiKey);
+      return { page: image.page, description };
+    }),
+  );
 
+  // Create overlapping chunks
+  logger.info('Creating overlapping chunks...');
+  const overlapPercentage = 0.25; // 25% overlap
+  const overlappingChunks = splitPagesWithOverlap(pagesText, overlapPercentage);
+
+  const chunksWithMetadata = [];
+  overlappingChunks.forEach((chunk, pageIndex) => {
+    const pageNumber = pageIndex + 1;
+
+    // Add image descriptions for the current page
+    const pageDescription =
+      imageDescriptions.find((img) => img.page === pageNumber)?.description ||
+      '';
+    const imageDescriptionsText = `[Visual Elements Description: ${pageDescription}]`;
+
+    // Prepend title and page number, and append image descriptions
+    const chunkWithMetadata = `[Title: ${pdfTitle}, Page: ${pageNumber}] ${chunk}\n${imageDescriptionsText}`;
+    chunksWithMetadata.push(chunkWithMetadata);
+  });
+
+  logger.info(`Generated ${chunksWithMetadata.length} chunks`);
+
+  // Normalize and embed chunks
   logger.info('Processing chunks...');
-  const normalizedChunks = await processTextBatch(chunksText);
+  const normalizedChunks = await processTextBatch(chunksWithMetadata);
   const embeddedChunks = await Promise.all(
     normalizedChunks.map(async (text, index) => {
       logger.info(`Processing chunk ${index + 1}/${normalizedChunks.length}`);

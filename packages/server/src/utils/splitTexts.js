@@ -35,4 +35,30 @@ function recursiveSplit(text, maxLength, overlap = 0) {
   return [chunk, ...recursiveSplit(newRemainingText, maxLength, overlap)];
 }
 
-module.exports = recursiveSplit;
+/**
+ * Splits pages into chunks with a specified overlap percentage between consecutive pages.
+ *
+ * @param {string[]} pagesText - An array of strings, where each string represents the text of a page.
+ * @param {number} overlap - The percentage of overlap between consecutive pages (e.g., 0.25 for 25%).
+ * @returns {string[]} An array of overlapping chunks, each combining text from one or two pages.
+ */
+function splitPagesWithOverlap(pagesText, overlap) {
+  const chunks = [];
+
+  for (let i = 0; i < pagesText.length; i++) {
+    const currentPageText = pagesText[i];
+    const nextPageText = pagesText[i + 1] || ''; // Next page text (if exists)
+
+    // Calculate overlap length based on the current page's text length and the specified overlap percentage
+    const overlapLength = Math.floor(currentPageText.length * overlap);
+    const overlapText = nextPageText.slice(0, overlapLength);
+
+    // Combine current page text with overlap from the next page
+    const chunk = `${currentPageText}${overlapText}`;
+    chunks.push(chunk);
+  }
+
+  return chunks;
+}
+
+module.exports = { recursiveSplit, splitPagesWithOverlap };
