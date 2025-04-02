@@ -1,4 +1,3 @@
-import { StringValidation } from "zod";
 import { Document } from "./document";
 
 export interface SendMessageInput {

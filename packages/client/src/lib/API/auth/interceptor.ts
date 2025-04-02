@@ -1,5 +1,6 @@
-import logger from '@/lib/utils/logger';
 import axios from 'axios';
+
+import logger from '@/lib/utils/logger';
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];

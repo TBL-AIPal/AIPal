@@ -3,14 +3,14 @@
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-import { GetRoomsByTemplateIds } from '@/lib/API/room/queries';
 import { GetCourseById } from '@/lib/API/course/queries';
-import { Room } from '@/lib/types/room';
+import { GetRoomsByTemplateIds } from '@/lib/API/room/queries';
 import { Course } from '@/lib/types/course';
+import { Room } from '@/lib/types/room';
 import logger from '@/lib/utils/logger';
 
-import { Modal } from '@/components/ui/Modal';
 import TextButton from '@/components/buttons/TextButton';
+import { Modal } from '@/components/ui/Modal';
 
 const RoomsPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
