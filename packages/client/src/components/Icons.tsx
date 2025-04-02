@@ -1,9 +1,9 @@
 import {
-  Database,
   ChevronLeft ,
+  Database,
+  DoorOpen,
   PanelsTopLeft,
   SlidersHorizontal,
-  DoorOpen,
 } from 'lucide-react';
 
 export const CourseSidebarIcons = {

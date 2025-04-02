@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { createErrorToast } from '@/lib/utils/toast';
+
 import logger from '@/lib/utils/logger';
+import { createErrorToast } from '@/lib/utils/toast';
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);

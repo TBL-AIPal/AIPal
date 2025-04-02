@@ -1,18 +1,18 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback,useEffect, useState } from 'react';
 
-import { GetUsers, GetUsersByCourseId } from '@/lib/API/user/queries';
-import { GetCourseById } from '@/lib/API/course/queries';
-import { User } from '@/lib/types/user';
-import { Course } from '@/lib/types/course';
-import logger from '@/lib/utils/logger';
 import { UpdateCourse } from '@/lib/API/course/mutations';
+import { GetCourseById } from '@/lib/API/course/queries';
+import { GetUsers, GetUsersByCourseId } from '@/lib/API/user/queries';
+import { Course } from '@/lib/types/course';
+import { User } from '@/lib/types/user';
+import logger from '@/lib/utils/logger';
+import { createErrorToast } from '@/lib/utils/toast';
 
 import AccountRow from './_PageSections/AccountRow';
 import AccountTable from './_PageSections/AccountTable';
-import { createErrorToast } from '@/lib/utils/toast';
 
 const Overview: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();

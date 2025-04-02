@@ -1,5 +1,4 @@
 import api from '@/lib/API/auth/interceptor';
-
 import {
   CourseCreateInput,
   CourseFormValues,
@@ -63,7 +62,7 @@ export const UpdateCourse = async ({
 };
 
 // Delete a course
-export const DeleteCourse = async (id : String ) => {
+export const DeleteCourse = async (id : string ) => {
   try {
     await api.delete(`/courses/${id}`);
   } catch (err) {
