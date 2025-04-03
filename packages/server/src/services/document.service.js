@@ -72,9 +72,7 @@ const createDocument = async (courseId, file) => {
       logger.info(`Performing OCR on page ${pageNumber}`);
       const {
         data: { text: ocrText },
-      } = await Tesseract.recognize(imageDataUrl, 'eng', {
-        logger: (info) => logger.info(info),
-      });
+      } = await Tesseract.recognize(imageDataUrl, 'eng');
 
       // Store the extracted text for chunking
       pagesText.push(ocrText?.trim() || '');
@@ -140,7 +138,7 @@ const createDocument = async (courseId, file) => {
     const pageDescription =
       imageDescriptions.find((img) => img.page === pageImages[i].page)
         ?.description || '';
-    const imageDescriptionsText = `[Visual Elements Description: ${pageDescription}]`;
+    const imageDescriptionsText = `[Visual Elements Description]: ${pageDescription}`;
 
     // Append the image description to the chunk before normalization
     const chunkWithImageDescription = `${chunk}\n${imageDescriptionsText}`;
@@ -158,9 +156,11 @@ const createDocument = async (courseId, file) => {
   const chunksWithMetadata = normalizedChunks.map((normalizedChunk, index) => {
     const pageNumber = pageImages[index].page;
 
-    return `[Title: ${pdfTitle}, Page: ${pageNumber}] ${normalizedChunk}`;
+    return {
+      normalized: `[Title: ${pdfTitle}, Page: ${pageNumber}] ${normalizedChunk}`,
+      actual: `[Title: ${pdfTitle}, Page: ${pageNumber}] ${chunks[index]}`,
+    };
   });
-
   logger.info(`Added metadata to ${chunksWithMetadata.length} chunks`);
 
   // Generate embeddings
@@ -168,11 +168,12 @@ const createDocument = async (courseId, file) => {
   const embeddedChunks = await Promise.all(
     chunksWithMetadata.map(async (chunkWithMetadata, index) => {
       logger.info(`Processing chunk ${index + 1}/${chunksWithMetadata.length}`);
-
-      // Generate embedding for the normalized text
-      const embedding = await generateEmbedding(chunkWithMetadata, apiKey);
+      const embedding = await generateEmbedding(
+        chunkWithMetadata.normalized,
+        apiKey,
+      );
       return {
-        text: chunkWithMetadata,
+        text: chunkWithMetadata.actual,
         embedding,
         document: document._id,
       };
