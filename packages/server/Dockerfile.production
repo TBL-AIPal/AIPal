@@ -27,5 +27,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD [ "pnpm", "run", "prod" ]
-
+CMD [ "pnpm", "run", "dev" ]
