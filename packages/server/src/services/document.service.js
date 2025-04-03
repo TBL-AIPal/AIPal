@@ -2,6 +2,7 @@ const { createCanvas } = require('canvas');
 const pdfjsLib = require('pdfjs-dist/legacy/build/pdf');
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
+const Tesseract = require('tesseract.js');
 const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
 const {
@@ -9,7 +10,6 @@ const {
   describePageVisualElements,
 } = require('./RAG/embedding.service');
 const { processTextBatch } = require('./RAG/preprocessing.service');
-const { splitPagesWithOverlap } = require('../utils/splitTexts');
 const { decrypt } = require('../utils/cryptoUtils');
 const logger = require('../config/logger');
 const config = require('../config/config');
@@ -43,13 +43,10 @@ const createDocument = async (courseId, file) => {
       pdfTitle = pdfData.metadata.Title;
     }
 
-    // Split the text into pages (assume pages are split using \f)
-    pagesText = pdfData.text.split('\f').filter((page) => page.trim() !== '');
-
     // Load the PDF document
     const pdfDoc = await pdfjsLib.getDocument({ data: file.buffer }).promise;
 
-    // Render each page as an image
+    // Render pages and extract text/images
     pageImages = await Promise.all(
       Array.from({ length: pdfDoc.numPages }, async (_, pageIndex) => {
         const pageNumber = pageIndex + 1;
@@ -71,9 +68,21 @@ const createDocument = async (courseId, file) => {
         // Convert the canvas to an image data URL
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.5);
 
+        // Extract text from the image
+        logger.info(`Performing OCR on page ${pageNumber}`);
+        const {
+          data: { text: ocrText },
+        } = await Tesseract.recognize(imageDataUrl, 'eng', {
+          logger: (info) => logger.info(info),
+        });
+
+        // Store the extracted text for chunking
+        pagesText.push(ocrText?.trim() || '');
+
         return {
           page: pageNumber,
           imageData: imageDataUrl,
+          text: ocrText?.trim() || '',
         };
       }),
     );
@@ -99,7 +108,7 @@ const createDocument = async (courseId, file) => {
   const apiKey = decrypt(course.apiKeys.chatgpt, config.encryption.key);
   logger.info('API Key retrieved for embeddings');
 
-  // Generate image description
+  // Generate image descriptions
   const imageDescriptions = await Promise.all(
     pageImages.map(async (image) => {
       logger.info(`Analyzing page ${image.page} for visual elements`);
@@ -113,38 +122,58 @@ const createDocument = async (courseId, file) => {
 
   // Create overlapping chunks
   logger.info('Creating overlapping chunks...');
-  const overlapPercentage = 0.25; // 25% overlap
-  const overlappingChunks = splitPagesWithOverlap(pagesText, overlapPercentage);
+  const chunks = [];
+  for (let i = 0; i < pageImages.length; i++) {
+    const currentPageText = pageImages[i].text;
 
-  const chunksWithMetadata = [];
-  overlappingChunks.forEach((chunk, pageIndex) => {
-    const pageNumber = pageIndex + 1;
+    const nextPageText = pageImages[i + 1]?.text || '';
+    const nextPageWords = nextPageText.split(/\s+/); // Split into words
+    const overlapWords = nextPageWords.slice(
+      0,
+      Math.ceil(nextPageWords.length * 0.25),
+    ); // 25% of next page
+    const overlapText = overlapWords.join(' ');
+
+    // Combine the current page text with 25% of the next page's text
+    const chunk = `${currentPageText}${overlapText ? ' ' + overlapText : ''}`;
 
     // Add image descriptions for the current page
     const pageDescription =
-      imageDescriptions.find((img) => img.page === pageNumber)?.description ||
-      '';
+      imageDescriptions.find((img) => img.page === pageImages[i].page)
+        ?.description || '';
     const imageDescriptionsText = `[Visual Elements Description: ${pageDescription}]`;
 
-    // Prepend title and page number, and append image descriptions
-    const chunkWithMetadata = `[Title: ${pdfTitle}, Page: ${pageNumber}] ${chunk}\n${imageDescriptionsText}`;
-    chunksWithMetadata.push(chunkWithMetadata);
+    // Append the image description to the chunk before normalization
+    const chunkWithImageDescription = `${chunk}\n${imageDescriptionsText}`;
+    chunks.push(chunkWithImageDescription);
+  }
+
+  logger.info(`Generated ${chunks.length} chunks`);
+
+  // Normalize chunks
+  logger.info('Normalizing chunks...');
+  const normalizedChunks = await processTextBatch(chunks);
+
+  // Add remaining metadata after normalization
+  logger.info('Adding remaining metadata to normalized chunks...');
+  const chunksWithMetadata = normalizedChunks.map((normalizedChunk, index) => {
+    const pageNumber = pageImages[index].page;
+
+    return `[Title: ${pdfTitle}, Page: ${pageNumber}] ${normalizedChunk}`;
   });
 
-  logger.info(`Generated ${chunksWithMetadata.length} chunks`);
+  logger.info(`Added metadata to ${chunksWithMetadata.length} chunks`);
 
-  // Normalize and embed chunks
-  logger.info('Processing chunks...');
-  const normalizedChunks = await processTextBatch(chunksWithMetadata);
-
+  // Generate embeddings
+  logger.info('Generating embeddings for chunks...');
   const embeddedChunks = await Promise.all(
-    normalizedChunks.map(async (normalizedText, index) => {
-      logger.info(`Processing chunk ${index + 1}/${normalizedChunks.length}`);
+    chunksWithMetadata.map(async (chunkWithMetadata, index) => {
+      logger.info(`Processing chunk ${index + 1}/${chunksWithMetadata.length}`);
 
       // Generate embedding for the normalized text
-      const embedding = await generateEmbedding(normalizedText, apiKey);
+      const embedding = await generateEmbedding(chunkWithMetadata, apiKey);
       return {
-        text: chunksWithMetadata[index],
+        text: chunkWithMetadata,
         embedding,
         document: document._id,
       };
