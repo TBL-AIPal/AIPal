@@ -1,6 +1,6 @@
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
-const PDFImage = require('pdf-image');
+const PDFImage = require('pdf-image').PDFImage;
 const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
 const {
@@ -12,6 +12,8 @@ const splitPagesWithOverlap = require('../utils/splitTexts');
 const { decrypt } = require('../utils/cryptoUtils');
 const logger = require('../config/logger');
 const config = require('../config/config');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -45,17 +47,28 @@ const createDocument = async (courseId, file) => {
     // Split the text into pages (assume pages are split using \f)
     pagesText = pdfData.text.split('\f').filter((page) => page.trim() !== '');
 
-    // Render each page as an image
-    const pdfImage = new PDFImage({
-      data: file.buffer,
-      outputDirectory: '/tmp',
-    });
+    // Save the PDF buffer to a temporary file
+    const tempFilePath = path.join('/tmp', `temp-${Date.now()}.pdf`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    fs.writeFileSync(tempFilePath, file.buffer);
 
-    const renderedImages = await pdfImage.convertFile();
-    pageImages = renderedImages.map((path, index) => ({
-      page: index + 1,
-      path,
-    }));
+    try {
+      // Initialize PDFImage with the file path
+      const pdfImage = new PDFImage(tempFilePath, {
+        outputDirectory: '/tmp',
+      });
+
+      // Convert the PDF pages to images
+      const renderedImages = await pdfImage.convertFile();
+      pageImages = renderedImages.map((path, index) => ({
+        page: index + 1,
+        path,
+      }));
+    } finally {
+      // Clean up the temporary PDF file
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      fs.unlinkSync(tempFilePath);
+    }
   }
 
   const document = await Document.create({
