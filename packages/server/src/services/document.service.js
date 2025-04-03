@@ -9,7 +9,7 @@ const {
   describePageVisualElements,
 } = require('./RAG/embedding.service');
 const { processTextBatch } = require('./RAG/preprocessing.service');
-const splitPagesWithOverlap = require('../utils/splitTexts');
+const { splitPagesWithOverlap } = require('../utils/splitTexts');
 const { decrypt } = require('../utils/cryptoUtils');
 const logger = require('../config/logger');
 const config = require('../config/config');
