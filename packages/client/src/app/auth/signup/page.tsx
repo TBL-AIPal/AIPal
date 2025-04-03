@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import { CreateUser } from '@/lib/API/user/mutations';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
@@ -33,6 +34,7 @@ export default function SignupPage() {
       await CreateUser(formData);
       createInfoToast('Account registration is successful!');
       window.location.href = '/'; // Redirect to home page after signup
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       createErrorToast(err.response?.data?.message || 'Unable to register account. Please try again later.');
     } finally {

@@ -1,5 +1,4 @@
 import api from '@/lib/API/auth/interceptor';
-
 import {
   TemplateCreateInput,
   TemplateFormValues,

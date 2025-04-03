@@ -1,16 +1,16 @@
-name: Build and Push Development Images to GitHub Container Registry
+name: Build and Push Production Images to GitHub Container Registry
 
 on:
   push:
     branches:
-      - development
+      - main
   # Allow manual triggering
   workflow_dispatch:
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    environment: development
+    environment: production
     permissions:
       contents: read
       packages: write
@@ -38,18 +38,18 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./packages/server
-          file: ./packages/server/Dockerfile.development
+          file: ./packages/server/Dockerfile.production
           push: true
-          tags: ghcr.io/${{ env.REPO_NAME }}/server-development:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/server-production:latest
 
       # Step 5: Build and push Client image
       - name: Build and push Client image
         uses: docker/build-push-action@v4
         with:
           context: ./packages/client
-          file: ./packages/client/Dockerfile.development
+          file: ./packages/client/Dockerfile.production
           push: true
-          tags: ghcr.io/${{ env.REPO_NAME }}/client-development:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}/client-production:latest
 
       - name: Print success message
         run: echo "Server and client images have been built and pushed to registry!"

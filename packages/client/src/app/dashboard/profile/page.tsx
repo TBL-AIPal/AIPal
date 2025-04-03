@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { GetUsers, ApproveUser, RejectUser } from '@/lib/API/user/queries';
+import { ApproveUser, GetUsers, RejectUser } from '@/lib/API/user/queries';
 import { User } from '@/lib/types/user';
 import logger from '@/lib/utils/logger';
 import { createErrorToast } from '@/lib/utils/toast';

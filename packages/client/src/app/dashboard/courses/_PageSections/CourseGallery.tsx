@@ -1,10 +1,11 @@
 import React from 'react';
-import { Course } from '@/lib/types/course';
-import Gallery from '@/components/gallery/Gallery';
-import Skeleton from '@/components/Skeleton';
 
 import { DeleteCourse } from '@/lib/API/course/mutations';
+import { Course } from '@/lib/types/course';
 import { createErrorToast } from '@/lib/utils/toast';
+
+import Gallery from '@/components/gallery/Gallery';
+import Skeleton from '@/components/Skeleton';
 
 const IMAGE_COUNT = 8;
 const backgroundImages = Array.from(
