@@ -27,15 +27,13 @@ const generateEmbedding = async (text, apiKey) => {
 
 /**
  * Describes visual elements in a page
- * @param {string} imagePath - Path to the image file
+ * @param {string} imageData - Base64-encoded image data
  * @param {string} apiKey - API key to use LLM service
  * @returns {Promise<string>} - Description of visual elements
  */
-const describePageVisualElements = async (imagePath, apiKey) => {
+const describePageVisualElements = async (imageData, apiKey) => {
   try {
     const client = new OpenAI({ apiKey });
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
-    const imageBase64 = fs.readFileSync(imagePath, { encoding: 'base64' });
 
     logger.info('Sending image to LLM for analysis...');
     const response = await client.chat.completions.create({
@@ -63,7 +61,7 @@ const describePageVisualElements = async (imagePath, apiKey) => {
             {
               type: 'image_url',
               image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`,
+                url: imageData,
               },
             },
           ],

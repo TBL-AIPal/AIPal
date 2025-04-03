@@ -69,7 +69,7 @@ const createDocument = async (courseId, file) => {
         }).promise;
 
         // Convert the canvas to an image data URL
-        const imageDataUrl = canvas.toDataURL();
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.5);
 
         return {
           page: pageNumber,
