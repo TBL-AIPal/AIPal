@@ -1,6 +1,7 @@
+const { createCanvas } = require('canvas');
+const pdfjsLib = require('pdfjs-dist');
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
-const PDFImage = require('pdf-image').PDFImage;
 const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
 const {
@@ -12,8 +13,6 @@ const splitPagesWithOverlap = require('../utils/splitTexts');
 const { decrypt } = require('../utils/cryptoUtils');
 const logger = require('../config/logger');
 const config = require('../config/config');
-const fs = require('fs');
-const path = require('path');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -47,28 +46,37 @@ const createDocument = async (courseId, file) => {
     // Split the text into pages (assume pages are split using \f)
     pagesText = pdfData.text.split('\f').filter((page) => page.trim() !== '');
 
-    // Save the PDF buffer to a temporary file
-    const tempFilePath = path.join('/tmp', `temp-${Date.now()}.pdf`);
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
-    fs.writeFileSync(tempFilePath, file.buffer);
+    // Load the PDF document
+    const pdfDoc = await pdfjsLib.getDocument({ data: file.buffer }).promise;
 
-    try {
-      // Initialize PDFImage with the file path
-      const pdfImage = new PDFImage(tempFilePath, {
-        outputDirectory: '/tmp',
-      });
+    // Render each page as an image
+    pageImages = await Promise.all(
+      Array.from({ length: pdfDoc.numPages }, async (_, pageIndex) => {
+        const pageNumber = pageIndex + 1;
+        const page = await pdfDoc.getPage(pageNumber);
 
-      // Convert the PDF pages to images
-      const renderedImages = await pdfImage.convertFile();
-      pageImages = renderedImages.map((path, index) => ({
-        page: index + 1,
-        path,
-      }));
-    } finally {
-      // Clean up the temporary PDF file
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
-      fs.unlinkSync(tempFilePath);
-    }
+        // Get the viewport for rendering
+        const viewport = page.getViewport({ scale: 1.0 });
+
+        // Create a canvas to render the page
+        const canvas = createCanvas(viewport.width, viewport.height);
+        const ctx = canvas.getContext('2d');
+
+        // Render the page onto the canvas
+        await page.render({
+          canvasContext: ctx,
+          viewport: viewport,
+        }).promise;
+
+        // Convert the canvas to an image data URL
+        const imageDataUrl = canvas.toDataURL();
+
+        return {
+          page: pageNumber,
+          imageData: imageDataUrl,
+        };
+      }),
+    );
   }
 
   const document = await Document.create({
@@ -95,7 +103,10 @@ const createDocument = async (courseId, file) => {
   const imageDescriptions = await Promise.all(
     pageImages.map(async (image) => {
       logger.info(`Analyzing page ${image.page} for visual elements`);
-      const description = await describePageVisualElements(image.path, apiKey);
+      const description = await describePageVisualElements(
+        image.imageData,
+        apiKey,
+      );
       return { page: image.page, description };
     }),
   );
