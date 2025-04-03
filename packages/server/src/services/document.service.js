@@ -47,45 +47,44 @@ const createDocument = async (courseId, file) => {
     const pdfDoc = await pdfjsLib.getDocument({ data: file.buffer }).promise;
 
     // Render pages and extract text/images
-    pageImages = await Promise.all(
-      Array.from({ length: pdfDoc.numPages }, async (_, pageIndex) => {
-        const pageNumber = pageIndex + 1;
-        const page = await pdfDoc.getPage(pageNumber);
+    pageImages = [];
+    for (let pageIndex = 0; pageIndex < pdfDoc.numPages; pageIndex++) {
+      const pageNumber = pageIndex + 1;
+      const page = await pdfDoc.getPage(pageNumber);
 
-        // Get the viewport for rendering
-        const viewport = page.getViewport({ scale: 1.0 });
+      // Get the viewport for rendering
+      const viewport = page.getViewport({ scale: 0.5 });
 
-        // Create a canvas to render the page
-        const canvas = createCanvas(viewport.width, viewport.height);
-        const ctx = canvas.getContext('2d');
+      // Create a canvas to render the page
+      const canvas = createCanvas(viewport.width, viewport.height);
+      const ctx = canvas.getContext('2d');
 
-        // Render the page onto the canvas
-        await page.render({
-          canvasContext: ctx,
-          viewport: viewport,
-        }).promise;
+      // Render the page onto the canvas
+      await page.render({
+        canvasContext: ctx,
+        viewport: viewport,
+      }).promise;
 
-        // Convert the canvas to an image data URL
-        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+      // Convert the canvas to an image data URL
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.5);
 
-        // Extract text from the image
-        logger.info(`Performing OCR on page ${pageNumber}`);
-        const {
-          data: { text: ocrText },
-        } = await Tesseract.recognize(imageDataUrl, 'eng', {
-          logger: (info) => logger.info(info),
-        });
+      // Extract text from the image
+      logger.info(`Performing OCR on page ${pageNumber}`);
+      const {
+        data: { text: ocrText },
+      } = await Tesseract.recognize(imageDataUrl, 'eng', {
+        logger: (info) => logger.info(info),
+      });
 
-        // Store the extracted text for chunking
-        pagesText.push(ocrText?.trim() || '');
+      // Store the extracted text for chunking
+      pagesText.push(ocrText?.trim() || '');
 
-        return {
-          page: pageNumber,
-          imageData: imageDataUrl,
-          text: ocrText?.trim() || '',
-        };
-      }),
-    );
+      pageImages.push({
+        page: pageNumber,
+        imageData: imageDataUrl,
+        text: ocrText?.trim() || '',
+      });
+    }
   }
 
   const document = await Document.create({
