@@ -1,5 +1,5 @@
 const { createCanvas } = require('canvas');
-const pdfjsLib = require('pdfjs-dist');
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf');
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
 const { Document, Course, Chunk } = require('../models');
