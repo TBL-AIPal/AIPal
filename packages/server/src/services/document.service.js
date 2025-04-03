@@ -136,13 +136,21 @@ const createDocument = async (courseId, file) => {
   // Normalize and embed chunks
   logger.info('Processing chunks...');
   const normalizedChunks = await processTextBatch(chunksWithMetadata);
+
   const embeddedChunks = await Promise.all(
-    normalizedChunks.map(async (text, index) => {
+    normalizedChunks.map(async (normalizedText, index) => {
       logger.info(`Processing chunk ${index + 1}/${normalizedChunks.length}`);
-      const embedding = await generateEmbedding(text, apiKey);
-      return { text, embedding, document: document._id };
+
+      // Generate embedding for the normalized text
+      const embedding = await generateEmbedding(normalizedText, apiKey);
+      return {
+        text: chunksWithMetadata[index],
+        embedding,
+        document: document._id,
+      };
     }),
   );
+
   logger.info('All chunks processed successfully');
 
   logger.info('Inserting document chunks into the database...');
