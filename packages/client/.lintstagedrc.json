@@ -1,4 +1,4 @@
 {
-  "**/*.{js,jsx,ts,tsx}": [],
-  "**/*.{json,css,scss,md,webmanifest}": []
+  "**/*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write", "git add"],
+  "**/*.{json,css,scss,md,webmanifest}": ["prettier --write", "git add"]
 }
