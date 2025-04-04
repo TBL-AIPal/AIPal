@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const { Document, Course } = require('../../../src/models');
 
 describe('Document model', () => {
@@ -11,7 +11,7 @@ describe('Document model', () => {
       course = new Course({
         name: faker.commerce.productName(),
         description: faker.lorem.sentence(),
-        apiKey: `sk-${faker.random.alphaNumeric(48)}`,
+        apiKey: `sk-${faker.string.alphanumeric(48)}`,
         llmConstraints: [faker.lorem.word()],
         owner: new mongoose.Types.ObjectId(),
       });

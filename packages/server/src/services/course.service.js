@@ -12,7 +12,7 @@ const { deleteDocumentById } = require('./document.service');
  * @returns {Promise<Course>}
  */
 const createCourse = async (courseBody) => {
-  return Course.create(courseBody);
+  return await Course.create(courseBody);
 };
 
 /**
@@ -90,7 +90,7 @@ const updateCourseById = async (courseId, updateBody) => {
   );
 
   if (!course) {
-    throw new Error('Course not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
 
   return course;
@@ -103,9 +103,6 @@ const updateCourseById = async (courseId, updateBody) => {
  */
 const deleteCourseById = async (courseId) => {
   const course = await getCourseById(courseId);
-  if (!course) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
-  }
 
   // Delete all templates associated with the course
   if (course.templates.length > 0) {

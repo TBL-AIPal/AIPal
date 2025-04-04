@@ -1,0 +1,28 @@
+{
+  "name": "AIPal",
+  "version": "1.0.0",
+  "description": "",
+  "repository": "https://github.com/TBL-AIPal/AIPal",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "lint": "pnpm -r run lint",
+    "lint:fix": "pnpm -r run lint:fix",
+    "lint:strict": "pnpm -r run lint:strict",
+    "test": "pnpm -r run test",
+    "test:watch": "pnpm -r run test:watch",
+    "coverage": "pnpm -r run coverage",
+    "coverage:coveralls": "pnpm -r run coverage:coveralls",
+    "format:fix": "pnpm -r run format:fix",
+    "format:check": "pnpm -r run format:check",
+    "clean": "pnpm -r run clean",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.15.5+sha512.845196026aab1cc3f098a0474b64dfbab2afe7a1b4e91dd86895d8e4aa32a7a6d03049e2d0ad770bbe4de023a7122fb68c1a1d6e0d033c7076085f9d5d4800d4",
+  "devDependencies": {
+    "husky": "9.1.7",
+    "lint-staged": "15.5.0"
+  }
+}

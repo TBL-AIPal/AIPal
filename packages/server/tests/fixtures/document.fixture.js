@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const Document = require('../../src/models/document.model');
 
 const documentOne = {

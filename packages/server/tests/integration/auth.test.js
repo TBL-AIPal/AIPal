@@ -1,5 +1,5 @@
 const request = require('supertest');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const httpStatus = require('http-status');
 const httpMocks = require('node-mocks-http');
 const moment = require('moment');
@@ -26,9 +26,10 @@ describe('Auth routes', () => {
     let newUser;
     beforeEach(() => {
       newUser = {
-        name: faker.name.findName(),
+        name: faker.person.fullName(),
         email: faker.internet.email().toLowerCase(),
-        password: 'password1',
+        password: 'Test1234',
+        role: 'student',
       };
     });
 
@@ -44,7 +45,8 @@ describe('Auth routes', () => {
           id: expect.anything(),
           name: newUser.name,
           email: newUser.email,
-          role: 'user',
+          role: newUser.role,
+          status: 'pending',
           isEmailVerified: false,
           courses: [],
         }),
@@ -57,7 +59,7 @@ describe('Auth routes', () => {
         expect.objectContaining({
           name: newUser.name,
           email: newUser.email,
-          role: 'user',
+          role: newUser.role,
         }),
       );
 

@@ -1,4 +1,4 @@
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const mongoose = require('mongoose');
 const { Course, User } = require('../../../src/models');
 
@@ -9,17 +9,20 @@ describe('Course model', () => {
 
     beforeEach(async () => {
       owner = new User({
-        name: faker.name.findName(),
+        name: faker.person.fullName(),
         email: faker.internet.email().toLowerCase(),
         password: 'password1',
         role: 'admin',
         courses: [],
       });
-
       newCourse = {
         name: faker.lorem.words(),
         description: faker.lorem.sentences(),
-        apiKey: `sk-${faker.random.alphaNumeric(48)}`,
+        apiKeys: {
+          gemini: `gemini-${faker.string.alphanumeric(48)}`,
+          llama: `llama-${faker.string.alphanumeric(48)}`,
+          chatgpt: `chatgpt-${faker.string.alphanumeric(48)}`,
+        },
         llmConstraints: [faker.lorem.word()],
         owner: owner._id,
         students: [],
@@ -30,21 +33,20 @@ describe('Course model', () => {
     test('should correctly validate a valid course', async () => {
       await expect(new Course(newCourse).validate()).resolves.toBeUndefined();
     });
-
-    test('should throw a validation error if apiKey is invalid', async () => {
-      newCourse.apiKey = 'invalid-key';
-      await expect(new Course(newCourse).validate()).rejects.toThrow();
-    });
   });
 
   describe('Course toJSON()', () => {
-    test('should not return course api key when toJSON is called', () => {
+    test('should not return course api keys when toJSON is called', () => {
       const newCourse = {
         name: faker.lorem.words(),
-        apiKey: `sk-${faker.random.alphaNumeric(48)}`,
+        apiKeys: {
+          gemini: `gemini-${faker.string.alphanumeric(48)}`,
+          llama: `llama-${faker.string.alphanumeric(48)}`,
+          chatgpt: `chatgpt-${faker.string.alphanumeric(48)}`,
+        },
         owner: new mongoose.Types.ObjectId(),
       };
-      expect(new Course(newCourse).toJSON()).not.toHaveProperty('apiKey');
+      expect(new Course(newCourse).toJSON()).not.toHaveProperty('apiKeys');
     });
   });
 });

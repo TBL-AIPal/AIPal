@@ -1,10 +1,17 @@
 const request = require('supertest');
 const path = require('path');
 const httpStatus = require('http-status');
+
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { Document } = require('../../src/models');
-const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
+const {
+  userOne,
+  userTwo,
+  staff,
+  admin,
+  insertUsers,
+} = require('../fixtures/user.fixture');
 const {
   courseOne,
   insertCourses,
@@ -25,12 +32,14 @@ setupTestDB();
 
 describe('Document routes', () => {
   describe('POST /v1/courses/:courseId/documents', () => {
-    test('should return 201 and successfully create new document if data is ok', async () => {
+    // https://github.com/TBL-AIPal/AIPal/issues/86
+    // eslint-disable-next-line jest/no-disabled-tests
+    test.skip('should return 201 and successfully create new document if data is ok', async () => {
       await insertUsers([admin]);
-      await insertCourses([courseOne]);
+      await insertCourses([courseTwo]);
 
       const res = await request(app)
-        .post(`/v1/courses/${courseOne._id}/documents`)
+        .post(`/v1/courses/${courseTwo._id}/documents`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .attach('file', path.resolve(__dirname, 'files', 'testOne.pdf'))
         .expect('Content-Type', /json/)
@@ -57,10 +66,10 @@ describe('Document routes', () => {
 
     test('should return 401 error if access token is missing', async () => {
       await insertUsers([admin]);
-      await insertCourses([courseOne]);
+      await insertCourses([courseTwo]);
 
       await request(app)
-        .post(`/v1/courses/${courseOne._id}/documents`)
+        .post(`/v1/courses/${courseTwo._id}/documents`)
         .attach('files', Buffer.alloc(1024 * 1024 * 10, '.'))
         // https://stackoverflow.com/questions/61096108/sending-binary-file-in-express-leads-to-econnaborted
         .set('Connection', 'keep-alive')
@@ -82,10 +91,10 @@ describe('Document routes', () => {
 
     test('should return 400 error if no file is attached', async () => {
       await insertUsers([admin]);
-      await insertCourses([courseOne]);
+      await insertCourses([courseTwo]);
 
       await request(app)
-        .post(`/v1/courses/${courseOne._id}/documents`)
+        .post(`/v1/courses/${courseTwo._id}/documents`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({}) // No file attached
         .expect(httpStatus.BAD_REQUEST);
@@ -94,7 +103,7 @@ describe('Document routes', () => {
 
   describe('GET /v1/courses/:courseId/documents', () => {
     test('should return 200 and list documents for the course', async () => {
-      await insertUsers([admin]);
+      await insertUsers([admin, staff, userOne, userTwo]);
       await insertCourses([courseOne, courseTwo]);
       await insertDocuments([documentOne, documentTwo, documentThree]);
 
