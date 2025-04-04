@@ -1,5 +1,6 @@
 const { OpenAI } = require('openai');
 const logger = require('../../config/logger');
+const fs = require('fs');
 
 /**
  * Generates an embedding for a given text using OpenAI API
@@ -24,6 +25,62 @@ const generateEmbedding = async (text, apiKey) => {
   }
 };
 
+/**
+ * Describes visual elements in a page
+ * @param {string} imageData - Base64-encoded image data
+ * @param {string} apiKey - API key to use LLM service
+ * @returns {Promise<string>} - Description of visual elements
+ */
+const describePageVisualElements = async (imageData, apiKey) => {
+  try {
+    const client = new OpenAI({ apiKey });
+
+    logger.info('Sending image to LLM for analysis...');
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `
+                Analyze this page carefully for any visual elements such as diagrams, charts, graphs, tables, images, or other graphical content. 
+                
+                For each visual element:
+                - Describe its structure and layout.
+                - Summarize the key information it conveys.
+                - Highlight any trends, patterns, relationships, or notable data points.
+                - If applicable, explain how the visual supports the surrounding text or enhances understanding of the topic.
+                
+                If there are no visual elements, state "No visual elements detected."
+                
+                Ensure your description is concise, clear, and provides sufficient context for someone asking questions about the content of this page.
+              `,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageData,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    });
+
+    logger.info('Image description received successfully');
+    const description =
+      response.choices[0]?.message?.content || 'No visual elements detected';
+    return description;
+  } catch (error) {
+    logger.error('Error describing page:', error);
+    throw new Error('Failed to describe page');
+  }
+};
+
 module.exports = {
   generateEmbedding,
+  describePageVisualElements,
 };

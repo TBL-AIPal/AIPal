@@ -8,6 +8,9 @@ nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
 def process_text(text):
     """Cleans, normalizes, and pre-processes text for consistency."""
+    # Replace invalid characters with a placeholder
+    text = text.encode('utf-8', errors='replace').decode('utf-8')
+
     # Lowercase all text
     text = text.lower()
 

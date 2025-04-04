@@ -25,6 +25,7 @@
   "dependencies": {
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.0",
+    "canvas": "^3.1.0",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
@@ -45,9 +46,11 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "2.11.338",
     "pm2": "^5.4.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "tesseract.js": "^6.0.0",
     "validator": "^13.12.0",
     "winston": "^3.17.0"
   },
