@@ -2,16 +2,18 @@ const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { documentService } = require('../services');
+const logger = require('../config/logger');
 
 const createDocument = catchAsync(async (req, res) => {
   if (!req.file) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is required');
   }
-
+  logger.info('Document creation started.');
   const document = await documentService.createDocument(
     req.params.courseId,
     req.file,
   );
+  logger.info('Document creation completed.');
   res.status(httpStatus.CREATED).send(document);
 });
 
