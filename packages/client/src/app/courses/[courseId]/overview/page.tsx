@@ -3,7 +3,6 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback,useEffect, useState } from 'react';
 
-import { UpdateCourse } from '@/lib/API/course/mutations';
 import { GetCourseById } from '@/lib/API/course/queries';
 
 import { User } from '@/lib/types/user';
@@ -11,7 +10,7 @@ import { Course, TutorialGroup } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 import { UpdateCourse, CreateTutorialGroup } from '@/lib/API/course/mutations';
 import { UpdateTutorialGroup } from '@/lib/API/tutorialgroup/mutations';
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import AccountRow from './_PageSections/AccountRow';
 import AccountTable from './_PageSections/AccountTable';
@@ -208,9 +207,9 @@ const Overview: React.FC = () => {
               >
                 <span>{group.name} ({group.students.length})</span>
                 {expandedSections[group._id] ? (
-                  <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
                 ) : (
-                  <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
                 )}
               </div>
 
@@ -254,9 +253,9 @@ const Overview: React.FC = () => {
           >
             <span>Unassigned ({unassignedUsers.length})</span>
             {expandedSections['unassignedUsers'] ? (
-              <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+              <ChevronDown className="w-5 h-5 text-gray-600" />
             ) : (
-              <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             )}
           </div>
 
@@ -284,9 +283,9 @@ const Overview: React.FC = () => {
           >
             <span>Pending AIPal Invite ({courseDetails?.whitelist.length || 0})</span>
             {expandedSections['pendingInvites'] ? (
-              <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+              <ChevronDown className="w-5 h-5 text-gray-600" />
             ) : (
-              <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             )}
           </div>
 
