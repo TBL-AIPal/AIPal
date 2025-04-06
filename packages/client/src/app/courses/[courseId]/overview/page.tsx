@@ -3,7 +3,6 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback,useEffect, useState } from 'react';
 
-import { UpdateCourse } from '@/lib/API/course/mutations';
 import { GetCourseById } from '@/lib/API/course/queries';
 
 import { User } from '@/lib/types/user';
