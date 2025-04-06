@@ -16,7 +16,7 @@ import logger from '@/lib/utils/logger';
 
 import TextButton from '@/components/buttons/TextButton';
 
-import { UserPlusIcon, ArrowRightCircleIcon } from '@heroicons/react/24/solid';
+import { UserPlus, ArrowRightCircle } from 'lucide-react';
 import { User } from '@/lib/types/user';
 import { UpdateRoom } from '@/lib/API/room/mutations';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
@@ -199,14 +199,14 @@ const RoomsPage: React.FC = () => {
               <div className="flex space-x-2 ml-auto">
               {userRole !== 'student' && (
                   <TextButton className="bg-blue-600 text-white py-2 px-4 rounded" onClick={() => handleOpenAddUserModal(room)}>
-                    <UserPlusIcon className="w-5 h-5" />
+                    <UserPlus className="w-5 h-5" />
                   </TextButton>
                 )}
               <TextButton
                 className="bg-blue-600 text-white py-2 px-4 rounded"
                 onClick={() => handleOpenModal(room)}
               >
-                <ArrowRightCircleIcon className="w-5 h-5" />
+                <ArrowRightCircle className="w-5 h-5" />
               </TextButton>
               </div>
             </li>
@@ -233,7 +233,7 @@ const RoomsPage: React.FC = () => {
                     className="bg-blue-600 text-white py-2 px-4 rounded"
                     onClick={() => handleOpenModal(room)}
                   >
-                    <ArrowRightCircleIcon className="w-5 h-5" />
+                    <ArrowRightCircle className="w-5 h-5" />
                   </TextButton>
                 </li>
               ))}
