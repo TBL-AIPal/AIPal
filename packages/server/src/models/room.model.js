@@ -21,6 +21,17 @@ const roomSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Template', // Reference to the Template model (if applicable)
     },
+    allowedUsers: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: [],
+    },
+    selectedModel: {
+      type: String,
+    },
+    selectedMethod: {
+      type: String,
+    },
   },
   {
     timestamps: true, // Automatically manage createdAt and updatedAt fields

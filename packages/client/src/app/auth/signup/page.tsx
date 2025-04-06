@@ -18,6 +18,7 @@ export default function SignupPage() {
     role: 'student',
   });
   
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
@@ -28,12 +29,19 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.password !== confirmPassword) {
+      createErrorToast('Passwords do not match.');
+      return;
+    }
     setIsLoading(true);
 
     try {
       await CreateUser(formData);
-      createInfoToast('Account registration is successful!');
-      window.location.href = '/'; // Redirect to home page after signup
+      createInfoToast('Account registration is successful! Redirecting...');
+      setTimeout(() => {
+        window.location.href = '/'; // Redirect after 3 seconds
+      }, 3000);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       createErrorToast(err.response?.data?.message || 'Unable to register account. Please try again later.');
@@ -45,6 +53,15 @@ export default function SignupPage() {
   return (
     <main className='flex items-center justify-center min-h-screen bg-gray-100'>
       <div className='p-8 bg-white shadow-md rounded-md'>
+      <div className="flex items-center pb-4">
+          <button
+            type="button"
+            className="text-2xl text-gray-600 hover:text-gray-800 rounded-full hover:bg-gray-200"
+            onClick={() => window.history.back()}
+          >
+            ←
+          </button>
+        </div>
         <h1 className='text-2xl font-bold mb-4'>Sign Up</h1>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
@@ -80,6 +97,18 @@ export default function SignupPage() {
               placeholder='Enter your password'
               value={formData.password}
               onChange={handleChange}
+              required
+            />
+          </div>
+          <div className='mb-4'>
+            <label className='block text-sm font-medium mb-2'>Confirm Password</label>
+            <input
+              type='password'
+              name='confirmPassword'
+              className='w-full px-4 py-2 border rounded-md'
+              placeholder='Confirm your password'
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
           </div>

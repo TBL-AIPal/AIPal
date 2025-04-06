@@ -14,7 +14,7 @@ const { getDocumentById } = require('./document.service');
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+  'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent';
 
 // **🔹 Function to save messages to the database**
 const saveMessage = async ({ roomId, sender, content, modelUsed }) => {
@@ -48,11 +48,28 @@ const callOpenAI = async (messages, apiKey) => {
   }
 };
 
-// **🔹 Function to call Groq LLaMA 3 API**
-const callGroqLLaMA = async (messages, apiKey) => {
+const callGroqLLaMA = async (messages, apiKey, contextText = '') => {
+  const fullMessages = [];
+
+  // Add constraints + documents as system message
+  if (contextText) {
+    fullMessages.push({
+      role: 'system',
+      content: contextText,
+    });
+  }
+
+  // Add cleaned conversation messages
+  for (const msg of messages) {
+    const { role, content } = msg; // Only keep valid keys
+    if (role && content) {
+      fullMessages.push({ role, content });
+    }
+  }
+
   return axios.post(
     GROQ_API_URL,
-    { model: 'llama-3.3-70b-versatile', messages },
+    { model: 'llama-3.3-70b-versatile', messages: fullMessages },
     {
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -62,20 +79,29 @@ const callGroqLLaMA = async (messages, apiKey) => {
   );
 };
 
-// **🔹 Function to call Gemini API**
-const callGemini = async (messages, apiKey) => {
-  return axios.post(
-    `${GEMINI_API_URL}?key=${apiKey}`,
-    {
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: messages[messages.length - 1].content }],
-        },
+const callGemini = async (messages, apiKey, contextText = '') => {
+  const contents = [];
+
+  const contextPrefix = contextText ? contextText + '\n\n' : '';
+
+  contents.push(
+    ...messages.map((msg, index) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [
+        { text: index === 0 ? contextPrefix + msg.content : msg.content },
       ],
-    },
-    { headers: { 'Content-Type': 'application/json' } },
+    })),
   );
+
+  const response = await axios.post(
+    `${GEMINI_API_URL}?key=${apiKey}`,
+    { contents },
+    {
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+
+  return response;
 };
 
 // Function to process chunks sequentially
@@ -381,12 +407,35 @@ const createContextualizedAndMultiAgentReply = async (
   };
 };
 
-// **🔹 Gemini Reply**
 const createGeminiReply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'gemini');
 
-  const response = await callGemini(conversation, apiKey);
+  let contextText = '';
+
+  if (templateId) {
+    const template = await getTemplateById(templateId);
+    const constraintText = (template.constraints || []).join('\n- ');
+    const docTextArray = await Promise.all(
+      template.documents.map(async (docId) => {
+        const doc = await getDocumentById(docId);
+        return `---\n${doc.title || 'Document'}:\n${doc.text}`;
+      }),
+    );
+    const docText = docTextArray.join('\n\n');
+
+    contextText = `You are an assistant with the following context and constraints.
+
+Constraints:
+- ${constraintText || 'None'}
+
+Documents:
+${docText || 'No documents provided.'}
+    
+Please use this information to answer the user's questions as accurately as possible.`;
+  }
+
+  const response = await callGemini(conversation, apiKey, contextText);
   const assistantResponse =
     response?.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
     'No response from Gemini';
@@ -417,12 +466,36 @@ const createGeminiReply = async (courseId, templateId, messageBody) => {
   };
 };
 
-// **🔹 LLaMA 3 Reply**
 const createLlama3Reply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'llama');
 
-  const response = await callGroqLLaMA(conversation, apiKey);
+  let contextText = '';
+
+  if (templateId) {
+    const template = await getTemplateById(templateId);
+    const constraintText = (template.constraints || []).join('\n- ');
+    const docTextArray = await Promise.all(
+      template.documents.map(async (docId) => {
+        const doc = await getDocumentById(docId);
+        return `---\n${doc.title || 'Document'}:\n${doc.text}`;
+      }),
+    );
+    const docText = docTextArray.join('\n\n');
+
+    contextText = `You are an assistant with the following context and constraints.
+
+Constraints:
+- ${constraintText || 'None'}
+
+Documents:
+${docText || 'No documents provided.'}
+
+Please use this information to answer the user's questions as accurately as possible.`;
+  }
+
+  const response = await callGroqLLaMA(conversation, apiKey, contextText);
+
   const assistantResponse =
     response?.data?.choices?.[0]?.message?.content ||
     'No response from LLaMA 3';

@@ -1,11 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { CreateCourse } from '@/lib/API/course/mutations';
-import { CourseCreateInput, CourseFormValues } from '@/lib/types/course';
+import { APIKeys, CourseCreateInput, CourseFormValues } from '@/lib/types/course';
 import logger from '@/lib/utils/logger';
 
 import { Form } from '@/components/ui/Form';
@@ -13,6 +13,7 @@ import { Form } from '@/components/ui/Form';
 import { APIKeyForm } from './APIKeyForm';
 import { DescriptionForm } from './DescriptionForm';
 import { NameForm } from './NameForm';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 interface AddFormProps {
   course: CourseCreateInput;
@@ -39,13 +40,17 @@ export default function CourseCreateForm({ course, onCourseCreated }: AddFormPro
 
   const onSubmit = async (values: CourseFormValues) => {
     const { name, description, apiKeys } = values;
-
+    
     try {
       await CreateCourse({ name, description, apiKeys });
+      createInfoToast('Course created successfully!');
       reset({ name: '', description: '', apiKeys: { gemini: '', llama: '', chatgpt: '' } });
       onCourseCreated();
-    } catch (err) {
+    } catch (err: any) {
       logger(err, 'Error creating course');
+
+      const backendError = err.message || 'An unexpected error occurred.';
+      createErrorToast(backendError);
     }
   };
 
