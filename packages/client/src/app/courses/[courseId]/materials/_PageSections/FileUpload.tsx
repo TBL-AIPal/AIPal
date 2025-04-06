@@ -1,6 +1,7 @@
+import React, { useState } from 'react';
+
 import logger from '@/lib/utils/logger';
 import { createErrorToast } from '@/lib/utils/toast';
-import React, { useState } from 'react';
 
 interface FileUploadProps {
   onUpload: (files: FileList) => Promise<void>;

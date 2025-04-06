@@ -4,19 +4,24 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useCallback } from 'react';
 
-import { GetRoomsByTemplateIds } from '@/lib/API/room/queries';
 import { GetCourseById } from '@/lib/API/course/queries';
+
 import { GetUsersByCourseId } from '@/lib/API/user/queries';
 import { Room } from '@/lib/types/room';
 import { Course, TutorialGroup } from '@/lib/types/course';
+import { GetRoomsByTemplateIds } from '@/lib/API/room/queries';
+
+
 import logger from '@/lib/utils/logger';
 
-import { Modal } from '@/components/ui/Modal';
 import TextButton from '@/components/buttons/TextButton';
+
 import { UserPlusIcon, ArrowRightCircleIcon } from '@heroicons/react/24/solid';
 import { User } from '@/lib/types/user';
 import { UpdateRoom } from '@/lib/API/room/mutations';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
+import { Modal } from '@/components/ui/Modal';
+
 
 const RoomsPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();

@@ -12,14 +12,14 @@ import { GetTemplatesByCourseId } from '@/lib/API/template/queries';
 import { DocumentMetadata } from '@/lib/types/document';
 import { Template, TemplateUpdateInput } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 import TextButton from '@/components/buttons/TextButton';
+import EmptyState from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 
 import { TemplateCreateForm } from './_PageSections/TemplateCreateForm';
 import TemplateTable from './_PageSections/TemplateTable';
-import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
-import EmptyState from '@/components/ui/EmptyState';
 
 const TemplatesPage = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();

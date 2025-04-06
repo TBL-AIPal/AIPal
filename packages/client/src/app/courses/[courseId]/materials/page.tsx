@@ -7,13 +7,14 @@ import { CreateDocument, DeleteDocument } from '@/lib/API/document/mutations';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { DocumentMetadata } from '@/lib/types/document';
 import logger from '@/lib/utils/logger';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
+
+import EmptyState from '@/components/ui/EmptyState';
 
 import DocumentRow from './_PageSections/DocumentRow';
 import DocumentTable from './_PageSections/DocumentTable';
 import DocumentTableSkeleton from './_PageSections/DocumentTableSkeleton';
 import FileUpload from './_PageSections/FileUpload';
-import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
-import EmptyState from '@/components/ui/EmptyState';
 
 const Materials: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();

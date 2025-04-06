@@ -5,13 +5,13 @@ import { GetCoursesForUser } from '@/lib/API/course/queries';
 import { Course } from '@/lib/types/course';
 import { User } from '@/lib/types/user';
 import logger from '@/lib/utils/logger';
+import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 import TextButton from '@/components/buttons/TextButton';
 import { Modal } from '@/components/ui/Modal';
 
 import CourseCreateForm from './_PageSections/CourseCreateForm';
 import CourseGallery from './_PageSections/CourseGallery';
-import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
 export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function CoursesPage() {
           onClick={() => setIsModalOpen(true)}
           disabled={loading}
         >
-          {'Add Course'}
+          Add Course
         </TextButton>
       )}
 

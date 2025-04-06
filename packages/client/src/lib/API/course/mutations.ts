@@ -1,4 +1,5 @@
 import api from '@/lib/API/auth/interceptor';
+
 import axios, { AxiosError } from 'axios';
 
 import {
@@ -64,7 +65,7 @@ export const UpdateCourse = async ({
 };
 
 // Delete a course
-export const DeleteCourse = async (id : String ) => {
+export const DeleteCourse = async (id : string ) => {
   try {
     await api.delete(`/courses/${id}`);
   } catch (err) {
