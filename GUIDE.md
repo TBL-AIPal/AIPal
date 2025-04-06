@@ -80,7 +80,29 @@ Rooms are interactive chat pages where teachers and students can communicate wit
 
 ## 5. Student Features <a id="5-student-features"></a>
 
-- Coming soon!
+### Getting Access
+- After signing up, a teacher must invite you to a course before you can access any content.
+- After being invited, the course will appear on your dashboard when you log in.
+
+### Joining Rooms
+- From the course page, you will see a list of rooms you've been granted access to.
+- You can also join a room using a **room code**:
+  1. Click on **Join Room**.
+  2. Enter the room code provided by your teacher.
+  3. Once accepted, you’ll have ongoing access to the room without needing the code again.
+
+### Chatting with the AI
+- Click on the enter icon to enter a room and open the chat interface.
+- You will see the method and model selected by the course coordinators.
+- Type your question or prompt in the message box and press **Enter** or click **Send**.
+- The AI will respond based on the materials and constraints set by your teacher.
+- Conversations are saved, so you can return later and continue where you left off.
+- **Messages from other students in the same room will appear live**, allowing you to follow the ongoing discussion and collaborate in real time.
+
+### Exploring Multiple Rooms
+- Teachers may create different rooms for different topics or groups.
+- You can view all rooms available to you under the **Rooms** tab in the course.
+
 
 ---
 
