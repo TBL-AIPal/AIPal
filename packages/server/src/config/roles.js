@@ -41,6 +41,7 @@ const allRoles = {
     'sendMessage', // Students can send messages
     'getUsers',
     'manageRooms',
+    'getTemplates',
   ],
 };
 

@@ -206,60 +206,60 @@ const RoomChatPage: React.FC = () => {
       let response;
       const templateId = template?.id ?? '';
 
-      switch (selectedMethod) {
-        case 'multi-agent':
-          response = await createMultiAgentMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'rag':
-          response = await createRAGMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'combined':
-          response = await createCombinedMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'gemini':
-          response = await createGeminiMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'llama3':
-          response = await createLlama3Message({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        default:
-          response = await createDirectMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
+      if (selectedMethod === 'multi-agent') {
+        response = await createMultiAgentMessage({
+          courseId,
+          templateId,
+          roomId,
+          userId,
+          conversation: updatedMessages,
+        });
+      } else if (selectedMethod === 'rag') {
+        response = await createRAGMessage({
+          courseId,
+          templateId,
+          roomId,
+          userId,
+          conversation: updatedMessages,
+        });
+      } else if (selectedMethod === 'combined') {
+        response = await createCombinedMessage({
+          courseId,
+          templateId,
+          roomId,
+          userId,
+          conversation: updatedMessages,
+        });
+      } else {
+        switch (selectedModel) {
+          case 'gemini':
+            response = await createGeminiMessage({
+              courseId,
+              templateId,
+              roomId,
+              userId,
+              conversation: updatedMessages,
+            });
+            break;
+          case 'llama3':
+            response = await createLlama3Message({
+              courseId,
+              templateId,
+              roomId,
+              userId,
+              conversation: updatedMessages,
+            });
+            break;
+          default: // includes 'chatgpt'
+            response = await createDirectMessage({
+              courseId,
+              templateId,
+              roomId,
+              userId,
+              conversation: updatedMessages,
+            });
+            break;
+        }
       }
 
       logger(response, 'LLM API Response');

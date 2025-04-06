@@ -139,6 +139,7 @@ const Overview: React.FC = () => {
         });
       }
 
+      await fetchUsers();
       await fetchCourseDetails();
       setUserDialogOpen(false);
     } catch (error) {
@@ -260,11 +261,9 @@ const Overview: React.FC = () => {
           <div className="ml-4 mt-2 p-2 bg-white border rounded shadow">
             {unassignedUsers.length > 0 ? (
               <AccountTable>
-                <tbody>
                   {unassignedUsers.map((user) => (
                     <AccountRow key={user.email} name={user.name} email={user.email} role={user.role} />
                   ))}
-                </tbody>
               </AccountTable>
             ) : (
               <p className="text-gray-500 px-2 py-1">No unassigned users.</p>
