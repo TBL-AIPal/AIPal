@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const User = require('../../src/models/user.model');
 
 const password = 'password1';
@@ -9,40 +9,44 @@ const hashedPassword = bcrypt.hashSync(password, salt);
 
 const userOne = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
+  name: faker.person.fullName(),
   email: faker.internet.email().toLowerCase(),
   password,
-  role: 'user',
+  role: 'student',
+  status: 'approved',
   isEmailVerified: false,
   courses: [],
 };
 
 const userTwo = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
+  name: faker.person.fullName(),
   email: faker.internet.email().toLowerCase(),
   password,
-  role: 'user',
+  role: 'student',
+  status: 'approved',
   isEmailVerified: false,
   courses: [],
 };
 
 const staff = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
+  name: faker.person.fullName(),
   email: faker.internet.email().toLowerCase(),
   password,
-  role: 'admin',
+  role: 'teacher',
+  status: 'approved',
   isEmailVerified: false,
   courses: [],
 };
 
 const admin = {
   _id: mongoose.Types.ObjectId(),
-  name: faker.name.findName(),
+  name: faker.person.fullName(),
   email: faker.internet.email().toLowerCase(),
   password,
   role: 'admin',
+  status: 'approved',
   isEmailVerified: false,
   courses: [],
 };

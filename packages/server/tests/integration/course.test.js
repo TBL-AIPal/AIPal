@@ -1,5 +1,5 @@
 const request = require('supertest');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
@@ -9,6 +9,7 @@ const {
   userTwo,
   admin,
   insertUsers,
+  staff,
 } = require('../fixtures/user.fixture');
 const {
   templateOne,
@@ -39,9 +40,13 @@ describe('Course routes', () => {
 
     beforeEach(() => {
       newCourse = {
-        name: faker.name.findName(),
-        owner: admin._id,
-        apiKey: `sk-${faker.random.alphaNumeric(48)}`,
+        name: faker.person.fullName(),
+        description: faker.lorem.sentence(),
+        apiKeys: {
+          gemini: `gemini-${faker.string.alphanumeric(48)}`,
+          llama: `llama-${faker.string.alphanumeric(48)}`,
+          chatgpt: `chatgpt-${faker.string.alphanumeric(48)}`,
+        },
       };
     });
 
@@ -54,22 +59,18 @@ describe('Course routes', () => {
         .send(newCourse)
         .expect('Content-Type', /json/);
 
-      expect(res.body).not.toHaveProperty('apiKey');
-      expect(res.body).toEqual(
-        expect.objectContaining({
-          name: newCourse.name,
-          owner: newCourse.owner.toString(),
-        }),
-      );
+      expect(res.body).not.toHaveProperty('apiKeys');
       expect(res.body).toEqual({
-        id: expect.anything(),
+        id: expect.any(String),
         name: newCourse.name,
-        owner: newCourse.owner.toString(),
+        description: newCourse.description,
+        owner: admin._id.toHexString(),
         documents: [],
         llmConstraints: [],
         staff: [],
         students: [],
         templates: [],
+        whitelist: [],
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
@@ -79,7 +80,7 @@ describe('Course routes', () => {
       expect(dbCourse).toEqual(
         expect.objectContaining({
           name: newCourse.name,
-          owner: newCourse.owner,
+          owner: admin._id,
         }),
       );
     });
@@ -192,9 +193,10 @@ describe('Course routes', () => {
 
   describe('PATCH /v1/courses/:courseId', () => {
     test('should return 200 and updated course details if data is ok', async () => {
-      await insertUsers([admin]);
+      await insertUsers([admin, userOne, userTwo]);
       await insertCourses([courseOne, courseTwo]);
-      const updateData = { name: 'Updated course name' };
+      const updateData = { name: 'UpdatedCourseName' };
+
       const res = await request(app)
         .patch(`/v1/courses/${courseOne._id}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -208,25 +210,35 @@ describe('Course routes', () => {
     });
 
     test('should return 401 error if access token is missing', async () => {
+      await insertUsers([admin, userOne]);
+      await insertCourses([courseOne, courseTwo]);
+      const updateData = { name: 'UpdatedCourseName' };
+
       await request(app)
         .patch(`/v1/courses/${courseOne._id}`)
+        .send(updateData)
         .expect(httpStatus.UNAUTHORIZED);
     });
 
     test('should return 403 error if user does not have manageCourses permission', async () => {
       await insertUsers([admin, userOne]);
       await insertCourses([courseOne, courseTwo]);
+      const updateData = { name: 'UpdatedCourseName' };
+
       await request(app)
         .patch(`/v1/courses/${courseOne._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateData)
         .expect(httpStatus.FORBIDDEN);
     });
 
     test('should return 404 error if course is not found', async () => {
-      await insertUsers([admin]);
-      const updateData = { name: 'Updated course name' };
+      await insertUsers([admin, userOne, userTwo]);
+      await insertCourses([courseOne]);
+      const updateData = { name: 'UpdatedCourseName' };
+
       await request(app)
-        .patch(`/v1/courses/${courseOne._id}`)
+        .patch(`/v1/courses/${courseTwo._id}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateData)
         .expect(httpStatus.NOT_FOUND);
@@ -235,8 +247,9 @@ describe('Course routes', () => {
 
   describe('DELETE /v1/courses/:courseId', () => {
     test('should return 204 if data is ok', async () => {
-      await insertUsers([admin]);
-      await insertCourses([courseOne, courseTwo]);
+      await insertUsers([admin, staff, userOne]);
+      await insertCourses([courseTwo]);
+
       await request(app)
         .delete(`/v1/courses/${courseTwo._id}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -244,9 +257,10 @@ describe('Course routes', () => {
     });
 
     test('should return 204 if data is ok and delete associated templates', async () => {
-      await insertUsers([admin]);
-      await insertCourses([courseOne, courseTwo]);
+      await insertUsers([admin, staff, userOne, userTwo]);
+      await insertCourses([courseOne]);
       await insertTemplates([templateOne, templateTwo]);
+      await insertDocuments([documentOne, documentTwo]);
 
       // Check the initial state before deletion
       const dbCourseBefore = await Course.findById(courseOne._id).populate(
@@ -276,8 +290,9 @@ describe('Course routes', () => {
     });
 
     test('should return 204 if data is ok and delete associated documents', async () => {
-      await insertUsers([admin]);
-      await insertCourses([courseOne, courseTwo]);
+      await insertUsers([admin, staff, userOne, userTwo]);
+      await insertCourses([courseOne]);
+      await insertTemplates([templateOne, templateTwo]);
       await insertDocuments([documentOne, documentTwo]);
 
       // Check the initial state before deletion
@@ -314,10 +329,10 @@ describe('Course routes', () => {
     });
 
     test('should return 403 error if user does not have manageCourses permission', async () => {
-      await insertUsers([admin, userOne]);
-      await insertCourses([courseOne]);
+      await insertUsers([admin, staff, userOne]);
+      await insertCourses([courseTwo]);
       await request(app)
-        .delete(`/v1/courses/${courseOne._id}`)
+        .delete(`/v1/courses/${courseTwo._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .expect(httpStatus.FORBIDDEN);
     });
