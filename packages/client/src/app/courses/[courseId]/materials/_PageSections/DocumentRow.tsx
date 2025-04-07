@@ -29,21 +29,18 @@ const DocumentRow: React.FC<DocumentRowProps> = ({
         return (
           <span className="inline-flex items-center">
             <MaterialsIcons.CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-            Completed
           </span>
         );
       case 'failed':
         return (
           <span className="inline-flex items-center">
             <MaterialsIcons.XCircle className="w-4 h-4 text-red-500 mr-2" />
-            Failed
           </span>
         );
       case 'processing':
         return (
           <span className="inline-flex items-center">
             <div className="animate-pulse w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-            Processing
           </span>
         );
       default:
@@ -53,9 +50,8 @@ const DocumentRow: React.FC<DocumentRowProps> = ({
 
   return (
     <tr className="hover:bg-gray-50">
-      <td className="px-4 py-2 border-b text-center flex items-center justify-center">
-        {name} {getStatusIndicator(status)}
-      </td>
+      <td className="px-4 py-2 border-b text-center">{getStatusIndicator(status)}</td>
+      <td className="px-4 py-2 border-b text-center">{name}</td>
       <td className="px-4 py-2 border-b text-center">{timestamp}</td>
       <td className="px-4 py-2 border-b text-center">{size}</td>
       <td className="px-4 py-2 border-b text-center">
