@@ -1,6 +1,6 @@
-const { OpenAI } = require("openai");
-const logger = require("../../config/logger");
-const fs = require("fs");
+const { OpenAI } = require('openai');
+const logger = require('../../config/logger');
+const fs = require('fs');
 
 /**
  * Generates an embedding for a given text using OpenAI API
@@ -11,17 +11,17 @@ const fs = require("fs");
 const generateEmbedding = async (text, apiKey) => {
   try {
     const client = new OpenAI({ apiKey });
-    logger.info("Starting embedding generation for text...");
+    logger.info('Starting embedding generation for text...');
     const response = await client.embeddings.create({
-      model: "text-embedding-3-small",
+      model: 'text-embedding-3-small',
       input: text,
-      encoding_format: "float",
+      encoding_format: 'float',
     });
-    logger.info("Embedding generated successfully");
+    logger.info('Embedding generated successfully');
     return response.data[0].embedding;
   } catch (error) {
     logger.info(error);
-    throw new Error("Failed to generate embedding");
+    throw new Error('Failed to generate embedding');
   }
 };
 
@@ -35,15 +35,15 @@ const describePageVisualElements = async (imageData, apiKey) => {
   try {
     const client = new OpenAI({ apiKey });
 
-    logger.info("Sending image to LLM for analysis...");
+    logger.info('Sending image to LLM for analysis...');
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `
               **Prompt:**
               Carefully analyze the provided image of a document page. Your task is to extract and describe *every detail*—both visual and textual—to support accurate question answering and content understanding. This includes:
@@ -75,7 +75,7 @@ const describePageVisualElements = async (imageData, apiKey) => {
               `,
             },
             {
-              type: "image_url",
+              type: 'image_url',
               image_url: {
                 url: imageData,
               },
@@ -86,13 +86,13 @@ const describePageVisualElements = async (imageData, apiKey) => {
       max_tokens: 300,
     });
 
-    logger.info("Image description received successfully");
+    logger.info('Image description received successfully');
     const description =
-      response.choices[0]?.message?.content || "No visual elements detected";
+      response.choices[0]?.message?.content || 'No visual elements detected';
     return description;
   } catch (error) {
-    logger.error("Error describing page:", error);
-    throw new Error("Failed to describe page");
+    logger.error('Error describing page:', error);
+    throw new Error('Failed to describe page');
   }
 };
 
