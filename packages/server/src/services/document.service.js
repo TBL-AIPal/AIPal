@@ -1,18 +1,18 @@
-const { createCanvas } = require('canvas');
-const pdfjsLib = require('pdfjs-dist/legacy/build/pdf');
-const httpStatus = require('http-status');
-const pdfParse = require('pdf-parse');
-const Tesseract = require('tesseract.js');
-const { Document, Course, Chunk } = require('../models');
-const ApiError = require('../utils/ApiError');
+const { createCanvas } = require("canvas");
+const pdfjsLib = require("pdfjs-dist/legacy/build/pdf");
+const httpStatus = require("http-status");
+const pdfParse = require("pdf-parse");
+const Tesseract = require("tesseract.js");
+const { Document, Course, Chunk } = require("../models");
+const ApiError = require("../utils/ApiError");
 const {
   generateEmbedding,
   describePageVisualElements,
-} = require('./RAG/embedding.service');
-const { processTextBatch } = require('./RAG/preprocessing.service');
-const { decrypt } = require('../utils/cryptoUtils');
-const logger = require('../config/logger');
-const config = require('../config/config');
+} = require("./RAG/embedding.service");
+const { processTextBatch } = require("./RAG/preprocessing.service");
+const { decrypt } = require("../utils/cryptoUtils");
+const logger = require("../config/logger");
+const config = require("../config/config");
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -26,14 +26,14 @@ const createDocument = async (courseId, file) => {
     data: file.buffer,
     contentType: file.mimetype,
     size: file.buffer.length,
-    text: '',
+    text: "",
   };
 
-  let pdfTitle = '';
+  let pdfTitle = "";
   let pagesText = [];
   let pageImages = [];
 
-  if (file.mimetype === 'application/pdf') {
+  if (file.mimetype === "application/pdf") {
     // Extract text and metadata
     const pdfData = await pdfParse(file.buffer);
     documentData.text = pdfData.text;
@@ -53,11 +53,11 @@ const createDocument = async (courseId, file) => {
       const page = await pdfDoc.getPage(pageNumber);
 
       // Get the viewport for rendering
-      const viewport = page.getViewport({ scale: 0.5 });
+      const viewport = page.getViewport({ scale: 1.0 });
 
       // Create a canvas to render the page
       const canvas = createCanvas(viewport.width, viewport.height);
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
 
       // Render the page onto the canvas
       await page.render({
@@ -66,21 +66,23 @@ const createDocument = async (courseId, file) => {
       }).promise;
 
       // Convert the canvas to an image data URL
-      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+      const imageDataUrl = canvas.toDataURL("image/jpeg", 1.0);
 
       // Extract text from the image
-      logger.info(`Performing OCR on page ${pageNumber}`);
+      logger.verbose(`Performing OCR on page ${pageNumber}`);
       const {
         data: { text: ocrText },
-      } = await Tesseract.recognize(imageDataUrl, 'eng');
+      } = await Tesseract.recognize(imageDataUrl);
+      logger.verbose(`Finish performing OCR on page ${pageNumber}`);
+      logger.verbose(`Extracted Text: ${ocrText}`);
 
       // Store the extracted text for chunking
-      pagesText.push(ocrText?.trim() || '');
+      pagesText.push(ocrText?.trim() || "");
 
       pageImages.push({
         page: pageNumber,
         imageData: imageDataUrl,
-        text: ocrText?.trim() || '',
+        text: ocrText?.trim() || "",
       });
     }
   }
@@ -97,13 +99,13 @@ const createDocument = async (courseId, file) => {
 
   const course = await Course.findById(courseId);
   if (!course) {
-    throw new Error('Course not found');
+    throw new Error("Course not found");
   }
 
   //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
-  logger.info('Attempt to retrieve API Key for embeddings');
+  logger.verbose("Attempt to retrieve API Key for embeddings");
   const apiKey = decrypt(course.apiKeys.chatgpt, config.encryption.key);
-  logger.info('API Key retrieved for embeddings');
+  logger.verbose("API Key retrieved for embeddings");
 
   // Generate image descriptions
   const imageDescriptions = await Promise.all(
@@ -118,41 +120,41 @@ const createDocument = async (courseId, file) => {
   );
 
   // Create overlapping chunks
-  logger.info('Creating overlapping chunks...');
+  logger.verbose("Creating overlapping chunks...");
   const chunks = [];
   for (let i = 0; i < pageImages.length; i++) {
     const currentPageText = pageImages[i].text;
 
-    const nextPageText = pageImages[i + 1]?.text || '';
+    const nextPageText = pageImages[i + 1]?.text || "";
     const nextPageWords = nextPageText.split(/\s+/); // Split into words
     const overlapWords = nextPageWords.slice(
       0,
       Math.ceil(nextPageWords.length * 0.25),
     ); // 25% of next page
-    const overlapText = overlapWords.join(' ');
+    const overlapText = overlapWords.join(" ");
 
     // Combine the current page text with 25% of the next page's text
-    const chunk = `${currentPageText}${overlapText ? ' ' + overlapText : ''}`;
+    const chunk = `${currentPageText}${overlapText ? " " + overlapText : ""}`;
 
     // Add image descriptions for the current page
     const pageDescription =
       imageDescriptions.find((img) => img.page === pageImages[i].page)
-        ?.description || '';
-    const imageDescriptionsText = `[Visual Elements Description]: ${pageDescription}`;
+        ?.description || "";
+    const imageDescriptionsText = `[Additional Description]: ${pageDescription}`;
 
     // Append the image description to the chunk before normalization
     const chunkWithImageDescription = `${chunk}\n${imageDescriptionsText}`;
     chunks.push(chunkWithImageDescription);
   }
 
-  logger.info(`Generated ${chunks.length} chunks`);
+  logger.verbose(`Generated ${chunks.length} chunks`);
 
   // Normalize chunks
-  logger.info('Normalizing chunks...');
+  logger.verbose("Normalizing chunks...");
   const normalizedChunks = await processTextBatch(chunks);
 
   // Add remaining metadata after normalization
-  logger.info('Adding remaining metadata to normalized chunks...');
+  logger.verbose("Adding remaining metadata to normalized chunks...");
   const chunksWithMetadata = normalizedChunks.map((normalizedChunk, index) => {
     const pageNumber = pageImages[index].page;
 
@@ -161,13 +163,15 @@ const createDocument = async (courseId, file) => {
       actual: `[Title: ${pdfTitle}, Page: ${pageNumber}] ${chunks[index]}`,
     };
   });
-  logger.info(`Added metadata to ${chunksWithMetadata.length} chunks`);
+  logger.verbose(`Added metadata to ${chunksWithMetadata.length} chunks`);
 
   // Generate embeddings
-  logger.info('Generating embeddings for chunks...');
+  logger.verbose("Generating embeddings for chunks...");
   const embeddedChunks = await Promise.all(
     chunksWithMetadata.map(async (chunkWithMetadata, index) => {
-      logger.info(`Processing chunk ${index + 1}/${chunksWithMetadata.length}`);
+      logger.verbose(
+        `Processing chunk ${index + 1}/${chunksWithMetadata.length}`,
+      );
       const embedding = await generateEmbedding(
         chunkWithMetadata.normalized,
         apiKey,
@@ -180,11 +184,11 @@ const createDocument = async (courseId, file) => {
     }),
   );
 
-  logger.info('All chunks processed successfully');
+  logger.verbose("All chunks processed successfully");
 
-  logger.info('Inserting document chunks into the database...');
+  logger.verbose("Inserting document chunks into the database...");
   await Chunk.insertMany(embeddedChunks);
-  logger.info('Document chunks inserted successfully');
+  logger.verbose("Document chunks inserted successfully");
 
   return document;
 };
@@ -196,12 +200,12 @@ const createDocument = async (courseId, file) => {
  */
 const getDocumentsByCourseId = async (courseId) => {
   const course = await Course.findById(courseId).populate({
-    path: 'documents',
-    select: '-data -text',
+    path: "documents",
+    select: "-data -text",
   });
 
   if (!course) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
+    throw new ApiError(httpStatus.NOT_FOUND, "Course not found");
   }
 
   // Return an empty array if no documents are found
@@ -216,7 +220,7 @@ const getDocumentsByCourseId = async (courseId) => {
 const getDocumentById = async (documentId) => {
   const document = await Document.findById(documentId);
   if (!document) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Document not found');
+    throw new ApiError(httpStatus.NOT_FOUND, "Document not found");
   }
   return document;
 };
@@ -230,7 +234,7 @@ const getDocumentById = async (documentId) => {
 const deleteDocumentById = async (courseId, documentId) => {
   const document = await Document.findById(documentId);
   if (!document) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Document not found');
+    throw new ApiError(httpStatus.NOT_FOUND, "Document not found");
   }
 
   // Update the course to remove the document ID in the documents array
