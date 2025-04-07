@@ -7,6 +7,7 @@ export interface DocumentMetadata {
   id: string;
   filename: string;
   contentType: DocumentContentType;
+  status: DocumentStatus;
   size: number;
   createdAt: string;
   updatedAt: string;
@@ -17,7 +18,18 @@ export interface DocumentFormValues {
   formData: FormData;
 }
 
+export interface DocumentUpdateInput {
+  filename?: string;
+  status?: DocumentStatus;
+}
+
 export enum DocumentContentType {
   PDF = 'application/pdf',
   // Add other content types here
 }
+
+export enum DocumentStatus {
+  Processing = 'processing',
+  Completed = 'completed',
+  Failed = 'failed',
+};

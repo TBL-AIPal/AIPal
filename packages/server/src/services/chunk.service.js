@@ -26,6 +26,9 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
     //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
     const apiKey = getApiKeyById(courseId, 'openai');
 
+    // Cleanup relevant chunks (if any)
+    await deleteChunksByDocumentId(document._id);
+
     let pageImages = [];
 
     if (document.mimetype == 'application/pdf') {

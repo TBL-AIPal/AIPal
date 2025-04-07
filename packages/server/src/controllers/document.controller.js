@@ -31,6 +31,16 @@ const getDocument = catchAsync(async (req, res) => {
   res.send(document);
 });
 
+const updateDocument = catchAsync(async (req, res) => {
+  const document = await documentService.updateDocumentById(
+    req.params.documentId,
+  );
+  res.send(document);
+  if (document.status == 'processing') {
+    await chunkService.createChunksFromDocumentId(document._id);
+  }
+});
+
 const deleteDocument = catchAsync(async (req, res) => {
   await documentService.deleteDocumentById(
     req.params.courseId,
@@ -43,5 +53,6 @@ module.exports = {
   createDocument,
   getDocuments,
   getDocument,
+  updateDocument,
   deleteDocument,
 };

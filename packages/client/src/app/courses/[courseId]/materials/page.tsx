@@ -3,9 +3,9 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { CreateDocument, DeleteDocument } from '@/lib/API/document/mutations';
+import { CreateDocument, DeleteDocument,UpdateDocument } from '@/lib/API/document/mutations';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
-import { DocumentMetadata } from '@/lib/types/document';
+import { DocumentMetadata, DocumentStatus } from '@/lib/types/document';
 import logger from '@/lib/utils/logger';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
@@ -56,7 +56,6 @@ const Materials: React.FC = () => {
             courseId: courseIdString,
             formData,
           });
-          logger(`File "${file.name}" uploaded successfully!`);
         } catch (error) {
           logger(error, `File "${file.name}" upload failed.`);
           createErrorToast(
@@ -64,12 +63,26 @@ const Materials: React.FC = () => {
           );
         }
       }
-      createInfoToast('Files have been uploaded successfully!');
+      createInfoToast('File(s) have been uploaded successfully!');
     } catch (error) {
       logger(error, 'One or more files failed to upload.');
     } finally {
       await fetchDocuments();
       setIsUploading(false);
+    }
+  };
+
+  const handleRetry = async (documentId: string) => {
+    try {
+      await UpdateDocument({
+        courseId: courseIdString,
+        documentId,
+        status: DocumentStatus.Processing,
+      });
+      logger('Document updated successfully');
+      await fetchDocuments();
+    } catch (error) {
+      createErrorToast(`Unable to retry. Please try again later.`);
     }
   };
 
@@ -122,9 +135,11 @@ const Materials: React.FC = () => {
             <DocumentRow
               key={document.id}
               name={document.filename}
+              status={document.status}
               timestamp={document.createdAt}
               size={`${(document.size / 1024).toFixed(2)} KB`}
               onDelete={() => handleDelete(document.id)}
+              onRetry={() => handleRetry(document.id)}
             />
           ))}
         </DocumentTable>
