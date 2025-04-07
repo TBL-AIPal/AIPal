@@ -5,14 +5,11 @@ const logger = require('../config/logger');
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 
-const {
-  processTextBatch,
-  describePageVisualElements,
-  generateEmbedding,
-  getDocumentById,
-} = require('../services');
 const { getApiKeyById } = require('./course.service');
 const { Chunk } = require('../models');
+const { processTextBatch } = require('./RAG/preprocessing.service');
+const { getDocumentById } = require('./document.service');
+const { describePageVisualElements } = require('./RAG/embedding.service');
 
 /**
  * Create document chunks and generate its embedding

@@ -1,6 +1,6 @@
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
-const { Document, Course, Chunk } = require('../models');
+const { Document, Course } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { deleteChunksByDocumentId } = require('./chunk.service');
 
