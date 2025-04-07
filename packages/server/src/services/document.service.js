@@ -242,8 +242,9 @@ const deleteDocumentById = async (courseId, documentId) => {
     { _id: courseId },
     { $pull: { documents: document._id } },
   );
+
   // Delete the associated chunks using the document ID
-  await Chunk.deleteMany({ Document: document._id });
+  await Chunk.deleteMany({ document: document._id });
 
   await document.remove();
   return document;
