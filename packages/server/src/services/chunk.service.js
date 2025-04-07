@@ -5,14 +5,14 @@ const logger = require('../config/logger');
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 
+const { getApiKeyById } = require('./course.service');
+const { Chunk, Document } = require('../models');
+const { processTextBatch } = require('./RAG/preprocessing.service');
+const { getDocumentById } = require('./document.service');
 const {
-  processTextBatch,
   describePageVisualElements,
   generateEmbedding,
-  getDocumentById,
-} = require('../services');
-const { getApiKeyById } = require('./course.service');
-const { Chunk } = require('../models');
+} = require('./RAG/embedding.service');
 
 /**
  * Create document chunks and generate its embedding
@@ -24,11 +24,14 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
   try {
     const document = await getDocumentById(documentId);
     //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
-    const apiKey = getApiKeyById(courseId, 'openai');
+    const apiKey = getApiKeyById(courseId, 'chatgpt');
+
+    // Cleanup relevant chunks (if any)
+    await deleteChunksByDocumentId(document._id);
 
     let pageImages = [];
 
-    if (document.mimetype == 'application/pdf') {
+    if (document.contentType == 'application/pdf') {
       pageImages = await processPdfWithOCR(document.data);
     } else {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid document type');
@@ -87,12 +90,9 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
     logger.verbose('Document status updated');
   } catch (error) {
     // Update document status to failed
-    await Document.findOneAndUpdate(
-      { _id: document._id },
-      { status: 'failed' },
-    );
+    await Document.findOneAndUpdate({ _id: documentId }, { status: 'failed' });
     // Cleanup relevant chunks (if any)
-    await deleteChunksByDocumentId(document._id);
+    await deleteChunksByDocumentId(documentId);
     logger.error(error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,

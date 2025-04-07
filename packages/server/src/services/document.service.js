@@ -2,7 +2,6 @@ const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
 const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { deleteChunksByDocumentId } = require('./chunk.service');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -73,6 +72,37 @@ const getDocumentById = async (documentId) => {
 };
 
 /**
+ * Update a document by ID
+ * @param {ObjectId} documentId - The ID of the document to update.
+ * @param {Object} updateBody - The fields to update.
+ * @returns {Promise<Document>} - The updated document.
+ */
+const updateDocumentById = async (documentId, updateBody) => {
+  const document = await getDocumentById(documentId);
+  const { filename, status } = updateBody;
+
+  if (filename !== undefined) {
+    document.filename = filename.trim();
+  }
+
+  if (status !== undefined) {
+    // Enforce transition rules for status
+    if (
+      (document.status === 'completed' || document.status === 'failed') &&
+      status !== 'processing'
+    ) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Cannot transition from status "${document.status}" to "${status}".`,
+      );
+    }
+    document.status = status;
+  }
+  await document.save();
+  return document;
+};
+
+/**
  * Delete a document by ID
  * @param {ObjectId} courseId
  * @param {ObjectId} documentId
@@ -90,7 +120,7 @@ const deleteDocumentById = async (courseId, documentId) => {
     { $pull: { documents: document._id } },
   );
 
-  await deleteChunksByDocumentId(document._id);
+  await Chunk.deleteMany({ document: document._id });
 
   await document.remove();
   return document;
@@ -100,5 +130,6 @@ module.exports = {
   createDocument,
   getDocumentsByCourseId,
   getDocumentById,
+  updateDocumentById,
   deleteDocumentById,
 };

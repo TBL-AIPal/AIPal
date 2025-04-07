@@ -13,7 +13,6 @@ const roomValidation = require('../../validations/room.validation');
 const tutorialGroupController = require('../../controllers/tutorialGroup.controller');
 const tutorialGroupValidation = require('../../validations/tutorialGroup.validation');
 
-
 const router = express.Router();
 
 router
@@ -99,6 +98,11 @@ router
     validate(documentValidation.getDocument),
     documentController.getDocument,
   )
+  .patch(
+    auth('manageDocuments'),
+    validate(documentValidation.updateDocument),
+    documentController.updateDocument,
+  )
   .delete(
     auth('manageDocuments'),
     validate(documentValidation.getDocument),
@@ -111,7 +115,7 @@ router
     auth('getRooms'),
     validate(roomValidation.getRoomsByCourse),
     roomController.getRoomsByCourse,
-  ) 
+  )
   .post(
     auth('manageRooms'),
     validate(roomValidation.createRoom),

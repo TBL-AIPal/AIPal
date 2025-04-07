@@ -1,8 +1,13 @@
 import api from '@/lib/API/auth/interceptor';
-import { DocumentFormValues } from '@/lib/types/document';
+import { DocumentFormValues, DocumentUpdateInput } from '@/lib/types/document';
 import logger from '@/lib/utils/logger';
 
 interface DeleteDocumentPropsI {
+  courseId: string;
+  documentId: string;
+}
+
+interface UpdateDocumentPropsI extends DocumentUpdateInput {
   courseId: string;
   documentId: string;
 }
@@ -20,6 +25,27 @@ export const CreateDocument = async ({ courseId, formData }: DocumentFormValues)
     throw new Error('Unable to upload document. Please try again.');
   }
 };
+
+// Update a document
+export const UpdateDocument = async ({
+  courseId,
+  documentId,
+  filename,
+  status,
+}: UpdateDocumentPropsI) => {
+  const data: DocumentUpdateInput = {
+    filename,
+    status,
+  };
+
+  try {
+    await api.patch(`/courses/${courseId}/documents/${documentId}`, data);
+  } catch (err) {
+    logger(err, `Error updating document ${documentId} in course ${courseId}`);
+    throw new Error('Unable to update document. Please try again.');
+  }
+};
+
 
 // Delete a document
 export const DeleteDocument = async ({ courseId, documentId }: DeleteDocumentPropsI) => {

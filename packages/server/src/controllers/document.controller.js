@@ -16,7 +16,10 @@ const createDocument = catchAsync(async (req, res) => {
   logger.verbose('Document upload completed.');
   res.status(httpStatus.CREATED).send(document);
 
-  await chunkService.createChunksFromDocumentId(document._id);
+  await chunkService.createChunksFromDocumentId(
+    req.params.courseId,
+    document._id,
+  );
 });
 
 const getDocuments = catchAsync(async (req, res) => {
@@ -31,6 +34,16 @@ const getDocument = catchAsync(async (req, res) => {
   res.send(document);
 });
 
+const updateDocument = catchAsync(async (req, res) => {
+  const document = await documentService.updateDocumentById(
+    req.params.documentId,
+  );
+  res.send(document);
+  if (document.status == 'processing') {
+    await chunkService.createChunksFromDocumentId(document._id);
+  }
+});
+
 const deleteDocument = catchAsync(async (req, res) => {
   await documentService.deleteDocumentById(
     req.params.courseId,
@@ -43,5 +56,6 @@ module.exports = {
   createDocument,
   getDocuments,
   getDocument,
+  updateDocument,
   deleteDocument,
 };
