@@ -1,8 +1,7 @@
 const httpStatus = require('http-status');
 const pdfParse = require('pdf-parse');
-const { Document, Course } = require('../models');
+const { Document, Course, Chunk } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { deleteChunksByDocumentId } = require('./chunk.service');
 
 /**
  * Create a document associated with a course and generate its embedding
@@ -121,7 +120,7 @@ const deleteDocumentById = async (courseId, documentId) => {
     { $pull: { documents: document._id } },
   );
 
-  await deleteChunksByDocumentId(document._id);
+  await Chunk.deleteMany({ document: document._id });
 
   await document.remove();
   return document;

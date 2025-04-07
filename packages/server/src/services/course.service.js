@@ -48,7 +48,7 @@ const getCourseById = async (id) => {
 /**
  * Get API key by course id and model
  * @param {ObjectId} courseId - The ID of the course
- * @param {string} model - The model being used (e.g., "openai", "gemini", "llama3")
+ * @param {string} model - The model being used (e.g., "chatgpt", "gemini", "llama3")
  * @returns {Promise<{ course: Course, apiKey: string }>}
  */
 const getApiKeyById = async (courseId, model) => {

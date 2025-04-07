@@ -16,7 +16,10 @@ const createDocument = catchAsync(async (req, res) => {
   logger.verbose('Document upload completed.');
   res.status(httpStatus.CREATED).send(document);
 
-  await chunkService.createChunksFromDocumentId(document._id);
+  await chunkService.createChunksFromDocumentId(
+    req.params.courseId,
+    document._id,
+  );
 });
 
 const getDocuments = catchAsync(async (req, res) => {
