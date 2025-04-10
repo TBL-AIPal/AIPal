@@ -1,5 +1,4 @@
 const { createCanvas } = require('canvas');
-const Tesseract = require('tesseract.js');
 const pdfjsLib = require('pdfjs-dist/legacy/build/pdf');
 const logger = require('../config/logger');
 const httpStatus = require('http-status');
@@ -24,32 +23,22 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
   try {
     const document = await getDocumentById(documentId);
     //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
-    const apiKey = getApiKeyById(courseId, 'chatgpt');
+    const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
 
     // Cleanup relevant chunks (if any)
     await deleteChunksByDocumentId(document._id);
-
-    let pageImages = [];
+    let extractedPages = [];
 
     if (document.contentType == 'application/pdf') {
-      pageImages = await processPdfWithOCR(document.data);
+      extractedPages = await extractPdfTextAndImagesDescription(
+        document.data,
+        apiKey,
+      );
     } else {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid document type');
     }
 
-    // Generate image descriptions
-    const imageDescriptions = await Promise.all(
-      pageImages.map(async (image) => {
-        logger.info(`Analyzing page ${image.page} for visual elements`);
-        const description = await describePageVisualElements(
-          image.imageData,
-          apiKey,
-        );
-        return { page: image.page, description };
-      }),
-    );
-
-    const chunks = createOverlappingChunks(pageImages, imageDescriptions);
+    const chunks = createOverlappingChunks(extractedPages);
 
     // Normalize chunks
     const normalizedChunks = await processTextBatch(chunks);
@@ -57,7 +46,7 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
     // Add remaining metadata after normalization
     const chunksWithMetadata = normalizedChunks.map(
       (normalizedChunk, index) => {
-        const pageNumber = pageImages[index].page;
+        const pageNumber = extractedPages[index].page;
         return {
           normalized: `[Title: ${document.filename}, Page: ${pageNumber}] ${normalizedChunk}`,
           actual: `[Title: ${document.filename}, Page: ${pageNumber}] ${chunks[index]}`,
@@ -110,7 +99,10 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
 const deleteChunksByDocumentId = async (documentId) => {
   const document = await Document.findById(documentId);
   if (!document) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Document not found');
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `Document ${documentId} not found`,
+    );
   }
 
   // Delete the associated chunks using the document ID
@@ -118,79 +110,117 @@ const deleteChunksByDocumentId = async (documentId) => {
   return;
 };
 
-const processPdfWithOCR = async ({
+/**
+ * Process a PDF document by extracting text and description of images
+ * @param {Buffer} buffer - The PDF file buffer.
+ * @param {string} apiKey - API key for the visual element description service.
+ * @param {number} scale - Scale factor for rendering PDF pages (default: 1.0).
+ * @returns {Promise<Array>} - An array of objects containing page number, extracted text, and image descriptions (if applicable).
+ */
+const extractPdfTextAndImagesDescription = async (
   buffer,
+  apiKey,
   scale = 1.0,
-  ocrLanguage = 'eng',
-}) => {
+) => {
   try {
-    const pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
-    const pageImages = [];
+    const processedPages = [];
+    const pagesForVisualProcessing = await pdfjsLib.getDocument({
+      data: buffer,
+      useSystemFonts: true,
+    }).promise;
 
-    for (let pageIndex = 0; pageIndex < pdfDoc.numPages; pageIndex++) {
+    for (
+      let pageIndex = 0;
+      pageIndex < pagesForVisualProcessing.numPages;
+      pageIndex++
+    ) {
       const pageNumber = pageIndex + 1;
-      const page = await pdfDoc.getPage(pageNumber);
-      const viewport = page.getViewport({ scale });
-      const canvas = createCanvas(viewport.width, viewport.height);
-      const ctx = canvas.getContext('2d');
 
-      await page.render({ canvasContext: ctx, viewport }).promise;
+      // Get the page
+      const page = await pagesForVisualProcessing.getPage(pageNumber);
 
-      const imageDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+      // Extract text content
+      const textContent = await page.getTextContent();
+      const extractedText = textContent.items
+        .map((item) => item.str)
+        .join(' ')
+        .trim();
 
-      logger.verbose(`Performing OCR on page ${pageNumber}`);
-      const {
-        data: { text: ocrText },
-      } = await Tesseract.recognize(imageDataUrl, ocrLanguage);
-      logger.verbose(`Finished OCR on page ${pageNumber}`);
-      logger.verbose(`Extracted Text: ${ocrText}`);
-      pageImages.push({
-        page: pageNumber,
-        imageData: imageDataUrl,
-        text: ocrText?.trim() || '',
+      logger.verbose(`extracted text for page ${pageNumber}: ${extractedText}`);
+
+      // Check if page has images
+      const hasImage = await new Promise((resolve) => {
+        page.getOperatorList().then((operatorList) => {
+          resolve(
+            operatorList.fnArray.some(
+              (fn) => fn === pdfjsLib.OPS.paintImageXObject,
+            ),
+          );
+        });
       });
-    }
 
-    return pageImages;
+      let description = 'No description available';
+
+      if (hasImage) {
+        // Render the page
+        const viewport = page.getViewport({ scale });
+        const canvas = createCanvas(viewport.width, viewport.height);
+        const ctx = canvas.getContext('2d');
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+        // Generate image descriptions
+        logger.verbose(`Analyzing page ${pageNumber} for visual elements`);
+        logger.verbose(`apiKey: ${apiKey}`);
+        description = await describePageVisualElements(imageDataUrl, apiKey);
+      }
+      const pageResult = {
+        page: pageNumber,
+        text: extractedText?.trim() || '',
+        imageDescription: description,
+      };
+      processedPages.push(pageResult);
+    }
+    return processedPages;
   } catch (error) {
     logger.error(error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
-      'processPdfWithOCR did not complete successfully',
+      'extractPdfTextAndImagesDescription did not complete successfully',
     );
   }
 };
 
-function createOverlappingChunks(pageImages, imageDescriptions) {
+function createOverlappingChunks(pages) {
   try {
     const chunks = [];
 
-    for (let i = 0; i < pageImages.length; i++) {
-      const currentPageText = pageImages[i].text;
+    for (let i = 0; i < pages.length; i++) {
+      const currentPageText = pages[i].text;
+      const currentPageImageDescription = pages[i].imageDescription;
+      const nextPageText = pages[i + 1]?.text || '';
 
-      // Get the text of the next page (if it exists)
-      const nextPageText = pageImages[i + 1]?.text || '';
-      const nextPageWords = nextPageText.split(/\s+/); // Split into words
+      // Split into words
+      const nextPageWords = nextPageText.split(/\s+/);
+      // Take 25% of the next page's words
       const overlapWords = nextPageWords.slice(
         0,
-        Math.ceil(nextPageWords.length * 0.25), // Take 25% of the next page's words
+        Math.ceil(nextPageWords.length * 0.25),
       );
       const overlapText = overlapWords.join(' ');
-
       // Combine the current page text with 25% of the next page's text
-      const chunk = `${currentPageText}${overlapText ? ' ' + overlapText : ''}`;
+      const chunk = `
+      Page Text: ${currentPageText}${overlapText ? ' ' + overlapText : ''}
+      
+      Visual Description: ${currentPageImageDescription}
+      `;
 
-      // Add image descriptions for the current page
-      const pageDescription =
-        imageDescriptions.find((img) => img.page === pageImages[i].page)
-          ?.description || '';
-      const imageDescriptionsText = `[Additional Description]: ${pageDescription}`;
+      chunks.push(chunk);
 
-      const chunkWithImageDescription = `${chunk}\n${imageDescriptionsText}`;
-      chunks.push(chunkWithImageDescription);
-
-      logger.verbose(`Generated ${chunks.length}/${pageImages.length} chunks`);
-      logger.verbose(`${chunkWithImageDescription}`);
+      logger.verbose(`Generated ${chunks.length}/${pages.length} chunks`);
+      logger.verbose(`${chunk}`);
     }
 
     return chunks;

@@ -60,7 +60,7 @@ const deleteDocument = {
       'any.required': 'Course ID is required',
     }),
     documentId: Joi.string().custom(objectId).required().messages({
-      'any.required': 'Course ID is required',
+      'any.required': 'Document ID is required',
     }),
   }),
 };

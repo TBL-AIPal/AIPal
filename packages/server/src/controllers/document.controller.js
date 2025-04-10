@@ -37,10 +37,14 @@ const getDocument = catchAsync(async (req, res) => {
 const updateDocument = catchAsync(async (req, res) => {
   const document = await documentService.updateDocumentById(
     req.params.documentId,
+    req.body,
   );
   res.send(document);
   if (document.status == 'processing') {
-    await chunkService.createChunksFromDocumentId(document._id);
+    await chunkService.createChunksFromDocumentId(
+      req.params.courseId,
+      document._id,
+    );
   }
 });
 

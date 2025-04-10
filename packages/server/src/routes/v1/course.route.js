@@ -105,7 +105,7 @@ router
   )
   .delete(
     auth('manageDocuments'),
-    validate(documentValidation.getDocument),
+    validate(documentValidation.deleteDocument),
     documentController.deleteDocument,
   );
 
