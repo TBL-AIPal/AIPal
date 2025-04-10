@@ -134,11 +134,26 @@ const Overview: React.FC = () => {
       });      
 
       if (selectedTutorialGroup) {
-        // Assign users to a specific group
-        const selectedGroup = tutorialGroups.find(g => g._id === selectedTutorialGroup);
-        const existingUserIds = selectedGroup?.students.map(s => s.id) || [];
+        // First: remove all selected users from any group they're currently in
+        for (const group of tutorialGroups) {
+          const currentUserIds = group.students.map((s) => s.id);
+          const updatedUserIds = currentUserIds.filter((id) => !userIds.includes(id));
       
-        const updatedUserIds = Array.from(new Set([...existingUserIds, ...userIds]));
+          if (updatedUserIds.length !== currentUserIds.length) {
+            await UpdateTutorialGroup({
+              courseId: courseIdString,
+              tutorialGroupId: group._id,
+              userIds: updatedUserIds,
+            });
+          }
+        }
+      
+        // Then: assign selected users only to the chosen group
+        const selectedGroup = tutorialGroups.find((g) => g._id === selectedTutorialGroup);
+        const existingUserIds = selectedGroup?.students.map((s) => s.id) || [];
+      
+        // We override any past value, just add the new users cleanly
+        const updatedUserIds = Array.from(new Set([...existingUserIds.filter(id => !userIds.includes(id)), ...userIds]));
       
         await UpdateTutorialGroup({
           courseId: courseIdString,
@@ -146,16 +161,18 @@ const Overview: React.FC = () => {
           userIds: updatedUserIds,
         });
       } else {
-        // Remove users from all groups they're currently in
+        // No group selected – remove the users from any group they're in
         for (const group of tutorialGroups) {
-          const currentUserIds = group.students.map(s => s.id);
-          const newUserIds = currentUserIds.filter(id => !userIds.includes(id)); // remove selected users
+          const currentUserIds = group.students.map((s) => s.id);
+          const updatedUserIds = currentUserIds.filter((id) => !userIds.includes(id));
       
-          await UpdateTutorialGroup({
-            courseId: courseIdString,
-            tutorialGroupId: group._id,
-            userIds: newUserIds,
-          });
+          if (updatedUserIds.length !== currentUserIds.length) {
+            await UpdateTutorialGroup({
+              courseId: courseIdString,
+              tutorialGroupId: group._id,
+              userIds: updatedUserIds,
+            });
+          }
         }
       }      
        
