@@ -13,7 +13,6 @@ const roomValidation = require('../../validations/room.validation');
 const tutorialGroupController = require('../../controllers/tutorialGroup.controller');
 const tutorialGroupValidation = require('../../validations/tutorialGroup.validation');
 
-
 const router = express.Router();
 
 router
@@ -111,7 +110,7 @@ router
     auth('getRooms'),
     validate(roomValidation.getRoomsByCourse),
     roomController.getRoomsByCourse,
-  ) 
+  )
   .post(
     auth('manageRooms'),
     validate(roomValidation.createRoom),
@@ -163,20 +162,20 @@ router
     roomController.sendMessage,
   );
 
-  router
+router
   .route('/:courseId/tutorial-groups')
   .post(
     auth('manageCourses'),
     validate(tutorialGroupValidation.createTutorialGroup),
-    tutorialGroupController.createTutorialGroup
-  )
+    tutorialGroupController.createTutorialGroup,
+  );
 
-  router.patch(
-    '/:courseId/tutorial-groups/:tutorialGroupId/users',
-    auth('manageCourses'),
-    validate(tutorialGroupValidation.updateTutorialGroupUsers),
-    tutorialGroupController.addUsersToGroup
-  );  
+router.patch(
+  '/:courseId/tutorial-groups/:tutorialGroupId/users',
+  auth('manageCourses'),
+  validate(tutorialGroupValidation.updateTutorialGroupUsers),
+  tutorialGroupController.updateGroupUsers,
+);
 
 module.exports = router;
 

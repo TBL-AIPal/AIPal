@@ -134,12 +134,31 @@ const Overview: React.FC = () => {
       });      
 
       if (selectedTutorialGroup) {
+        // Assign users to a specific group
+        const selectedGroup = tutorialGroups.find(g => g._id === selectedTutorialGroup);
+        const existingUserIds = selectedGroup?.students.map(s => s.id) || [];
+      
+        const updatedUserIds = Array.from(new Set([...existingUserIds, ...userIds]));
+      
         await UpdateTutorialGroup({
           courseId: courseIdString,
           tutorialGroupId: selectedTutorialGroup,
-          userIds,
+          userIds: updatedUserIds,
         });
-      }
+      } else {
+        // Remove users from all groups they're currently in
+        for (const group of tutorialGroups) {
+          const currentUserIds = group.students.map(s => s.id);
+          const newUserIds = currentUserIds.filter(id => !userIds.includes(id)); // remove selected users
+      
+          await UpdateTutorialGroup({
+            courseId: courseIdString,
+            tutorialGroupId: group._id,
+            userIds: newUserIds,
+          });
+        }
+      }      
+       
 
       await fetchUsers();
       await fetchCourseDetails();
