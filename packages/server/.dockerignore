@@ -1,6 +1,7 @@
 node_modules
+tests
+dist
 .git
 .gitignore
 .tar
 *.md
-dist

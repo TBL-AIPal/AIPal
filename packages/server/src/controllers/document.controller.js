@@ -1,20 +1,25 @@
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { documentService } = require('../services');
+const { documentService, chunkService } = require('../services');
 const logger = require('../config/logger');
 
 const createDocument = catchAsync(async (req, res) => {
   if (!req.file) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is required');
   }
-  logger.info('Document creation started.');
+  logger.verbose('Document upload started.');
   const document = await documentService.createDocument(
     req.params.courseId,
     req.file,
   );
-  logger.info('Document creation completed.');
+  logger.verbose('Document upload completed.');
   res.status(httpStatus.CREATED).send(document);
+
+  await chunkService.createChunksFromDocumentId(
+    req.params.courseId,
+    document._id,
+  );
 });
 
 const getDocuments = catchAsync(async (req, res) => {
@@ -29,6 +34,20 @@ const getDocument = catchAsync(async (req, res) => {
   res.send(document);
 });
 
+const updateDocument = catchAsync(async (req, res) => {
+  const document = await documentService.updateDocumentById(
+    req.params.documentId,
+    req.body,
+  );
+  res.send(document);
+  if (document.status == 'processing') {
+    await chunkService.createChunksFromDocumentId(
+      req.params.courseId,
+      document._id,
+    );
+  }
+});
+
 const deleteDocument = catchAsync(async (req, res) => {
   await documentService.deleteDocumentById(
     req.params.courseId,
@@ -41,5 +60,6 @@ module.exports = {
   createDocument,
   getDocuments,
   getDocument,
+  updateDocument,
   deleteDocument,
 };
