@@ -8,6 +8,7 @@ export interface DocumentMetadata {
   filename: string;
   contentType: DocumentContentType;
   status: DocumentStatus;
+  error?: string;
   size: number;
   createdAt: string;
   updatedAt: string;

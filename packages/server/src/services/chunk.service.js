@@ -12,6 +12,7 @@ const {
   describePageVisualElements,
   generateEmbedding,
 } = require('./RAG/embedding.service');
+const LLMError = require('../utils/LlmError');
 
 /**
  * Create document chunks and generate its embedding
@@ -78,15 +79,16 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
     );
     logger.verbose('Document status updated');
   } catch (error) {
-    // Update document status to failed
-    await Document.findOneAndUpdate({ _id: documentId }, { status: 'failed' });
-    // Cleanup relevant chunks (if any)
+    logger.info(error.userString);
+    await Document.findOneAndUpdate(
+      { _id: documentId },
+      {
+        status: 'failed',
+        error: error.userString,
+      },
+    );
     await deleteChunksByDocumentId(documentId);
     logger.error(error);
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      'Failed to process document chunks',
-    );
   }
 };
 
@@ -173,7 +175,6 @@ const extractPdfTextAndImagesDescription = async (
 
         // Generate image descriptions
         logger.verbose(`Analyzing page ${pageNumber} for visual elements`);
-        logger.verbose(`apiKey: ${apiKey}`);
         description = await describePageVisualElements(imageDataUrl, apiKey);
       }
       const pageResult = {
@@ -186,10 +187,13 @@ const extractPdfTextAndImagesDescription = async (
     return processedPages;
   } catch (error) {
     logger.error(error);
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      'extractPdfTextAndImagesDescription did not complete successfully',
-    );
+    if (error instanceof LLMError) {
+      throw error;
+    } else {
+      throw new Error(
+        'extractPdfTextAndImagesDescription did not complete successfully',
+      );
+    }
   }
 };
 
@@ -226,10 +230,7 @@ function createOverlappingChunks(pages) {
     return chunks;
   } catch (error) {
     logger.error(error);
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      'createOverlappingChunks did not complete successfully',
-    );
+    throw new Error('createOverlappingChunks did not complete successfully');
   }
 }
 

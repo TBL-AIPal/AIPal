@@ -3,7 +3,11 @@
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { CreateDocument, DeleteDocument,UpdateDocument } from '@/lib/API/document/mutations';
+import {
+  CreateDocument,
+  DeleteDocument,
+  UpdateDocument,
+} from '@/lib/API/document/mutations';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { DocumentMetadata, DocumentStatus } from '@/lib/types/document';
 import logger from '@/lib/utils/logger';
@@ -15,6 +19,9 @@ import DocumentRow from './_PageSections/DocumentRow';
 import DocumentTable from './_PageSections/DocumentTable';
 import DocumentTableSkeleton from './_PageSections/DocumentTableSkeleton';
 import FileUpload from './_PageSections/FileUpload';
+import { isApiError } from '@/lib/utils/error';
+import IconButton from '@/components/buttons/IconButton';
+import { MaterialsIcons } from '@/components/Icons';
 
 const Materials: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -25,22 +32,23 @@ const Materials: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRetrieved, setLastRetrieved] = useState<string | null>(null);
 
   const fetchDocuments = useCallback(async () => {
     if (!courseIdString) {
       throw Error('Unable to fetch documents due to missing course ID');
     }
-    setIsLoading(true);
     try {
       const res = await GetDocumentsByCourseId(courseIdString);
       logger(res, 'Fetched documents successfully');
       setDocuments(res || []);
+      setLastRetrieved(`Last retrieved: ${new Date().toLocaleString()}`);
     } catch (error) {
-      createErrorToast(
-        'Unable to retrieve uploaded documents. Please try again later.',
-      );
-    } finally {
-      setIsLoading(false);
+      if (isApiError(error)) {
+        createErrorToast(error.message);
+      } else {
+        createErrorToast(`An unexpected error occurred.`);
+      }
     }
   }, [courseIdString]);
 
@@ -57,15 +65,15 @@ const Materials: React.FC = () => {
             formData,
           });
         } catch (error) {
-          logger(error, `File "${file.name}" upload failed.`);
-          createErrorToast(
-            `Unable to upload "${file.name}". Please try again later.`,
-          );
+          logger(error, `${file.name} fails to upload.`);
+          if (isApiError(error)) {
+            createErrorToast(error.message);
+          } else {
+            createErrorToast(`An unexpected error occurred.`);
+          }
         }
       }
       createInfoToast('File(s) have been uploaded successfully!');
-    } catch (error) {
-      logger(error, 'One or more files failed to upload.');
     } finally {
       await fetchDocuments();
       setIsUploading(false);
@@ -82,7 +90,12 @@ const Materials: React.FC = () => {
       logger('Document updated successfully');
       await fetchDocuments();
     } catch (error) {
-      createErrorToast(`Unable to retry. Please try again later.`);
+      logger(error, `${documentId} fails to retry.`);
+      if (isApiError(error)) {
+        createErrorToast(error.message);
+      } else {
+        createErrorToast(`An unexpected error occurred.`);
+      }
     }
   };
 
@@ -96,54 +109,85 @@ const Materials: React.FC = () => {
       createInfoToast('File have been deleted successfully!');
       await fetchDocuments();
     } catch (error) {
-      createErrorToast(`Unable to delete file. Please try again later.`);
+      logger(error, `${documentId} fails to delete.`);
+      if (isApiError(error)) {
+        createErrorToast(error.message);
+      } else {
+        createErrorToast(`An unexpected error occurred.`);
+      }
     }
   };
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
     if (courseIdString) {
       fetchDocuments();
+      setIsLoading(false);
+      intervalId = setInterval(fetchDocuments, 60000);
     }
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [courseIdString, fetchDocuments]);
 
   return (
     <div className='p-4'>
-      {/* Upload section */}
-      <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Upload</h1>
-      <FileUpload onUpload={handleUpload} isUploading={isUploading} />
+      {/* Files section */}
+      <h1 className='text-2xl font-semibold mb-4 text-blue-600'>
+        Course Materials
+      </h1>
 
-      {/* Divider */}
-      <div className='mt-4'></div>
+      {/* Upload section */}
+      <div className='mb-4'>
+        <FileUpload onUpload={handleUpload} isUploading={isUploading} />
+      </div>
 
       {/* Files section */}
-      <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Available Documents</h1>
-      {isLoading || isUploading ? (
-        <DocumentTableSkeleton />
-      ) : documents.length === 0 ? (
-        <EmptyState
-          title='Hey there!'
-          description={[
-            'Upload your course materials here.',
-            'AI Pal will process them to build a smart knowledge base.',
-            'This helps the AI give you better, more personalized answers!',
-          ]}
-          tip='Tip: Smaller documents work best! Customize templates for faster responses and more precise results.'
+      <div className='mb-2'>
+        {isLoading ? (
+          <DocumentTableSkeleton />
+        ) : documents.length === 0 ? (
+          <EmptyState
+            title='Hey there!'
+            description={[
+              'Upload your course materials here.',
+              'AI Pal will process them to build a smart knowledge base.',
+              'This helps the AI give you better, more personalized answers!',
+            ]}
+            tip='Tip: Smaller documents work best! Customize templates for faster responses and more precise results.'
+          />
+        ) : (
+          <DocumentTable>
+            {documents.map((document) => (
+              <DocumentRow
+                key={document.id}
+                name={document.filename}
+                status={document.status}
+                error={document.error}
+                timestamp={document.createdAt}
+                size={`${(document.size / 1024).toFixed(2)} KB`}
+                onDelete={() => handleDelete(document.id)}
+                onRetry={() => handleRetry(document.id)}
+              />
+            ))}
+          </DocumentTable>
+        )}
+      </div>
+
+      {/* Refresh section */}
+      <div className='flex items-center mb-4'>
+        {lastRetrieved && (
+          <p className='text-sm text-gray-500 ml-2'>{lastRetrieved}</p>
+        )}
+        <IconButton
+          variant='ghost'
+          icon={MaterialsIcons.RefreshCcw}
+          onClick={fetchDocuments}
+          className='text-gray-500 hover:text-primary-500'
         />
-      ) : (
-        <DocumentTable>
-          {documents.map((document) => (
-            <DocumentRow
-              key={document.id}
-              name={document.filename}
-              status={document.status}
-              timestamp={document.createdAt}
-              size={`${(document.size / 1024).toFixed(2)} KB`}
-              onDelete={() => handleDelete(document.id)}
-              onRetry={() => handleRetry(document.id)}
-            />
-          ))}
-        </DocumentTable>
-      )}
+      </div>
     </div>
   );
 };

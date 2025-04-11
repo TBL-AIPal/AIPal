@@ -40,11 +40,22 @@ const documentSchema = new mongoose.Schema(
       enum: ['processing', 'completed', 'failed'],
       default: 'processing',
     },
+    error: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,
   },
 );
+
+documentSchema.pre('save', function (next) {
+  if (this.status === 'processing' || this.status === 'completed') {
+    this.error = undefined;
+  }
+  next();
+});
 
 // Add plugin that converts mongoose to json
 documentSchema.plugin(toJSON);

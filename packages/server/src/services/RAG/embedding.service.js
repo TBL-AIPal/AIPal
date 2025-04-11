@@ -1,6 +1,7 @@
 const { OpenAI } = require('openai');
 const logger = require('../../config/logger');
 const fs = require('fs');
+const LLMError = require('../../utils/LlmError');
 
 /**
  * Generates an embedding for a given text using OpenAI API
@@ -20,8 +21,7 @@ const generateEmbedding = async (text, apiKey) => {
     logger.info('Embedding generated successfully');
     return response.data[0].embedding;
   } catch (error) {
-    logger.info(error);
-    throw new Error('Failed to generate embedding');
+    throw new LLMError('OpenAI', `${error.error.message}`);
   }
 };
 
@@ -91,8 +91,7 @@ const describePageVisualElements = async (imageData, apiKey) => {
       response.choices[0]?.message?.content || 'No visual elements detected';
     return description;
   } catch (error) {
-    logger.error('Error describing page:', error);
-    throw new Error('Failed to describe page');
+    throw new LLMError('OpenAI', `${error.error.message}`);
   }
 };
 

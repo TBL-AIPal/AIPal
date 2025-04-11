@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
   Trash2,
   XCircle,
+  RefreshCcw,
 } from 'lucide-react';
 
 export const CourseSidebarIcons = {
@@ -24,4 +25,5 @@ export const MaterialsIcons = {
   Trash2,
   CheckCircle,
   XCircle,
+  RefreshCcw,
 };

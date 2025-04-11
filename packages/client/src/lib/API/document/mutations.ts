@@ -1,5 +1,6 @@
 import api from '@/lib/API/auth/interceptor';
 import { DocumentFormValues, DocumentUpdateInput } from '@/lib/types/document';
+import { ApiError } from '@/lib/utils/error';
 import logger from '@/lib/utils/logger';
 
 interface DeleteDocumentPropsI {
@@ -20,9 +21,14 @@ export const CreateDocument = async ({ courseId, formData }: DocumentFormValues)
         'Content-Type': 'multipart/form-data',
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error uploading document for course ${courseId}`);
-    throw new Error('Unable to upload document. Please try again.');
+    const status = err.response?.status || 500;
+    const data = err.response?.data || { message: 'An unexpected error occurred.' };
+    const errorMessage = `Failed to upload document for course ${courseId}. ${
+      data.message || 'Please try again later.'
+    }`;
+    throw new ApiError(errorMessage, status, data);
   }
 };
 
@@ -40,19 +46,28 @@ export const UpdateDocument = async ({
 
   try {
     await api.patch(`/courses/${courseId}/documents/${documentId}`, data);
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error updating document ${documentId} in course ${courseId}`);
-    throw new Error('Unable to update document. Please try again.');
+    const status = err.response?.status || 500;
+    const responseData = err.response?.data || { message: 'An unexpected error occurred.' };
+    const errorMessage = `Failed to update document "${filename}" (ID: ${documentId}) in course ${courseId}. ${
+      responseData.message || 'Please try again later.'
+    }`;
+    throw new ApiError(errorMessage, status, responseData);
   }
 };
-
 
 // Delete a document
 export const DeleteDocument = async ({ courseId, documentId }: DeleteDocumentPropsI) => {
   try {
     await api.delete(`/courses/${courseId}/documents/${documentId}`);
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error deleting document ${documentId} in course ${courseId}`);
-    throw new Error('Unable to delete document. Please try again.');
+    const status = err.response?.status || 500;
+    const data = err.response?.data || { message: 'An unexpected error occurred.' };
+    const errorMessage = `Failed to delete document (ID: ${documentId}) in course ${courseId}. ${
+      data.message || 'Please try again later.'
+    }`;
+    throw new ApiError(errorMessage, status, data);
   }
 };
