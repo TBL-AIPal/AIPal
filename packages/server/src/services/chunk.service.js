@@ -1,18 +1,18 @@
-const { createCanvas } = require('canvas');
-const pdfjsLib = require('pdfjs-dist/legacy/build/pdf');
-const logger = require('../config/logger');
-const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
+const { createCanvas } = require("canvas");
+const pdfjsLib = require("pdfjs-dist/legacy/build/pdf");
+const logger = require("../config/logger");
+const httpStatus = require("http-status");
+const ApiError = require("../utils/ApiError");
 
-const { getApiKeyById } = require('./course.service');
-const { Chunk, Document } = require('../models');
-const { processTextBatch } = require('./RAG/preprocessing.service');
-const { getDocumentById } = require('./document.service');
+const { getApiKeyById } = require("./course.service");
+const { Chunk, Document } = require("../models");
+const { processTextBatch } = require("./RAG/preprocessing.service");
+const { getDocumentById } = require("./document.service");
 const {
   describePageVisualElements,
   generateEmbedding,
-} = require('./RAG/embedding.service');
-const LLMError = require('../utils/LlmError');
+} = require("./RAG/embedding.service");
+const LLMError = require("../utils/LlmError");
 
 /**
  * Create document chunks and generate its embedding
@@ -24,19 +24,19 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
   try {
     const document = await getDocumentById(documentId);
     //TODO: https://github.com/TBL-AIPal/AIPal/issues/44
-    const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+    const { apiKey } = await getApiKeyById(courseId, "chatgpt");
 
     // Cleanup relevant chunks (if any)
     await deleteChunksByDocumentId(document._id);
     let extractedPages = [];
 
-    if (document.contentType == 'application/pdf') {
+    if (document.contentType == "application/pdf") {
       extractedPages = await extractPdfTextAndImagesDescription(
         document.data,
         apiKey,
       );
     } else {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid document type');
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid document type");
     }
 
     const chunks = createOverlappingChunks(extractedPages);
@@ -71,19 +71,18 @@ const createChunksFromDocumentId = async (courseId, documentId) => {
     );
 
     await Chunk.insertMany(embeddedChunks);
-    logger.verbose('All chunks processed successfully');
+    logger.verbose("All chunks processed successfully");
 
     await Document.findOneAndUpdate(
       { _id: document._id },
-      { status: 'completed' },
+      { status: "completed" },
     );
-    logger.verbose('Document status updated');
+    logger.verbose("Document status updated");
   } catch (error) {
-    logger.info(error.userString);
     await Document.findOneAndUpdate(
       { _id: documentId },
       {
-        status: 'failed',
+        status: "failed",
         error: error.userString,
       },
     );
@@ -145,7 +144,7 @@ const extractPdfTextAndImagesDescription = async (
       const textContent = await page.getTextContent();
       const extractedText = textContent.items
         .map((item) => item.str)
-        .join(' ')
+        .join(" ")
         .trim();
 
       logger.verbose(`extracted text for page ${pageNumber}: ${extractedText}`);
@@ -161,17 +160,17 @@ const extractPdfTextAndImagesDescription = async (
         });
       });
 
-      let description = 'No description available';
+      let description = "No description available";
 
       if (hasImage) {
         // Render the page
         const viewport = page.getViewport({ scale });
         const canvas = createCanvas(viewport.width, viewport.height);
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
 
         await page.render({ canvasContext: ctx, viewport }).promise;
 
-        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        const imageDataUrl = canvas.toDataURL("image/jpeg", 0.7);
 
         // Generate image descriptions
         logger.verbose(`Analyzing page ${pageNumber} for visual elements`);
@@ -179,7 +178,7 @@ const extractPdfTextAndImagesDescription = async (
       }
       const pageResult = {
         page: pageNumber,
-        text: extractedText?.trim() || '',
+        text: extractedText?.trim() || "",
         imageDescription: description,
       };
       processedPages.push(pageResult);
@@ -191,7 +190,7 @@ const extractPdfTextAndImagesDescription = async (
       throw error;
     } else {
       throw new Error(
-        'extractPdfTextAndImagesDescription did not complete successfully',
+        "extractPdfTextAndImagesDescription did not complete successfully",
       );
     }
   }
@@ -204,7 +203,7 @@ function createOverlappingChunks(pages) {
     for (let i = 0; i < pages.length; i++) {
       const currentPageText = pages[i].text;
       const currentPageImageDescription = pages[i].imageDescription;
-      const nextPageText = pages[i + 1]?.text || '';
+      const nextPageText = pages[i + 1]?.text || "";
 
       // Split into words
       const nextPageWords = nextPageText.split(/\s+/);
@@ -213,10 +212,10 @@ function createOverlappingChunks(pages) {
         0,
         Math.ceil(nextPageWords.length * 0.25),
       );
-      const overlapText = overlapWords.join(' ');
+      const overlapText = overlapWords.join(" ");
       // Combine the current page text with 25% of the next page's text
       const chunk = `
-      Page Text: ${currentPageText}${overlapText ? ' ' + overlapText : ''}
+      Page Text: ${currentPageText}${overlapText ? " " + overlapText : ""}
       
       Visual Description: ${currentPageImageDescription}
       `;
@@ -230,7 +229,7 @@ function createOverlappingChunks(pages) {
     return chunks;
   } catch (error) {
     logger.error(error);
-    throw new Error('createOverlappingChunks did not complete successfully');
+    throw new Error("createOverlappingChunks did not complete successfully");
   }
 }
 
