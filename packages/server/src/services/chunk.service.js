@@ -12,7 +12,7 @@ const {
   describePageVisualElements,
   generateEmbedding,
 } = require("./RAG/embedding.service");
-const LLMError = require("../utils/LlmError");
+const LLMError = require("../utils/LLMError");
 
 /**
  * Create document chunks and generate its embedding
