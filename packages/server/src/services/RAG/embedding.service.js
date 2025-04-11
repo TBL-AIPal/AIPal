@@ -1,6 +1,6 @@
 const { OpenAI } = require("openai");
 const logger = require("../../config/logger");
-const LLMError = require("../../utils/LlmError");
+const LLMError = require("../../utils/LLMError");
 
 /**
  * Generates an embedding for a given text using OpenAI API
