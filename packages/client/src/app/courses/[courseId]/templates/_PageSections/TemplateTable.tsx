@@ -19,7 +19,7 @@ const TemplateTable: React.FC<TemplateTableProps> = ({
 }) => {
   return (
     <div className='overflow-x-auto'>
-      <table className='min-w-full border border-gray-300'>
+      <table className='min-w-full border border-gray-200'>
         <thead className='bg-gray-100'>
           <tr>
             <th className='border-b py-3 px-4 text-left'>Name</th>

@@ -62,7 +62,7 @@ const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
         />
 
         {/* Document Selection Form */}
-        <div className='mt-4'>
+        <div>
           {documents.length > 0 ? (
             <DocumentSelectionForm
               documents={documents}
@@ -76,7 +76,7 @@ const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
         {/* Submit Button */}
         <button
           type='submit'
-          className='mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+          className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
         >
           Create Template
         </button>

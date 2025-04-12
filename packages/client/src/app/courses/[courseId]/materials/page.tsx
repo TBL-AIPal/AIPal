@@ -10,18 +10,18 @@ import {
 } from '@/lib/API/document/mutations';
 import { GetDocumentsByCourseId } from '@/lib/API/document/queries';
 import { DocumentMetadata, DocumentStatus } from '@/lib/types/document';
+import { isApiError } from '@/lib/utils/error';
 import logger from '@/lib/utils/logger';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
+import IconButton from '@/components/buttons/IconButton';
+import { MaterialsIcons } from '@/components/Icons';
 import EmptyState from '@/components/ui/EmptyState';
 
 import DocumentRow from './_PageSections/DocumentRow';
 import DocumentTable from './_PageSections/DocumentTable';
 import DocumentTableSkeleton from './_PageSections/DocumentTableSkeleton';
 import FileUpload from './_PageSections/FileUpload';
-import { isApiError } from '@/lib/utils/error';
-import IconButton from '@/components/buttons/IconButton';
-import { MaterialsIcons } from '@/components/Icons';
 
 const Materials: React.FC = () => {
   const { courseId } = useParams<{ courseId: string | string[] }>();
@@ -145,7 +145,7 @@ const Materials: React.FC = () => {
       </div>
 
       {/* Files section */}
-      <div className='mb-2'>
+      <div>
         {isLoading ? (
           <DocumentTableSkeleton />
         ) : documents.length === 0 ? (
@@ -159,34 +159,35 @@ const Materials: React.FC = () => {
             tip='Tip: Smaller documents work best! Customize templates for faster responses and more precise results.'
           />
         ) : (
-          <DocumentTable>
-            {documents.map((document) => (
-              <DocumentRow
-                key={document.id}
-                name={document.filename}
-                status={document.status}
-                error={document.error}
-                timestamp={document.createdAt}
-                size={`${(document.size / 1024).toFixed(2)} KB`}
-                onDelete={() => handleDelete(document.id)}
-                onRetry={() => handleRetry(document.id)}
+          <div>
+            <DocumentTable>
+              {documents.map((document) => (
+                <DocumentRow
+                  key={document.id}
+                  name={document.filename}
+                  status={document.status}
+                  error={document.error}
+                  timestamp={document.createdAt}
+                  size={`${(document.size / 1024).toFixed(2)} KB`}
+                  onDelete={() => handleDelete(document.id)}
+                  onRetry={() => handleRetry(document.id)}
+                />
+              ))}
+            </DocumentTable>
+            {/* Refresh section */}
+            <div className='flex items-center mt-2'>
+              {lastRetrieved && (
+                <p className='text-sm text-gray-500 ml-2'>{lastRetrieved}</p>
+              )}
+              <IconButton
+                variant='ghost'
+                icon={MaterialsIcons.RefreshCcw}
+                onClick={fetchDocuments}
+                className='text-gray-500 hover:text-primary-500'
               />
-            ))}
-          </DocumentTable>
+            </div>
+          </div>
         )}
-      </div>
-
-      {/* Refresh section */}
-      <div className='flex items-center mb-4'>
-        {lastRetrieved && (
-          <p className='text-sm text-gray-500 ml-2'>{lastRetrieved}</p>
-        )}
-        <IconButton
-          variant='ghost'
-          icon={MaterialsIcons.RefreshCcw}
-          onClick={fetchDocuments}
-          className='text-gray-500 hover:text-primary-500'
-        />
       </div>
     </div>
   );

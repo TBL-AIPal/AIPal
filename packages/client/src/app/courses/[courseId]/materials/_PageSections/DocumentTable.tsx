@@ -7,10 +7,10 @@ interface DocumentTableProps {
 const DocumentTable: React.FC<DocumentTableProps> = ({ children }) => {
   return (
     <div className='overflow-x-auto'>
-      <table className='min-w-full border border-gray-300'>
+      <table className='min-w-full border border-gray-200'>
         <thead className='bg-gray-100'>
           <tr>
-          <th className='px-4 py-2 border-b'></th>
+            <th className='px-4 py-2 border-b'></th>
             <th className='px-4 py-2 border-b'>Filename</th>
             <th className='px-4 py-2 border-b'>Timestamp</th>
             <th className='px-4 py-2 border-b'>Size</th>
