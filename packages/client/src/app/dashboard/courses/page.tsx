@@ -62,7 +62,9 @@ export default function CoursesPage() {
       }
     } catch (err) {
       logger(err, 'Error fetching user data');
-      createErrorToast(`Unable to retrieve user's data. Please try again later.`);
+      createErrorToast(
+        `Unable to retrieve user's data. Please try again later.`,
+      );
     }
   };
 
@@ -81,7 +83,7 @@ export default function CoursesPage() {
       {/* Conditionally show the Add Course button if the user is an admin or approved teacher */}
       {canAddCourse && (
         <TextButton
-          className='fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg'
+          className='fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg z-50'
           variant='basic'
           onClick={() => setIsModalOpen(true)}
           disabled={loading}
@@ -110,10 +112,14 @@ export default function CoursesPage() {
 
       {/* Course Gallery */}
       <div className='mt-8'>
-        <CourseGallery courses={courses} isLoading={loading} onDelete={() => {
-          fetchCourses();
-          createInfoToast('Course deleted successfully!');
-        }}/>
+        <CourseGallery
+          courses={courses}
+          isLoading={loading}
+          onDelete={() => {
+            fetchCourses();
+            createInfoToast('Course deleted successfully!');
+          }}
+        />
       </div>
     </div>
   );

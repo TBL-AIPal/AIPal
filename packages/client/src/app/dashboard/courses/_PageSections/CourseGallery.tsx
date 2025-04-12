@@ -70,12 +70,10 @@ const CourseGallery: React.FC<CourseGalleryProps> = ({
 
   if (isLoading) {
     return (
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
         {[...Array(6)].map((_, index) => (
-          <div key={index} className='space-y-2'>
+          <div key={index}>
             <Skeleton className='w-full h-48 rounded-md' />
-            <Skeleton className='w-3/4 h-6 rounded' />
-            <Skeleton className='w-1/2 h-4 rounded' />
           </div>
         ))}
       </div>

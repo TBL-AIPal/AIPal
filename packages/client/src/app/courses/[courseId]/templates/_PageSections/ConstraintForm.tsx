@@ -74,7 +74,7 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
             </Tag>
           ))
         ) : (
-          <p className='text-sm text-gray-900 dark:text-white'>
+          <p className='text-sm text-gray-500 dark:text-gray-400'>
             No constraints added yet.
           </p>
         )}

@@ -50,19 +50,25 @@ const DocumentSelectionForm: React.FC<DocumentSelectionFormProps> = ({
 
   return (
     <FormItem>
-      {/* Label for the document selection */}
+      {/* Label */}
       <FormLabel htmlFor='documentSelection'>Course Materials</FormLabel>
 
-      {/* Checkbox list for document selection */}
-      <div id='document-selection'>
-        <SelectableList
-          items={documents}
-          getId={getDocumentId}
-          getContent={getDocumentContent}
-          onChange={onSelectionChange}
-          selectedIds={initialSelectedIds}
-        />
-      </div>
+      {/* Document List */}
+      {documents.length > 0 ? (
+        <div id='document-selection'>
+          <SelectableList
+            items={documents}
+            getId={getDocumentId}
+            getContent={getDocumentContent}
+            onChange={onSelectionChange}
+            selectedIds={initialSelectedIds}
+          />
+        </div>
+      ) : (
+        <p className='text-sm text-gray-500 dark:text-gray-400'>
+          No course materials added yet.
+        </p>
+      )}
     </FormItem>
   );
 };

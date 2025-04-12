@@ -329,7 +329,9 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                   </CardHeader>
                   <CardContent>
                     {rooms.length === 0 ? (
-                      <p>No rooms available for this template.</p>
+                      <div className='flex items-center space-x-2 text-gray-500'>
+                        <span>No rooms available for this template.</span>
+                      </div>
                     ) : (
                       <ul className='list-disc pl-5 space-y-2'>
                         {rooms.map((room) => (

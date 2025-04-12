@@ -89,7 +89,17 @@ const TemplatesPage = () => {
     templateId: string,
     updatedData: TemplateUpdateInput,
   ) => {
+    const isEmpty = Object.values(updatedData).every(
+      (value) => value === undefined,
+    );
+
+    if (isEmpty) {
+      createInfoToast('No changes detected. Your template remains unchanged.');
+      return;
+    }
+
     if (!courseIdString) return;
+
     setLoading(true);
     try {
       await UpdateTemplate({

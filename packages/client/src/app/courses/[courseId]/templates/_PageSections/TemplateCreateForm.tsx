@@ -62,16 +62,10 @@ const TemplateCreateForm: React.FC<TemplateCreateFormProps> = ({
         />
 
         {/* Document Selection Form */}
-        <div>
-          {documents.length > 0 ? (
-            <DocumentSelectionForm
-              documents={documents}
-              onSelectionChange={handleDocumentSelectionChange}
-            />
-          ) : (
-            <p>No documents uploaded yet.</p>
-          )}
-        </div>
+        <DocumentSelectionForm
+          documents={documents}
+          onSelectionChange={handleDocumentSelectionChange}
+        />
 
         {/* Submit Button */}
         <button
