@@ -15,12 +15,30 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       components={{
         // Code blocks
         code({ node, className, children, ...props }) {
+          const isInlineCode =
+            node?.tagName === 'code' && !className?.includes('language-');
+
+          if (isInlineCode) {
+            // Inline code styling
+            return (
+              <code
+                className={cn(
+                  'px-1.5 py-0.5 rounded-md bg-gray-700 text-gray-100 font-mono text-sm',
+                )}
+                {...props}
+              >
+                {children}
+              </code>
+            );
+          }
+
+          // Block-level code styling
           return (
             <div className='my-2'>
               <code
                 className={cn(
                   className,
-                  'block p-4 rounded-lg bg-gray-800 text-gray-100 font-mono overflow-x-auto',
+                  'block p-4 rounded-lg bg-gray-700 text-gray-100 font-mono overflow-x-auto',
                   'border border-gray-700 shadow-sm',
                 )}
                 {...props}
@@ -100,8 +118,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // Tables
         table({ children }) {
           return (
-            <div className='my-4 overflow-x-auto'>
-              <table className='w-full border-collapse border border-gray-300'>
+            <div className='my-6 overflow-x-auto rounded-lg shadow-md'>
+              <table className='w-full border-collapse bg-white text-sm'>
                 {children}
               </table>
             </div>
@@ -109,13 +127,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         },
         th({ children }) {
           return (
-            <th className='border border-gray-300 p-2 bg-gray-100 text-left font-semibold'>
+            <th className='border-b border-gray-200 p-3 bg-gray-50 text-left font-medium text-gray-700'>
               {children}
             </th>
           );
         },
         td({ children }) {
-          return <td className='border border-gray-300 p-2'>{children}</td>;
+          return (
+            <td className='border-b border-gray-100 p-3 text-gray-600 transition-colors duration-200 hover:bg-gray-50'>
+              {children}
+            </td>
+          );
         },
       }}
     >

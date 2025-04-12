@@ -6,8 +6,8 @@ interface DocumentTableProps {
 
 const DocumentTable: React.FC<DocumentTableProps> = ({ children }) => {
   return (
-    <div className='overflow-x-auto'>
-      <table className='min-w-full border border-gray-200'>
+    <div className='my-6 overflow-x-auto rounded-lg shadow-md'>
+      <table className='w-full border-collapse bg-white text-sm'>
         <thead className='bg-gray-100'>
           <tr>
             <th className='px-4 py-2 border-b'></th>
