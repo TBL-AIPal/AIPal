@@ -1,6 +1,6 @@
-const { OpenAI } = require('openai');
-const logger = require('../../config/logger');
-const fs = require('fs');
+const { OpenAI } = require("openai");
+const logger = require("../../config/logger");
+const LLMError = require("../../utils/LLMError");
 
 /**
  * Generates an embedding for a given text using OpenAI API
@@ -11,17 +11,21 @@ const fs = require('fs');
 const generateEmbedding = async (text, apiKey) => {
   try {
     const client = new OpenAI({ apiKey });
-    logger.info('Starting embedding generation for text...');
-    const response = await client.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-      encoding_format: 'float',
-    });
-    logger.info('Embedding generated successfully');
+    logger.info("Starting embedding generation for text...");
+    const response = await client.embeddings.create(
+      {
+        model: "text-embedding-3-small",
+        input: text,
+        encoding_format: "float",
+      },
+      {
+        maxRetries: 5,
+      },
+    );
+    logger.info("Embedding generated successfully");
     return response.data[0].embedding;
   } catch (error) {
-    logger.info(error);
-    throw new Error('Failed to generate embedding');
+    throw new LLMError("OpenAI", `${error.error.message}`);
   }
 };
 
@@ -35,16 +39,17 @@ const describePageVisualElements = async (imageData, apiKey) => {
   try {
     const client = new OpenAI({ apiKey });
 
-    logger.info('Sending image to LLM for analysis...');
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `
+    logger.info("Sending image to LLM for analysis...");
+    const response = await client.chat.completions.create(
+      {
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `
               **Prompt:**
               Carefully analyze the provided image of a document page. Your task is to extract and describe *every detail*—both visual and textual—to support accurate question answering and content understanding. This includes:
 
@@ -73,26 +78,29 @@ const describePageVisualElements = async (imageData, apiKey) => {
               If the image contains **no visual elements**, respond:  
               **“No visual elements detected.”**
               `,
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: imageData,
               },
-            },
-          ],
-        },
-      ],
-      max_tokens: 300,
-    });
+              {
+                type: "image_url",
+                image_url: {
+                  url: imageData,
+                },
+              },
+            ],
+          },
+        ],
+        max_tokens: 300,
+      },
+      {
+        maxRetries: 5,
+      },
+    );
 
-    logger.info('Image description received successfully');
+    logger.info("Image description received successfully");
     const description =
-      response.choices[0]?.message?.content || 'No visual elements detected';
+      response.choices[0]?.message?.content || "No visual elements detected";
     return description;
   } catch (error) {
-    logger.error('Error describing page:', error);
-    throw new Error('Failed to describe page');
+    throw new LLMError("OpenAI", `${error.error.message}`);
   }
 };
 

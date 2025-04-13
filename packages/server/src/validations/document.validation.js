@@ -31,13 +31,36 @@ const getDocument = {
   }),
 };
 
+const updateDocument = {
+  params: Joi.object().keys({
+    courseId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Course ID is required',
+    }),
+    documentId: Joi.string().custom(objectId).required().messages({
+      'any.required': 'Document ID is required',
+    }),
+  }),
+  body: Joi.object()
+    .keys({
+      filename: Joi.string().min(1).optional(),
+      status: Joi.string()
+        .valid('processing', 'completed', 'failed')
+        .optional(),
+    })
+    .or('filename', 'status')
+    .messages({
+      'object.missing':
+        'At least one of "filename" or "status" must be provided',
+    }),
+};
+
 const deleteDocument = {
   params: Joi.object().keys({
     courseId: Joi.string().custom(objectId).required().messages({
       'any.required': 'Course ID is required',
     }),
     documentId: Joi.string().custom(objectId).required().messages({
-      'any.required': 'Course ID is required',
+      'any.required': 'Document ID is required',
     }),
   }),
 };
@@ -46,5 +69,6 @@ module.exports = {
   createDocument,
   getDocuments,
   getDocument,
+  updateDocument,
   deleteDocument,
 };

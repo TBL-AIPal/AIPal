@@ -1,8 +1,9 @@
-import { X } from 'lucide-react'; 
+import { X } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { FormItem, FormLabel } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
+import { Tag } from '@/components/ui/Tag';
 
 import AddConstraintButton from './AddConstraintButton';
 
@@ -27,7 +28,7 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
 
   const handleRemoveConstraint = (indexToRemove: number) => {
     const updatedConstraints = constraints.filter(
-      (_, index) => index !== indexToRemove
+      (_, index) => index !== indexToRemove,
     );
     onConstraintChange(updatedConstraints);
   };
@@ -41,8 +42,8 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
 
   return (
     <FormItem>
-      <FormLabel htmlFor='newConstraint'>Add Constraint</FormLabel>
-      <div className="flex gap-2">
+      <FormLabel htmlFor='newConstraint'>Constraints</FormLabel>
+      <div className='flex gap-2 items-center'>
         <Input
           id='newConstraint'
           value={newConstraint}
@@ -56,27 +57,24 @@ export const ConstraintForm: React.FC<ConstraintFormProps> = ({
           isDisabled={!newConstraint.trim()}
         />
       </div>
-
-      <FormLabel htmlFor='addedConstraints' className="mt-4 block">Added Constraints</FormLabel>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className='mt-2 flex flex-wrap gap-2'>
         {constraints.length > 0 ? (
           constraints.map((constraint, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-900 dark:text-white"
-            >
+            <Tag key={index} className='flex items-center gap-2'>
+              {/* Constraint Name */}
               <span>{constraint}</span>
+              {/* Remove Button */}
               <button
-                type="button"
+                type='button'
                 onClick={() => handleRemoveConstraint(index)}
-                className="ml-1 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                className='p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700'
               >
-                <X size={14} className="text-gray-500 dark:text-gray-400" />
+                <X size={14} className='text-gray-500 dark:text-gray-400' />
               </button>
-            </div>
+            </Tag>
           ))
         ) : (
-          <p className="text-sm text-gray-900 dark:text-white">
+          <p className='text-sm text-gray-500 dark:text-gray-400'>
             No constraints added yet.
           </p>
         )}

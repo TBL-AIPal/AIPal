@@ -17,7 +17,7 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
   return (
     <div className='space-y-4'>
       <FormItem>
-        <FormLabel htmlFor='templateName'>Template Name</FormLabel>
+        <FormLabel htmlFor='templateName'>Template</FormLabel>
         <Input
           id='templateName'
           type='text'

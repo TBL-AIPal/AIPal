@@ -89,7 +89,17 @@ const TemplatesPage = () => {
     templateId: string,
     updatedData: TemplateUpdateInput,
   ) => {
+    const isEmpty = Object.values(updatedData).every(
+      (value) => value === undefined,
+    );
+
+    if (isEmpty) {
+      createInfoToast('No changes detected. Your template remains unchanged.');
+      return;
+    }
+
     if (!courseIdString) return;
+
     setLoading(true);
     try {
       await UpdateTemplate({
@@ -116,7 +126,7 @@ const TemplatesPage = () => {
   return (
     <div className='p-4'>
       <div>
-        <h1 className='text-2xl font-semibold mb-2 text-blue-600'>Templates</h1>
+        <h1 className='text-2xl font-semibold mb-4 text-blue-600'>Templates</h1>
         {templates.length === 0 ? (
           // Empty State
           <EmptyState
@@ -124,7 +134,7 @@ const TemplatesPage = () => {
             description={[
               'Templates let you customize how the AI responds in chat rooms.',
               'For example, ask for responses in Chinese or limit replies to certain materials.',
-              "Choose which uploaded materials the AI should use for context.",
+              'Choose which uploaded materials the AI should use for context.',
             ]}
           />
         ) : (
@@ -152,9 +162,7 @@ const TemplatesPage = () => {
       {isModalOpen && (
         <Modal title='Add New Template' onClose={() => setIsModalOpen(false)}>
           <TemplateCreateForm
-            onCreateTemplate={(newTemplate) => {
-              handleAddTemplate(newTemplate);
-            }}
+            onCreateTemplate={handleAddTemplate}
             documents={documents}
           />
         </Modal>

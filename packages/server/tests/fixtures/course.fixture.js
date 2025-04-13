@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const { faker } = require('@faker-js/faker');
-const Course = require('../../src/models/course.model');
-const { userOne, userTwo, staff, admin } = require('./user.fixture');
-const { templateOne, templateTwo } = require('./template.fixture');
-const { documentOne, documentTwo } = require('./document.fixture');
+const mongoose = require("mongoose");
+const { faker } = require("@faker-js/faker");
+const Course = require("../../src/models/course.model");
+const { userOne, userTwo, staff, admin } = require("./user.fixture");
+const { templateOne, templateTwo } = require("./template.fixture");
+const { documentOne, documentTwo } = require("./document.fixture");
 
 const courseOne = {
   _id: mongoose.Types.ObjectId(),
@@ -19,7 +19,8 @@ const courseOne = {
   staff: [staff._id],
   templates: [templateOne._id, templateTwo._id],
   documents: [documentOne._id, documentTwo._id],
-  llmConstraints: ['constraint1', 'constraint2'],
+  llmConstraints: ["constraint1", "constraint2"],
+  tutorialGroups: [],
 };
 
 const courseTwo = {
@@ -37,6 +38,7 @@ const courseTwo = {
   templates: [],
   documents: [],
   llmConstraints: [],
+  tutorialGroups: [],
 };
 
 const insertCourses = async (courses) => {
