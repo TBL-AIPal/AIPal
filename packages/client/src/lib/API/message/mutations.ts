@@ -2,6 +2,14 @@ import api from '@/lib/API/auth/interceptor';
 import { SendMessageInput } from '@/lib/types/message';
 import logger from '@/lib/utils/logger';
 
+const extractErrorMessage = (err: any): string => {
+  return (
+    err?.response?.data?.message ||
+    err?.message ||
+    'Unable to send message. Please try again.'
+  );
+};
+
 export const createDirectMessage = async ({
   courseId,
   templateId,
@@ -16,9 +24,9 @@ export const createDirectMessage = async ({
       conversation,
     });
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error creating direct message for room ${roomId}`);
-    throw new Error('Unable to send message. Please try again.');
+    throw new Error(extractErrorMessage(err));
   }
 };
 
@@ -36,9 +44,9 @@ export const createRAGMessage = async ({
       conversation,
     });
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error creating RAG message for room ${roomId}`);
-    throw new Error('Unable to send message. Please try again.');
+    throw new Error(extractErrorMessage(err));
   }
 };
 
@@ -56,9 +64,9 @@ export const createMultiAgentMessage = async ({
       conversation,
     });
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error creating multi-agent message for room ${roomId}`);
-    throw new Error('Unable to send message. Please try again.');
+    throw new Error(extractErrorMessage(err));
   }
 };
 
@@ -76,9 +84,9 @@ export const createCombinedMessage = async ({
       conversation,
     });
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error creating combined message for room ${roomId}`);
-    throw new Error('Unable to send message. Please try again.');
+    throw new Error(extractErrorMessage(err));
   }
 };
 
@@ -96,9 +104,9 @@ export const createGeminiMessage = async ({
       conversation,
     });
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error creating Gemini message for room ${roomId}`);
-    throw new Error('Unable to send message. Please try again.');
+    throw new Error(extractErrorMessage(err));
   }
 };
 
@@ -125,9 +133,6 @@ export const createLlama3Message = async ({
       );
     }
 
-    const fallbackMessage =
-      err?.response?.data?.message || err?.message || 'Unable to send message. Please try again.';
-
-    throw new Error(fallbackMessage);
+    throw new Error(extractErrorMessage(err));
   }
 };

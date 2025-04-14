@@ -173,6 +173,13 @@ const createDirectReply = async (courseId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
 
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
+
   const response = await callOpenAI(conversation, apiKey);
   const assistantResponse = response.choices[0].message.content;
 
@@ -221,6 +228,13 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
   }
 
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
 
   const template = await getTemplateById(templateId);
   if (!template) {
@@ -280,6 +294,13 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
 const createMultiAgentReply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
 
   const template = await getTemplateById(templateId);
   if (!template) {
@@ -343,6 +364,13 @@ const createContextualizedAndMultiAgentReply = async (
 ) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
 
   const template = await getTemplateById(templateId);
   if (!template) {
@@ -411,6 +439,13 @@ const createGeminiReply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'gemini');
 
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for Gemini. Please upload one in the course settings.',
+    );
+  }
+
   let contextText = '';
 
   if (templateId) {
@@ -469,6 +504,13 @@ Please use this information to answer the user's questions as accurately as poss
 const createLlama3Reply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'llama');
+
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for LLaMA. Please upload one in the course settings.',
+    );
+  }
 
   let contextText = '';
   let assistantResponse;
