@@ -116,8 +116,18 @@ export const createLlama3Message = async ({
       conversation,
     });
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     logger(err, `Error creating LLaMA 3 message for room ${roomId}`);
-    throw new Error('Unable to send message. Please try again.');
+
+    if (err?.response?.status === 413) {
+      throw new Error(
+        'The total context size is too large for the model. Try reducing the document size or number of documents for the template.'
+      );
+    }
+
+    const fallbackMessage =
+      err?.response?.data?.message || err?.message || 'Unable to send message. Please try again.';
+
+    throw new Error(fallbackMessage);
   }
 };

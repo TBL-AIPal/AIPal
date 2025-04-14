@@ -471,6 +471,7 @@ const createLlama3Reply = async (courseId, templateId, messageBody) => {
   const { apiKey } = await getApiKeyById(courseId, 'llama');
 
   let contextText = '';
+  let assistantResponse;
 
   if (templateId) {
     const template = await getTemplateById(templateId);
@@ -494,11 +495,22 @@ ${docText || 'No documents provided.'}
 Please use this information to answer the user's questions as accurately as possible.`;
   }
 
-  const response = await callGroqLLaMA(conversation, apiKey, contextText);
+  try {
+    const response = await callGroqLLaMA(conversation, apiKey, contextText);
+    assistantResponse =
+      response?.data?.choices?.[0]?.message?.content ||
+      'No response from LLaMA 3';
+  } catch (err) {
+    logger.error('Groq call failed:', err);
 
-  const assistantResponse =
-    response?.data?.choices?.[0]?.message?.content ||
-    'No response from LLaMA 3';
+    const status = err?.response?.status || 500;
+    const groqMessage =
+      err?.response?.data?.message ||
+      err?.message ||
+      'Unknown error occurred when calling LLaMA 3';
+
+    throw new ApiError(status, groqMessage);
+  }
 
   await saveMessage({
     roomId,

@@ -16,7 +16,7 @@ import AccountRow from './_PageSections/AccountRow';
 import AccountTable from './_PageSections/AccountTable';
 import { createErrorToast } from '@/lib/utils/toast';
 import UpdateCourseForm from './_PageSections/UpdateCourseForm';
-import { GetUsers, GetUsersByCourseId } from '@/lib/API/user/queries';
+import { ApproveUser, GetUsers, GetUsersByCourseId } from '@/lib/API/user/queries';
 
 
 const Overview: React.FC = () => {
@@ -174,8 +174,13 @@ const Overview: React.FC = () => {
             });
           }
         }
-      }      
-       
+      } 
+      
+      for (const user of existingUsers) {
+        if (user.status !== 'approved') {
+          await ApproveUser(user.id); 
+        }
+      }
 
       await fetchUsers();
       await fetchCourseDetails();

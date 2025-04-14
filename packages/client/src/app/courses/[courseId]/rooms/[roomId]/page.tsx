@@ -273,17 +273,32 @@ const RoomChatPage: React.FC = () => {
           modelUsed: msg.modelUsed || selectedModel,
         })),
       );
-    } catch (error) {
+    } catch (error: any) {
       logger(error, 'Caught error in handleSendMessage');
+
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      }
+
+
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant' as const,
           sender: 'assistant',
-          content: 'An error occurred. Please try again.',
+          content: `Error: ${errorMessage}`,
           modelUsed: selectedModel,
         },
       ]);
+
     } finally {
       setLoadingMessage(false);
     }
