@@ -65,11 +65,13 @@ export default function RootLayout({
           gutter={8}
           containerStyle={{ maxWidth: '90%', margin: '0 auto' }}
           toastOptions={{
-            style: { 
-              maxWidth: '90%', 
-              width: '100%', 
+            style: {
+              maxWidth: '90%',
+              width: '100%',
               borderRadius: '2rem',
-              padding: '0.5rem 1rem' 
+              padding: '0.5rem 1rem',
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
             },
             success: {
               iconTheme: {

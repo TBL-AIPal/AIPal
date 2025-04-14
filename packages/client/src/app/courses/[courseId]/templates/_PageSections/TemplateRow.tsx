@@ -1,4 +1,3 @@
-import { X } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -10,11 +9,14 @@ import { Template, TemplateUpdateInput } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 import { createErrorToast, createInfoToast } from '@/lib/utils/toast';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { Tag } from '@/components/ui/Tag';
 
-import AddConstraintButton from './AddConstraintButton';
+import { ConstraintForm } from './ConstraintForm';
 import DocumentSelectionForm from './DocumentSelectionForm';
+import DocumentStatusIndicator from './DocumentStatusIndicator';
 import RoomCreateForm from './RoomCreateForm';
 
 interface TemplateRowProps {
@@ -34,7 +36,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(template.name);
-  const [newConstraint, setNewConstraint] = useState('');
   const [currentConstraints, setCurrentConstraints] = useState<string[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
@@ -63,19 +64,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
       return !prev;
     });
     setIsExpanded(true);
-  };
-
-  const handleAddConstraint = () => {
-    if (newConstraint.trim()) {
-      setCurrentConstraints([...currentConstraints, newConstraint.trim()]);
-      setNewConstraint('');
-    }
-  };
-
-  const handleRemoveConstraint = (indexToRemove: number) => {
-    setCurrentConstraints(
-      currentConstraints.filter((_, index) => index !== indexToRemove),
-    );
   };
 
   const handleUpdate = () => {
@@ -124,7 +112,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
       });
       fetchRooms();
       createInfoToast('Room created successfully!');
-    } catch(error) {
+    } catch (error) {
       createErrorToast('Unable to create room. Please try again later.');
     } finally {
       setIsRoomModalOpen(false);
@@ -143,7 +131,6 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
 
   const fetchFilenames = useCallback(() => {
     if (!template.id || !courseDocuments) return;
-  
     try {
       const filenames = template.documents.map((docId) => {
         const document = courseDocuments.find((doc) => doc.id === docId);
@@ -176,31 +163,34 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
     <>
       {/* Main template row */}
       <tr
-        onClick={toggleExpand}
+        onClick={isEditing ? undefined : toggleExpand}
         className={`cursor-pointer transition-colors duration-300 ${
           isExpanded ? 'bg-gray-200' : 'hover:bg-gray-100'
         }`}
       >
-        <td className='border-b py-2 px-4'>
+        <td className='py-2 px-4 my-2'>
           {/* Editing mode UI */}
           {isEditing ? (
-            <div className='mb-4'>
-               {/* Name input */}
-              <input
-                type='text'
+            <div>
+              {/* Name */}
+              <Input
+                id='templateName'
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className='border p-1 w-full'
+                placeholder='Enter template name'
+                required={true}
+                className='w-full'
               />
             </div>
           ) : (
             <span>{template.name}</span>
           )}
         </td>
-        <td className='border-b py-2 px-4 flex space-x-2'>
+        <td className='py-2 px-4 flex space-x-2 my-2'>
           {/* Editing mode UI */}
           {isEditing ? (
             <>
+              {/* Buttons */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -257,57 +247,17 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
             {/* Editing mode UI */}
             {isEditing && (
               <div className='mb-4'>
-                {/* Constraint management */}
-                <div className='mb-4'>
-                  <label className='font-semibold block mb-2'>
-                    Constraints:
-                  </label>
-                  <div className='flex gap-2 mb-2'>
-                    <Input
-                      id='newConstraint'
-                      value={newConstraint}
-                      onChange={(e) => setNewConstraint(e.target.value)}
-                      placeholder='Enter constraint'
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddConstraint();
-                        }
-                      }}
-                      required={false}
-                    />
-                    <AddConstraintButton
-                      onClick={handleAddConstraint}
-                      isDisabled={!newConstraint.trim()}
-                    />
-                  </div>
-                  <div className='flex flex-wrap gap-2'>
-                    {currentConstraints.map((constraint, index) => (
-                      <div
-                        key={index}
-                        className='flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-900 dark:text-white'
-                      >
-                        <span>{constraint}</span>
-                        <button
-                          type='button'
-                          onClick={() => handleRemoveConstraint(index)}
-                          className='ml-1 p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700'
-                        >
-                          <X
-                            size={14}
-                            className='text-gray-500 dark:text-gray-400'
-                          />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+                {/* Constraint selection */}
+                <ConstraintForm
+                  constraints={currentConstraints}
+                  onConstraintChange={setCurrentConstraints}
+                />
+                <div className='mb-4'></div>
                 {/* Document selection */}
                 <div>
-                  <label className='font-semibold block mb-2'>Documents:</label>
                   <DocumentSelectionForm
                     documents={courseDocuments}
+                    initialSelectedIds={selectedDocuments}
                     onSelectionChange={(selectedIds) =>
                       setSelectedDocuments(selectedIds)
                     }
@@ -315,57 +265,88 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
                 </div>
               </div>
             )}
-
             {/* Display mode UI */}
             {!isEditing && (
               <>
                 {/* Constraints display */}
-                <div className='mt-4'>
-                  <h3 className='font-semibold'>Constraints</h3>
-                  {template.constraints.length === 0 ? (
-                    <p>No constraints available for this template.</p>
-                  ) : (
-                    <ul className='list-disc pl-5'>
-                      {template.constraints.map((constraint, index) => (
-                        <li key={index}>{constraint}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                {/* Rooms display */}
-                <div className='mt-4'>
-                  <h3 className='font-semibold'>Rooms</h3>
-                  {rooms.length === 0 ? (
-                    <p>No rooms available for this template.</p>
-                  ) : (
-                    <ul className='list-disc pl-5'>
-                      {rooms.map((room) => (
-                        <RoomItem key={room.id} room={room} />
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
+                <Card className='mt-4'>
+                  <CardHeader>
+                    <CardTitle>Constraints</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {template.constraints.length === 0 ? (
+                      <div className='flex items-center space-x-2 text-gray-500'>
+                        <span>No constraints available for this template.</span>
+                      </div>
+                    ) : (
+                      <div className='flex flex-wrap gap-2'>
+                        {template.constraints.map((constraint, index) => (
+                          <Tag key={index}>{constraint}</Tag>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
                 {/* Documents display */}
-                <div className='mt-4'>
-                  <h3 className='font-semibold'>Documents</h3>
-                  {template.documents.length === 0 ? (
-                    <p>No documents available for this template.</p>
-                  ) : (
-                    <ul className='list-disc pl-5'>
-                      {filenames.map((filename, index) => (
-                        <li key={index}>{filename}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <Card className='mt-4'>
+                  <CardHeader>
+                    <CardTitle>Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {template.documents.length === 0 ? (
+                      <div className='flex items-center space-x-2 text-gray-500'>
+                        <span>No documents available for this template.</span>
+                      </div>
+                    ) : (
+                      <div className='flex flex-wrap gap-2'>
+                        {filenames.map((filename, index) => {
+                          const document = courseDocuments.find(
+                            (doc) => doc.id === template.documents[index],
+                          );
+                          if (!document) return null;
+
+                          return (
+                            <Tag key={index}>
+                              {/* Status Indicator */}
+                              <DocumentStatusIndicator
+                                status={document.status}
+                              />
+                              {/* Document Name */}
+                              <span style={{ marginLeft: '8px' }}>
+                                {filename}
+                              </span>
+                            </Tag>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                {/* Rooms display */}
+                <Card className='mt-4'>
+                  <CardHeader>
+                    <CardTitle>Rooms</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {rooms.length === 0 ? (
+                      <div className='flex items-center space-x-2 text-gray-500'>
+                        <span>No rooms available for this template.</span>
+                      </div>
+                    ) : (
+                      <ul className='list-disc pl-5 space-y-2'>
+                        {rooms.map((room) => (
+                          <RoomItem key={room.id} room={room} />
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+                <div className='mt-4'></div>
               </>
             )}
           </td>
         </tr>
       )}
-
       {/* Room creation modal */}
       {isRoomModalOpen && (
         <Modal
@@ -382,13 +363,11 @@ const TemplateRow: React.FC<TemplateRowProps> = ({
 // Separate RoomItem component to fix useState issue
 const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
   const [copied, setCopied] = useState(false);
-
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000); // Reset after 2 sec
   };
-
   return (
     <li key={room.id} className='text-blue-600'>
       <span className='font-semibold'>{room.name}</span> - {room.description}
@@ -397,7 +376,6 @@ const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
         <span className='text-sm text-gray-600'>
           Room Code: <strong>{room.code}</strong>
         </span>
-
         {/* Copy Button */}
         <button
           onClick={(e) => {
@@ -408,7 +386,6 @@ const RoomItem: React.FC<{ room: Room }> = ({ room }) => {
         >
           📋
         </button>
-
         {/* Show "Copied" confirmation message */}
         {copied && <span className='text-green-600 text-xs'>Copied!</span>}
       </div>

@@ -98,9 +98,14 @@ router
     validate(documentValidation.getDocument),
     documentController.getDocument,
   )
+  .patch(
+    auth('manageDocuments'),
+    validate(documentValidation.updateDocument),
+    documentController.updateDocument,
+  )
   .delete(
     auth('manageDocuments'),
-    validate(documentValidation.getDocument),
+    validate(documentValidation.deleteDocument),
     documentController.deleteDocument,
   );
 
