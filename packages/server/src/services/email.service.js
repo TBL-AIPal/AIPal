@@ -60,7 +60,7 @@ const sendResetPasswordEmail = async (to, token) => {
         </a>
       </p>
       <p>If you didn't request a password reset, you can safely ignore this email.</p>
-      <p>Best regards,<br>YourApp Team</p>
+      <p>Best regards,<br>AIPal Team</p>
     </div>
   `;
 
