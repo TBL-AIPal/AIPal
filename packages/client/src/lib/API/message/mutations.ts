@@ -12,13 +12,12 @@ const extractErrorMessage = (err: any): string => {
 
 export const createDirectMessage = async ({
   courseId,
-  templateId,
   roomId,
   userId,
   conversation,
 }: SendMessageInput) => {
   try {
-    const response = await api.post(`/messages/direct/${courseId}/${templateId}`, {
+    const response = await api.post(`/messages/direct/${courseId}`, {
       roomId,
       userId,
       conversation,
@@ -32,13 +31,12 @@ export const createDirectMessage = async ({
 
 export const createRAGMessage = async ({
   courseId,
-  templateId,
   roomId,
   userId,
   conversation,
 }: SendMessageInput) => {
   try {
-    const response = await api.post(`/messages/rag/${courseId}/${templateId}`, {
+    const response = await api.post(`/messages/rag/${courseId}`, {
       roomId,
       userId,
       conversation,
@@ -52,13 +50,12 @@ export const createRAGMessage = async ({
 
 export const createMultiAgentMessage = async ({
   courseId,
-  templateId,
   roomId,
   userId,
   conversation,
 }: SendMessageInput) => {
   try {
-    const response = await api.post(`/messages/multi-agent/${courseId}/${templateId}`, {
+    const response = await api.post(`/messages/multi-agent/${courseId}`, {
       roomId,
       userId,
       conversation,
@@ -72,13 +69,12 @@ export const createMultiAgentMessage = async ({
 
 export const createCombinedMessage = async ({
   courseId,
-  templateId,
   roomId,
   userId,
   conversation,
 }: SendMessageInput) => {
   try {
-    const response = await api.post(`/messages/combined/${courseId}/${templateId}`, {
+    const response = await api.post(`/messages/combined/${courseId}`, {
       roomId,
       userId,
       conversation,
@@ -92,13 +88,12 @@ export const createCombinedMessage = async ({
 
 export const createGeminiMessage = async ({
   courseId,
-  templateId,
   roomId,
   userId,
   conversation,
 }: SendMessageInput) => {
   try {
-    const response = await api.post(`/messages/gemini/${courseId}/${templateId}`, {
+    const response = await api.post(`/messages/gemini/${courseId}`, {
       roomId,
       userId,
       conversation,
@@ -112,13 +107,12 @@ export const createGeminiMessage = async ({
 
 export const createLlama3Message = async ({
   courseId,
-  templateId,
   roomId,
   userId,
   conversation,
 }: SendMessageInput) => {
   try {
-    const response = await api.post(`/messages/llama3/${courseId}/${templateId}`, {
+    const response = await api.post(`/messages/llama3/${courseId}`, {
       roomId,
       userId,
       conversation,
