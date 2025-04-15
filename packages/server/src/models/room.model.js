@@ -26,6 +26,11 @@ const roomSchema = new mongoose.Schema(
       ref: 'User',
       default: [],
     },
+    allowedTutorialGroups: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'TutorialGroup',
+      default: [],
+    },
     selectedModel: {
       type: String,
     },

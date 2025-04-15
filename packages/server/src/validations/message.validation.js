@@ -4,7 +4,6 @@ const { objectId } = require('./custom.validation');
 const createMessage = {
   params: Joi.object().keys({
     courseId: Joi.string().custom(objectId).required(), // ✅ Required in params
-    templateId: Joi.string().custom(objectId).required(), // ✅ Required in params
     method: Joi.string().required(), // ✅ Allow method field
   }),
   body: Joi.object()

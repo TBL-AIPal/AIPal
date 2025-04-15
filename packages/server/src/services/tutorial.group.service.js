@@ -26,25 +26,22 @@ const createTutorialGroup = async (courseId, tutorialGroupBody) => {
 };
 
 /**
- * Add users to a tutorial group
+ * Replace users in a tutorial group
  * @param {ObjectId} tutorialGroupId - The ID of the tutorial group
- * @param {ObjectId[]} userIds - User IDs to add
+ * @param {ObjectId[]} userIds - Complete list of user IDs to set
  * @returns {Promise<TutorialGroup>}
  */
-const addUsersToGroup = async (tutorialGroupId, userIds) => {
-    const tutorialGroup = await TutorialGroup.findById(tutorialGroupId);
-    if (!tutorialGroup) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Tutorial group not found');
-    }
-  
-    // Add only new users (avoid duplicates)
-    tutorialGroup.students = [...new Set([...tutorialGroup.students, ...userIds])];
-  
-    await tutorialGroup.save();
-    return tutorialGroup;
-  };
+const setUsersInGroup = async (tutorialGroupId, userIds) => {
+  const group = await TutorialGroup.findById(tutorialGroupId);
+  if (!group) throw new Error('Tutorial group not found');
+
+  group.students = userIds;
+  await group.save();
+
+  return group;
+};
 
 module.exports = {
-    createTutorialGroup,
-    addUsersToGroup,
+  createTutorialGroup,
+  setUsersInGroup,
 };

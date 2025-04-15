@@ -6,6 +6,7 @@ export interface Room {
   code: string;
   template: string; // The ID of the associated template
   allowedUsers: string[];
+  allowedTutorialGroups: string[];
   selectedModel: string;
   selectedMethod: string;
   createdAt: string;

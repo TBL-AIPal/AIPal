@@ -14,10 +14,8 @@ import {
 import { GetRoomById } from '@/lib/API/room/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
 import { GetUsers } from '@/lib/API/user/queries';
-import { GetTemplateById } from '@/lib/API/template/queries';
 import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
-import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 import { createErrorToast } from '@/lib/utils/toast';
 
@@ -32,7 +30,6 @@ const RoomChatPage: React.FC = () => {
     roomId: string;
   }>();
   const [room, setRoom] = useState<Room | null>(null);
-  const [template, setTemplate] = useState<Template | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
@@ -41,7 +38,6 @@ const RoomChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const [users, setUsers] = useState<Record<string, { name: string; email: string }>>({}); 
-
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>('');
 
@@ -52,44 +48,39 @@ const RoomChatPage: React.FC = () => {
       setUserRole(user?.role);
     }
   }, []);  
-  
+
   useEffect(() => {
     if (!roomId) return;
-  
-    // ✅ Ensure WebSocket URL matches the backend server
     const wsUrl = `ws://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/rooms/${roomId}`;
-  
     socketRef.current = new WebSocket(wsUrl);
-  
+
     socketRef.current.onopen = () => {
       console.log(`Connected to WebSocket server: ${wsUrl}`);
     };
-  
+
     socketRef.current.onmessage = (event) => {
       const receivedMessage = JSON.parse(event.data);
-      setMessages((prev) => [...prev, receivedMessage]); // ✅ Update chat messages
+      setMessages((prev) => [...prev, receivedMessage]);
     };
-  
+
     socketRef.current.onclose = () => {
       console.log('WebSocket disconnected');
     };
-  
+
     return () => {
-      socketRef.current?.close(); // ✅ Cleanup WebSocket on unmount
+      socketRef.current?.close();
     };
   }, [roomId]);  
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const userList = await GetUsers(); // ✅ Fetch all users
+        const userList = await GetUsers();
         const userMap: Record<string, { name: string; email: string }> = {};
-
         userList.forEach((user) => {
           userMap[user.id] = { name: user.name, email: user.email };
         });
-
-        setUsers(userMap); // ✅ Store users in state
+        setUsers(userMap);
       } catch (error) {
         console.error('Error fetching users:', error);
       }
@@ -104,22 +95,11 @@ const RoomChatPage: React.FC = () => {
       try {
         const fetchedRoom = await GetRoomById(courseId, roomId);
         setRoom(fetchedRoom);
-
-        if (fetchedRoom.template) {
-          const fetchedTemplate = await GetTemplateById(
-            courseId,
-            fetchedRoom.template,
-          );
-          setTemplate(fetchedTemplate);
-        }
         if (fetchedRoom.selectedModel) setSelectedModel(fetchedRoom.selectedModel);
         if (fetchedRoom.selectedMethod) setSelectedMethod(fetchedRoom.selectedMethod);
-
       } catch (err) {
         logger(err, 'Error fetching room details');
-        createErrorToast(
-          'Unable to load room details. Please try again later.',
-        );
+        createErrorToast('Unable to load room details. Please try again later.');
       }
     };
     fetchRoom();
@@ -137,13 +117,10 @@ const RoomChatPage: React.FC = () => {
             modelUsed: modelUsed || 'unknown',
           }),
         );
-
         setMessages(sanitizedMessages);
       } catch (error) {
         logger(error, 'Error loading chat history');
-        createErrorToast(
-          'Unable to retrieve chat history. Please try again later.',
-        );
+        createErrorToast('Unable to retrieve chat history. Please try again later.');
       }
     };
 
@@ -153,7 +130,6 @@ const RoomChatPage: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
 
   const handleModelChange = async (model: string) => {
     setSelectedModel(model);
@@ -204,12 +180,10 @@ const RoomChatPage: React.FC = () => {
 
     try {
       let response;
-      const templateId = template?.id ?? '';
 
       if (selectedMethod === 'multi-agent') {
         response = await createMultiAgentMessage({
           courseId,
-          templateId,
           roomId,
           userId,
           conversation: updatedMessages,
@@ -217,7 +191,6 @@ const RoomChatPage: React.FC = () => {
       } else if (selectedMethod === 'rag') {
         response = await createRAGMessage({
           courseId,
-          templateId,
           roomId,
           userId,
           conversation: updatedMessages,
@@ -225,7 +198,6 @@ const RoomChatPage: React.FC = () => {
       } else if (selectedMethod === 'combined') {
         response = await createCombinedMessage({
           courseId,
-          templateId,
           roomId,
           userId,
           conversation: updatedMessages,
@@ -235,7 +207,6 @@ const RoomChatPage: React.FC = () => {
           case 'gemini':
             response = await createGeminiMessage({
               courseId,
-              templateId,
               roomId,
               userId,
               conversation: updatedMessages,
@@ -244,16 +215,14 @@ const RoomChatPage: React.FC = () => {
           case 'llama3':
             response = await createLlama3Message({
               courseId,
-              templateId,
               roomId,
               userId,
               conversation: updatedMessages,
             });
             break;
-          default: // includes 'chatgpt'
+          default:
             response = await createDirectMessage({
               courseId,
-              templateId,
               roomId,
               userId,
               conversation: updatedMessages,
@@ -273,14 +242,27 @@ const RoomChatPage: React.FC = () => {
           modelUsed: msg.modelUsed || selectedModel,
         })),
       );
-    } catch (error) {
+    } catch (error: any) {
       logger(error, 'Caught error in handleSendMessage');
+
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant' as const,
           sender: 'assistant',
-          content: 'An error occurred. Please try again.',
+          content: `Error: ${errorMessage}`,
           modelUsed: selectedModel,
         },
       ]);
@@ -291,7 +273,6 @@ const RoomChatPage: React.FC = () => {
 
   return (
     <div className='flex flex-col h-screen'>
-      {/* Settings Bar */}
       <SettingsBar
         selectedModel={selectedModel}
         setSelectedModel={handleModelChange}
@@ -299,15 +280,11 @@ const RoomChatPage: React.FC = () => {
         setSelectedMethod={handleMethodChange}
         isTeacher={userRole !== 'student'}
       />
-
-      {/* Chat Container */}
       <ChatContainer
         messages={messages}
         userId={userId || ''}
         messagesEndRef={messagesEndRef}
       />
-
-      {/* Chat Input */}
       <ChatInput
         newMessage={newMessage}
         setNewMessage={setNewMessage}

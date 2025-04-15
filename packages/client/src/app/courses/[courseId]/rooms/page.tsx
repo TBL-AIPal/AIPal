@@ -125,32 +125,20 @@ const RoomsPage: React.FC = () => {
   const handleAddUsersToRoom = async () => {
     if (!selectedRoom) return;
   
-    // Get users from selected tutorial groups
-    const groupUsers = tutorialGroups
-      .filter((group) => selectedGroups.includes(group._id))
-      .flatMap((group) => group.students.map((s) => s.id));
-  
-    // Ensure selectedRoom.allowedUsers exists before spreading
-    const newAllowedUsers = Array.from(new Set([
-      ...selectedUsers, 
-      ...groupUsers
-    ]));
-
-    console.log(selectedGroups)
-  
     try {
-      await UpdateRoom({ 
-        roomId: selectedRoom.id, 
-        courseId: courseIdString,  // ✅ Ensure courseId is included
-        allowedUsers: newAllowedUsers 
+      await UpdateRoom({
+        roomId: selectedRoom.id,
+        courseId: courseIdString,
+        allowedUsers: selectedUsers,
+        allowedTutorialGroups: selectedGroups,
       });
   
-      createInfoToast('Users added successfully!');
+      createInfoToast('Access updated successfully!');
       setIsAddUserModalOpen(false);
-      fetchRooms(); // ✅ Refresh room data after updating users
+      fetchRooms();
     } catch (error) {
-      logger(error, "Error adding users to room");
-      createErrorToast('Failed to add users. Please try again.');
+      logger(error, "Error updating room access");
+      createErrorToast('Failed to update access. Please try again.');
     }
   };  
 
@@ -159,34 +147,33 @@ const RoomsPage: React.FC = () => {
   const handleOpenAddUserModal = (room: Room) => {
     setSelectedRoom(room);
   
-    // ✅ Find all users assigned to any tutorial group in this course
     const assignedUserIds = new Set(
-      tutorialGroups.flatMap((group) => group.students.map((s) => s.id))
+      tutorialGroups.flatMap(group => group.students.map(s => s.id))
     );
   
-    // ✅ Get only users NOT in any tutorial group
-    const unassignedUsers = users.filter((user) => !assignedUserIds.has(user.id));
-
-    const allowedUnassignedUsers = (room.allowedUsers || []).filter(userId => 
+    const unassignedUsers = users.filter(user => !assignedUserIds.has(user.id));
+    const allowedUnassignedUsers = (room.allowedUsers || []).filter(userId =>
       unassignedUsers.some(user => user.id === userId)
-  );    
-  setSelectedUsers(allowedUnassignedUsers);
+    );
   
-    // ✅ Find tutorial groups that contain users already in the room
-    const groupsWithUsersInRoom = tutorialGroups
-      .filter((group) =>
-        group.students.some((student) => room.allowedUsers?.includes(student.id))
-      )
-      .map((group) => group._id);
-  
-    setUsers(unassignedUsers); // ✅ Show only unassigned users
-    setSelectedGroups(groupsWithUsersInRoom); // ✅ Preselect tutorial groups in the room
+    setSelectedUsers(allowedUnassignedUsers);
+    setSelectedGroups(room.allowedTutorialGroups || []);
+    setUsers(unassignedUsers);
     setIsAddUserModalOpen(true);
-  };
+  };  
 
-  const accessibleRooms = rooms.filter((room) => 
-    userRole !== 'student' || room.allowedUsers?.includes(currentUser?.id ?? "")
-  );
+  const accessibleRooms = rooms.filter((room) => {
+    if (userRole !== 'student') return true;
+  
+    const isDirect = room.allowedUsers?.includes(currentUser?.id ?? "");
+  
+    const isInGroup = tutorialGroups.some((group) =>
+      room.allowedTutorialGroups?.includes(group._id) &&
+      group.students.some((student) => student.id === currentUser?.id)
+    );
+  
+    return isDirect || isInGroup;
+  });  
 
   return (
     <div className="p-4">

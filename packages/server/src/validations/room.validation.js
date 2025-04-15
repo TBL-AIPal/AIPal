@@ -68,6 +68,7 @@ const updateRoom = {
       code: Joi.string(),
       template: Joi.string().custom(objectId),
       allowedUsers: Joi.array().items(Joi.string().custom(objectId)),
+      allowedTutorialGroups: Joi.array().items(Joi.string().custom(objectId)),
       selectedModel: Joi.string(),
       selectedMethod: Joi.string(),
     })

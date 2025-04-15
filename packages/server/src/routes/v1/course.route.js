@@ -167,20 +167,20 @@ router
     roomController.sendMessage,
   );
 
-  router
+router
   .route('/:courseId/tutorial-groups')
   .post(
     auth('manageCourses'),
     validate(tutorialGroupValidation.createTutorialGroup),
-    tutorialGroupController.createTutorialGroup
-  )
+    tutorialGroupController.createTutorialGroup,
+  );
 
-  router.patch(
-    '/:courseId/tutorial-groups/:tutorialGroupId/users',
-    auth('manageCourses'),
-    validate(tutorialGroupValidation.updateTutorialGroupUsers),
-    tutorialGroupController.addUsersToGroup
-  );  
+router.patch(
+  '/:courseId/tutorial-groups/:tutorialGroupId/users',
+  auth('manageCourses'),
+  validate(tutorialGroupValidation.updateTutorialGroupUsers),
+  tutorialGroupController.updateGroupUsers,
+);
 
 module.exports = router;
 

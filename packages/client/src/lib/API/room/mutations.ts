@@ -43,6 +43,7 @@ interface UpdateRoomProps {
   code?: string;
   template?: string;
   allowedUsers?: string[];
+  allowedTutorialGroups?: string[];
   selectedModel?: string;
   selectedMethod?: string;
 }
@@ -55,6 +56,7 @@ export const UpdateRoom = async ({
   code,
   template,
   allowedUsers,
+  allowedTutorialGroups,
   selectedModel,
   selectedMethod,
 }: UpdateRoomProps) => {
@@ -65,6 +67,7 @@ export const UpdateRoom = async ({
       ...(code !== undefined ? { code } : {}),
       ...(template !== undefined ? { template } : {}),
       ...(allowedUsers !== undefined ? { allowedUsers } : {}),
+      ...(allowedTutorialGroups !== undefined ? { allowedTutorialGroups } : {}), 
       ...(selectedModel !== undefined ? { selectedModel } : {}), 
       ...(selectedMethod !== undefined ? { selectedMethod } : {}), 
     });
