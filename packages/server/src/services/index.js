@@ -4,9 +4,11 @@ module.exports.tokenService = require('./token.service');
 module.exports.userService = require('./user.service');
 module.exports.courseService = require('./course.service');
 module.exports.documentService = require('./document.service');
+module.exports.chunkService = require('./chunk.service');
 module.exports.templateService = require('./template.service');
 module.exports.roomService = require('./room.service');
 module.exports.messageService = require('./message.service');
+module.exports.tutorialGroupService = require('./tutorial.group.service');
 
 module.exports.gptService = require('./RAG/embedding.service');
 module.exports.gptService = require('./RAG/vector.search.service');

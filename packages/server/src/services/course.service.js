@@ -12,7 +12,7 @@ const { deleteDocumentById } = require('./document.service');
  * @returns {Promise<Course>}
  */
 const createCourse = async (courseBody) => {
-  return Course.create(courseBody);
+  return await Course.create(courseBody);
 };
 
 /**
@@ -35,7 +35,10 @@ const queryCourses = async (filter, options) => {
  * @returns {Promise<Course>}
  */
 const getCourseById = async (id) => {
-  const course = await Course.findById(id);
+  const course = await Course.findById(id).populate({
+    path: 'tutorialGroups',
+    populate: { path: 'students', select: 'name email' },
+  });
   if (!course) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
@@ -45,7 +48,7 @@ const getCourseById = async (id) => {
 /**
  * Get API key by course id and model
  * @param {ObjectId} courseId - The ID of the course
- * @param {string} model - The model being used (e.g., "openai", "gemini", "llama3")
+ * @param {string} model - The model being used (e.g., "chatgpt", "gemini", "llama3")
  * @returns {Promise<{ course: Course, apiKey: string }>}
  */
 const getApiKeyById = async (courseId, model) => {
@@ -90,7 +93,7 @@ const updateCourseById = async (courseId, updateBody) => {
   );
 
   if (!course) {
-    throw new Error('Course not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
   }
 
   return course;
@@ -103,9 +106,6 @@ const updateCourseById = async (courseId, updateBody) => {
  */
 const deleteCourseById = async (courseId) => {
   const course = await getCourseById(courseId);
-  if (!course) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Course not found');
-  }
 
   // Delete all templates associated with the course
   if (course.templates.length > 0) {

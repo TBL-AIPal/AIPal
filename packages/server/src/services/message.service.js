@@ -14,7 +14,7 @@ const { getDocumentById } = require('./document.service');
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+  'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent';
 
 // **🔹 Function to save messages to the database**
 const saveMessage = async ({ roomId, sender, content, modelUsed }) => {
@@ -48,11 +48,28 @@ const callOpenAI = async (messages, apiKey) => {
   }
 };
 
-// **🔹 Function to call Groq LLaMA 3 API**
-const callGroqLLaMA = async (messages, apiKey) => {
+const callGroqLLaMA = async (messages, apiKey, contextText = '') => {
+  const fullMessages = [];
+
+  // Add constraints + documents as system message
+  if (contextText) {
+    fullMessages.push({
+      role: 'system',
+      content: contextText,
+    });
+  }
+
+  // Add cleaned conversation messages
+  for (const msg of messages) {
+    const { role, content } = msg; // Only keep valid keys
+    if (role && content) {
+      fullMessages.push({ role, content });
+    }
+  }
+
   return axios.post(
     GROQ_API_URL,
-    { model: 'llama-3.3-70b-versatile', messages },
+    { model: 'llama-3.3-70b-versatile', messages: fullMessages },
     {
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -62,20 +79,29 @@ const callGroqLLaMA = async (messages, apiKey) => {
   );
 };
 
-// **🔹 Function to call Gemini API**
-const callGemini = async (messages, apiKey) => {
-  return axios.post(
-    `${GEMINI_API_URL}?key=${apiKey}`,
-    {
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: messages[messages.length - 1].content }],
-        },
+const callGemini = async (messages, apiKey, contextText = '') => {
+  const contents = [];
+
+  const contextPrefix = contextText ? contextText + '\n\n' : '';
+
+  contents.push(
+    ...messages.map((msg, index) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [
+        { text: index === 0 ? contextPrefix + msg.content : msg.content },
       ],
-    },
-    { headers: { 'Content-Type': 'application/json' } },
+    })),
   );
+
+  const response = await axios.post(
+    `${GEMINI_API_URL}?key=${apiKey}`,
+    { contents },
+    {
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+
+  return response;
 };
 
 // Function to process chunks sequentially
@@ -147,6 +173,13 @@ const createDirectReply = async (courseId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
 
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
+
   const response = await callOpenAI(conversation, apiKey);
   const assistantResponse = response.choices[0].message.content;
 
@@ -195,6 +228,13 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
   }
 
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
 
   const template = await getTemplateById(templateId);
   if (!template) {
@@ -254,6 +294,13 @@ const createContextualizedReply = async (courseId, templateId, messageBody) => {
 const createMultiAgentReply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
+
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
 
   const template = await getTemplateById(templateId);
   if (!template) {
@@ -318,6 +365,13 @@ const createContextualizedAndMultiAgentReply = async (
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'chatgpt');
 
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for ChatGPT. Please upload one in the course settings.',
+    );
+  }
+
   const template = await getTemplateById(templateId);
   if (!template) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Template not found');
@@ -381,12 +435,42 @@ const createContextualizedAndMultiAgentReply = async (
   };
 };
 
-// **🔹 Gemini Reply**
 const createGeminiReply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'gemini');
 
-  const response = await callGemini(conversation, apiKey);
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for Gemini. Please upload one in the course settings.',
+    );
+  }
+
+  let contextText = '';
+
+  if (templateId) {
+    const template = await getTemplateById(templateId);
+    const constraintText = (template.constraints || []).join('\n- ');
+    const docTextArray = await Promise.all(
+      template.documents.map(async (docId) => {
+        const doc = await getDocumentById(docId);
+        return `---\n${doc.title || 'Document'}:\n${doc.text}`;
+      }),
+    );
+    const docText = docTextArray.join('\n\n');
+
+    contextText = `You are an assistant with the following context and constraints.
+
+Constraints:
+- ${constraintText || 'None'}
+
+Documents:
+${docText || 'No documents provided.'}
+    
+Please use this information to answer the user's questions as accurately as possible.`;
+  }
+
+  const response = await callGemini(conversation, apiKey, contextText);
   const assistantResponse =
     response?.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
     'No response from Gemini';
@@ -417,15 +501,58 @@ const createGeminiReply = async (courseId, templateId, messageBody) => {
   };
 };
 
-// **🔹 LLaMA 3 Reply**
 const createLlama3Reply = async (courseId, templateId, messageBody) => {
   const { conversation, roomId, userId } = messageBody;
   const { apiKey } = await getApiKeyById(courseId, 'llama');
 
-  const response = await callGroqLLaMA(conversation, apiKey);
-  const assistantResponse =
-    response?.data?.choices?.[0]?.message?.content ||
-    'No response from LLaMA 3';
+  if (!apiKey) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'No API key found for LLaMA. Please upload one in the course settings.',
+    );
+  }
+
+  let contextText = '';
+  let assistantResponse;
+
+  if (templateId) {
+    const template = await getTemplateById(templateId);
+    const constraintText = (template.constraints || []).join('\n- ');
+    const docTextArray = await Promise.all(
+      template.documents.map(async (docId) => {
+        const doc = await getDocumentById(docId);
+        return `---\n${doc.title || 'Document'}:\n${doc.text}`;
+      }),
+    );
+    const docText = docTextArray.join('\n\n');
+
+    contextText = `You are an assistant with the following context and constraints.
+
+Constraints:
+- ${constraintText || 'None'}
+
+Documents:
+${docText || 'No documents provided.'}
+
+Please use this information to answer the user's questions as accurately as possible.`;
+  }
+
+  try {
+    const response = await callGroqLLaMA(conversation, apiKey, contextText);
+    assistantResponse =
+      response?.data?.choices?.[0]?.message?.content ||
+      'No response from LLaMA 3';
+  } catch (err) {
+    logger.error('Groq call failed:', err);
+
+    const status = err?.response?.status || 500;
+    const groqMessage =
+      err?.response?.data?.message ||
+      err?.message ||
+      'Unknown error occurred when calling LLaMA 3';
+
+    throw new ApiError(status, groqMessage);
+  }
 
   await saveMessage({
     roomId,

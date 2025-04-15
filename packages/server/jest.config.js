@@ -11,4 +11,7 @@ module.exports = {
     'tests',
   ],
   coverageReporters: ['text', 'lcov', 'clover', 'html'],
+  setupFiles: ['dotenv/config'],
+  silent: false,
+  verbose: true,
 };

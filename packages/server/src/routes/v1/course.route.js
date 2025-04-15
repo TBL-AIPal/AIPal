@@ -8,9 +8,10 @@ const templateController = require('../../controllers/template.controller');
 const documentValidation = require('../../validations/document.validation');
 const documentController = require('../../controllers/document.controller');
 const upload = require('../../middlewares/upload');
-// New room controller import
 const roomController = require('../../controllers/room.controller');
 const roomValidation = require('../../validations/room.validation');
+const tutorialGroupController = require('../../controllers/tutorialGroup.controller');
+const tutorialGroupValidation = require('../../validations/tutorialGroup.validation');
 
 const router = express.Router();
 
@@ -97,20 +98,24 @@ router
     validate(documentValidation.getDocument),
     documentController.getDocument,
   )
+  .patch(
+    auth('manageDocuments'),
+    validate(documentValidation.updateDocument),
+    documentController.updateDocument,
+  )
   .delete(
     auth('manageDocuments'),
-    validate(documentValidation.getDocument),
+    validate(documentValidation.deleteDocument),
     documentController.deleteDocument,
   );
 
-// ✅ Update the route to fetch ALL rooms for a course
 router
   .route('/:courseId/rooms')
   .get(
     auth('getRooms'),
     validate(roomValidation.getRoomsByCourse),
     roomController.getRoomsByCourse,
-  ) // ⬅ New Route
+  )
   .post(
     auth('manageRooms'),
     validate(roomValidation.createRoom),
@@ -161,6 +166,21 @@ router
     validate(roomValidation.sendMessage),
     roomController.sendMessage,
   );
+
+router
+  .route('/:courseId/tutorial-groups')
+  .post(
+    auth('manageCourses'),
+    validate(tutorialGroupValidation.createTutorialGroup),
+    tutorialGroupController.createTutorialGroup,
+  );
+
+router.patch(
+  '/:courseId/tutorial-groups/:tutorialGroupId/users',
+  auth('manageCourses'),
+  validate(tutorialGroupValidation.updateTutorialGroupUsers),
+  tutorialGroupController.updateGroupUsers,
+);
 
 module.exports = router;
 

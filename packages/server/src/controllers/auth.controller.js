@@ -1,16 +1,25 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const { authService, userService, tokenService, emailService, courseService } = require('../services');
+const {
+  authService,
+  userService,
+  tokenService,
+  emailService,
+  courseService,
+} = require('../services');
 
 const register = catchAsync(async (req, res) => {
   const { email, role } = req.body;
 
-  // ✅ Step 1: Create User
-  const user = await userService.createUser(req.body);
-  const tokens = await tokenService.generateAuthTokens(user);
-
-  // ✅ Step 2: Check if the email is in a course's whitelist
   const course = await courseService.getCourseByEmail(email);
+  const isApproved = Boolean(course);
+
+  const user = await userService.createUser({
+    ...req.body,
+    status: isApproved ? 'approved' : 'pending',
+  });
+
+  const tokens = await tokenService.generateAuthTokens(user);
 
   if (course) {
     const isTeacher = role === 'teacher';
@@ -21,13 +30,10 @@ const register = catchAsync(async (req, res) => {
       staff: isTeacher ? [...course.staff, user.id] : course.staff,
       whitelist: course.whitelist.filter((e) => e !== email), // ✅ Remove from whitelist
     });
-
-    console.log(`✅ User ${email} auto-added to course: ${course.name}`);
   }
 
   res.status(httpStatus.CREATED).send({ user, tokens });
 });
-
 
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;

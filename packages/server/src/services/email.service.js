@@ -20,10 +20,18 @@ if (config.env !== 'test') {
  * @param {string} to
  * @param {string} subject
  * @param {string} text
+ * @param {string} [html] - Optional HTML version of the email
  * @returns {Promise}
  */
-const sendEmail = async (to, subject, text) => {
-  const msg = { from: config.email.from, to, subject, text };
+const sendEmail = async (to, subject, text, html) => {
+  const msg = {
+    from: config.email.from,
+    to,
+    subject,
+    text,
+    ...(html && { html }),
+  };
+
   await transport.sendMail(msg);
 };
 
@@ -34,13 +42,31 @@ const sendEmail = async (to, subject, text) => {
  * @returns {Promise}
  */
 const sendResetPasswordEmail = async (to, token) => {
-  const subject = 'Reset password';
-  // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `http://link-to-app/reset-password?token=${token}`;
-  const text = `Dear user,
-To reset your password, click on this link: ${resetPasswordUrl}
-If you did not request any password resets, then ignore this email.`;
-  await sendEmail(to, subject, text);
+  const subject = 'Reset Your Password';
+  const clientHost = process.env.CLIENT_HOST;
+  const clientPort = process.env.CLIENT_PORT || 3000;
+
+  const resetPasswordUrl = `${clientHost}:${clientPort}/auth/reset-password?token=${token}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+      <h2 style="color: #2c3e50;">Password Reset Request</h2>
+      <p>Hello,</p>
+      <p>You recently requested to reset your password. Click the button below to proceed:</p>
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${resetPasswordUrl}" 
+           style="display: inline-block; padding: 12px 24px; background-color: #1a73e8; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+           Reset Password
+        </a>
+      </p>
+      <p>If you didn't request a password reset, you can safely ignore this email.</p>
+      <p>Best regards,<br>AIPal Team</p>
+    </div>
+  `;
+
+  const text = `To reset your password, visit: ${resetPasswordUrl}`;
+
+  await sendEmail(to, subject, text, html);
 };
 
 /**

@@ -13,16 +13,16 @@ import {
 } from '@/lib/API/message/mutations';
 import { GetRoomById } from '@/lib/API/room/queries';
 import { GetMessagesByRoomId } from '@/lib/API/room/queries';
-import { GetTemplateById } from '@/lib/API/template/queries';
+import { GetUsers } from '@/lib/API/user/queries';
 import { Message } from '@/lib/types/message';
 import { Room } from '@/lib/types/room';
-import { Template } from '@/lib/types/template';
 import logger from '@/lib/utils/logger';
 import { createErrorToast } from '@/lib/utils/toast';
 
 import ChatContainer from './_PageSections/ChatCointainer';
 import ChatInput from './_PageSections/ChatInput';
 import SettingsBar from './_PageSections/SettingsBar';
+import { UpdateRoom } from '@/lib/API/room/mutations';
 
 const RoomChatPage: React.FC = () => {
   const { courseId, roomId } = useParams<{
@@ -30,21 +30,63 @@ const RoomChatPage: React.FC = () => {
     roomId: string;
   }>();
   const [room, setRoom] = useState<Room | null>(null);
-  const [template, setTemplate] = useState<Template | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [selectedModel, setSelectedModel] = useState('chatgpt');
   const [selectedMethod, setSelectedMethod] = useState('direct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const socketRef = useRef<WebSocket | null>(null);
+  const [users, setUsers] = useState<Record<string, { name: string; email: string }>>({}); 
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       setUserId(user?.id || null);
+      setUserRole(user?.role);
     }
+  }, []);  
+
+  useEffect(() => {
+    if (!roomId) return;
+    const wsUrl = `ws://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/rooms/${roomId}`;
+    socketRef.current = new WebSocket(wsUrl);
+
+    socketRef.current.onopen = () => {
+      console.log(`Connected to WebSocket server: ${wsUrl}`);
+    };
+
+    socketRef.current.onmessage = (event) => {
+      const receivedMessage = JSON.parse(event.data);
+      setMessages((prev) => [...prev, receivedMessage]);
+    };
+
+    socketRef.current.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      socketRef.current?.close();
+    };
+  }, [roomId]);  
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userList = await GetUsers();
+        const userMap: Record<string, { name: string; email: string }> = {};
+        userList.forEach((user) => {
+          userMap[user.id] = { name: user.name, email: user.email };
+        });
+        setUsers(userMap);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -53,19 +95,11 @@ const RoomChatPage: React.FC = () => {
       try {
         const fetchedRoom = await GetRoomById(courseId, roomId);
         setRoom(fetchedRoom);
-
-        if (fetchedRoom.template) {
-          const fetchedTemplate = await GetTemplateById(
-            courseId,
-            fetchedRoom.template,
-          );
-          setTemplate(fetchedTemplate);
-        }
+        if (fetchedRoom.selectedModel) setSelectedModel(fetchedRoom.selectedModel);
+        if (fetchedRoom.selectedMethod) setSelectedMethod(fetchedRoom.selectedMethod);
       } catch (err) {
         logger(err, 'Error fetching room details');
-        createErrorToast(
-          'Unable to load room details. Please try again later.',
-        );
+        createErrorToast('Unable to load room details. Please try again later.');
       }
     };
     fetchRoom();
@@ -83,13 +117,10 @@ const RoomChatPage: React.FC = () => {
             modelUsed: modelUsed || 'unknown',
           }),
         );
-
         setMessages(sanitizedMessages);
       } catch (error) {
         logger(error, 'Error loading chat history');
-        createErrorToast(
-          'Unable to retrieve chat history. Please try again later.',
-        );
+        createErrorToast('Unable to retrieve chat history. Please try again later.');
       }
     };
 
@@ -99,6 +130,32 @@ const RoomChatPage: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const handleModelChange = async (model: string) => {
+    setSelectedModel(model);
+    try {
+      await UpdateRoom({
+        courseId,
+        roomId,
+        selectedModel: model,
+      });
+    } catch (err) {
+      logger(err, 'Failed to update selectedModel in room');
+    }
+  };
+  
+  const handleMethodChange = async (method: string) => {
+    setSelectedMethod(method);
+    try {
+      await UpdateRoom({
+        courseId,
+        roomId,
+        selectedMethod: method,
+      });
+    } catch (err) {
+      logger(err, 'Failed to update selectedMethod in room');
+    }
+  };  
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -123,62 +180,55 @@ const RoomChatPage: React.FC = () => {
 
     try {
       let response;
-      const templateId = template?.id ?? '';
 
-      switch (selectedMethod) {
-        case 'multi-agent':
-          response = await createMultiAgentMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'rag':
-          response = await createRAGMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'combined':
-          response = await createCombinedMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'gemini':
-          response = await createGeminiMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        case 'llama3':
-          response = await createLlama3Message({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
-          break;
-        default:
-          response = await createDirectMessage({
-            courseId,
-            templateId,
-            roomId,
-            userId,
-            conversation: updatedMessages,
-          });
+      if (selectedMethod === 'multi-agent') {
+        response = await createMultiAgentMessage({
+          courseId,
+          roomId,
+          userId,
+          conversation: updatedMessages,
+        });
+      } else if (selectedMethod === 'rag') {
+        response = await createRAGMessage({
+          courseId,
+          roomId,
+          userId,
+          conversation: updatedMessages,
+        });
+      } else if (selectedMethod === 'combined') {
+        response = await createCombinedMessage({
+          courseId,
+          roomId,
+          userId,
+          conversation: updatedMessages,
+        });
+      } else {
+        switch (selectedModel) {
+          case 'gemini':
+            response = await createGeminiMessage({
+              courseId,
+              roomId,
+              userId,
+              conversation: updatedMessages,
+            });
+            break;
+          case 'llama3':
+            response = await createLlama3Message({
+              courseId,
+              roomId,
+              userId,
+              conversation: updatedMessages,
+            });
+            break;
+          default:
+            response = await createDirectMessage({
+              courseId,
+              roomId,
+              userId,
+              conversation: updatedMessages,
+            });
+            break;
+        }
       }
 
       logger(response, 'LLM API Response');
@@ -192,14 +242,27 @@ const RoomChatPage: React.FC = () => {
           modelUsed: msg.modelUsed || selectedModel,
         })),
       );
-    } catch (error) {
+    } catch (error: any) {
       logger(error, 'Caught error in handleSendMessage');
+
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant' as const,
           sender: 'assistant',
-          content: 'An error occurred. Please try again.',
+          content: `Error: ${errorMessage}`,
           modelUsed: selectedModel,
         },
       ]);
@@ -210,22 +273,18 @@ const RoomChatPage: React.FC = () => {
 
   return (
     <div className='flex flex-col h-screen'>
-      {/* Settings Bar */}
       <SettingsBar
         selectedModel={selectedModel}
-        setSelectedModel={setSelectedModel}
+        setSelectedModel={handleModelChange}
         selectedMethod={selectedMethod}
-        setSelectedMethod={setSelectedMethod}
+        setSelectedMethod={handleMethodChange}
+        isTeacher={userRole !== 'student'}
       />
-
-      {/* Chat Container */}
       <ChatContainer
         messages={messages}
         userId={userId || ''}
         messagesEndRef={messagesEndRef}
       />
-
-      {/* Chat Input */}
       <ChatInput
         newMessage={newMessage}
         setNewMessage={setNewMessage}

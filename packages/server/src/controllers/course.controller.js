@@ -29,7 +29,7 @@ const createCourse = catchAsync(async (req, res) => {
   }
 
   const course = await courseService.createCourse(courseData);
-  res.status(httpStatus.CREATED).send(course);
+  res.status(httpStatus.CREATED).json(course);
 });
 
 const getCourses = catchAsync(async (req, res) => {
@@ -38,7 +38,9 @@ const getCourses = catchAsync(async (req, res) => {
 
   // ✅ Block users if their status is not approved
   if (!isAdmin && req.user.status !== 'approved') {
-    return res.status(403).json({ message: 'Your account is not approved to access courses.' });
+    return res
+      .status(403)
+      .json({ message: 'Your account is not approved to access courses.' });
   }
 
   let filter = {};
@@ -60,13 +62,11 @@ const getCourses = catchAsync(async (req, res) => {
   // ✅ Ensure courses array is valid
   const coursesArray = Array.isArray(result.results) ? result.results : [];
 
-  // ✅ Include apiKey safely (decrypt if necessary)
   const courses = coursesArray.map((course) => ({
     id: course._id || '',
     name: course.name || 'Unnamed Course',
     description: course.description || '',
     owner: course.owner || null,
-    apiKey: course.apiKey ? decrypt(course.apiKey, config.encryption.key) : '', // Ensure apiKey is decrypted properly
   }));
 
   res.send({ results: courses, totalResults: result.totalResults || 0 });
@@ -81,18 +81,23 @@ const updateCourse = catchAsync(async (req, res) => {
   const { courseId } = req.params;
   const updateData = { ...req.body };
 
+  const existingCourse = await Course.findById(courseId);
+  if (!existingCourse) {
+    throw new Error('Course not found');
+  }
+
   // Encrypt API keys if provided in the request body
   if (updateData.apiKeys) {
     updateData.apiKeys = {
       gemini: updateData.apiKeys.gemini
         ? encrypt(updateData.apiKeys.gemini, config.encryption.key)
-        : '',
+        : existingCourse.apiKeys.gemini,
       llama: updateData.apiKeys.llama
         ? encrypt(updateData.apiKeys.llama, config.encryption.key)
-        : '',
+        : existingCourse.apiKeys.llama,
       chatgpt: updateData.apiKeys.chatgpt
         ? encrypt(updateData.apiKeys.chatgpt, config.encryption.key)
-        : '',
+        : existingCourse.apiKeys.chatgpt,
     };
   }
 

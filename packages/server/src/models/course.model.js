@@ -11,9 +11,13 @@ const courseSchema = new mongoose.Schema(
       type: String,
     },
     apiKeys: {
-      gemini: { type: String, required: false, private: true }, // ✅ Updated to support multiple API keys
-      llama: { type: String, required: false, private: true },
-      chatgpt: { type: String, required: false, private: true },
+      type: Object,
+      private: true,
+      properties: {
+        gemini: { type: String, required: false },
+        llama: { type: String, required: false },
+        chatgpt: { type: String, required: false },
+      },
     },
     llmConstraints: {
       type: [String],
@@ -34,6 +38,9 @@ const courseSchema = new mongoose.Schema(
     ],
     templates: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: [] },
+    ],
+    tutorialGroups: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'TutorialGroup', default: [] },
     ],
   },
   {

@@ -8,7 +8,7 @@ const router = express.Router();
 
 router
   .route(
-    '/:method(rag|multi-agent|combined|direct|gemini|llama3)/:courseId/:templateId',
+    '/:method(rag|multi-agent|combined|direct|gemini|llama3)/:courseId',
   )
   .post(
     auth('sendMessage'),
