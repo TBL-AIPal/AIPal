@@ -27,6 +27,7 @@ const ChatInput = ({
           />
           {/* Send Button */}
           <button
+            aria-label="Send"
             className='p-2 bg-blue-600 rounded-full hover:bg-blue-700 transition-transform disabled:opacity-50'
             onClick={handleSendMessage}
             disabled={loadingMessage}

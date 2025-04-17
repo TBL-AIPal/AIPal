@@ -5,6 +5,9 @@ import * as roomQueries from '@/lib/API/room/queries';
 import * as userQueries from '@/lib/API/user/queries';
 import * as messageAPI from '@/lib/API/message/mutations';
 
+process.env.NEXT_PUBLIC_SERVER_HOST = 'localhost';
+process.env.NEXT_PUBLIC_SERVER_PORT = '3001';
+
 jest.mock('@/lib/API/room/queries');
 jest.mock('@/lib/API/user/queries');
 jest.mock('@/lib/API/message/mutations');

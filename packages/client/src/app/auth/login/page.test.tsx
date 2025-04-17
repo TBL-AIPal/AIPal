@@ -15,19 +15,15 @@ describe('LoginPage', () => {
     mockedApiPost.mockReset();
     localStorage.clear();
 
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      writable: true,
-      value: new URL('http://localhost'),
-    });
+    // Mock window.location.href assignment
+    delete (window as any).location;
+    window.location = {
+      href: '',
+    } as any;
   });
 
   afterEach(() => {
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      writable: true,
-      value: originalLocation,
-    });
+    window.location = originalLocation;
   });
 
   it('logs in successfully and redirects for approved user', async () => {
