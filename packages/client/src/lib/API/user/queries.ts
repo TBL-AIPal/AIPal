@@ -2,7 +2,7 @@ import api from '@/lib/API/auth/interceptor';
 import { User } from '@/lib/types/user';
 import logger from '@/lib/utils/logger';
 
-export const GetUsers = async (page = 1, limit = 10): Promise<User[]> => {
+export const GetUsers = async (page = 1, limit = 100): Promise<User[]> => {
   try {
     const response = await api.get('/users', { params: { page, limit } });
     return response.data.results;
@@ -15,7 +15,7 @@ export const GetUsers = async (page = 1, limit = 10): Promise<User[]> => {
 export const GetUsersByCourseId = async (
   courseId: string,
   page = 1,
-  limit = 10,
+  limit = 100,
 ): Promise<User[]> => {
   try {
     const response = await api.get('/users', {
@@ -24,7 +24,9 @@ export const GetUsersByCourseId = async (
     return response.data.results;
   } catch (err) {
     logger(err, `Error fetching users for course ${courseId}`);
-    throw new Error('Failed to fetch users for this course. Please try again later.');
+    throw new Error(
+      'Failed to fetch users for this course. Please try again later.',
+    );
   }
 };
 
@@ -44,7 +46,9 @@ export const GetUsersByRole = async (role: string): Promise<User[]> => {
     return response.data.results;
   } catch (err) {
     logger(err, `Error fetching users with role ${role}`);
-    throw new Error('Failed to fetch users for this role. Please try again later.');
+    throw new Error(
+      'Failed to fetch users for this role. Please try again later.',
+    );
   }
 };
 
